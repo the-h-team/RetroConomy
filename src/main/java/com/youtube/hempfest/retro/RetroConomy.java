@@ -113,7 +113,7 @@ public final class RetroConomy extends JavaPlugin implements RetroAPI {
 			case SERVER_ACCOUNT:
 				config = serverDir;
 				for (World w : Bukkit.getWorlds()) {
-					config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + w + "." + accountId + ".balance", 0);
+					config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + w + "." + accountId + ".balance", "0.0");
 					config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + w + "." + accountId + ".owner", holder.getUniqueId().toString());
 					config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + w + "." + accountId + ".jointowner", holder.getUniqueId().toString());
 					config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + w + "." + accountId + ".members", array);
@@ -124,7 +124,7 @@ public final class RetroConomy extends JavaPlugin implements RetroAPI {
 			case ENTITY_ACCOUNT:
 				config = entityDir;
 				for (World w : Bukkit.getWorlds()) {
-					config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + w + "." + accountId + ".balance", 0);
+					config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + w + "." + accountId + ".balance", "0.0");
 					config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + w + "." + accountId + ".owner", holder.getUniqueId().toString());
 					config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + w + "." + accountId + ".jointowner", holder.getUniqueId().toString());
 					config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + w + "." + accountId + ".members", array);
@@ -135,7 +135,7 @@ public final class RetroConomy extends JavaPlugin implements RetroAPI {
 			case BANK_ACCOUNT:
 				config = bankDir;
 				for (World w : Bukkit.getWorlds()) {
-					config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + w + "." + accountId + ".balance", 0);
+					config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + w + "." + accountId + ".balance", "0.0");
 					config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + w + "." + accountId + ".owner", holder.getUniqueId().toString());
 					config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + w + "." + accountId + ".jointowner", holder.getUniqueId().toString());
 					config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + w + "." + accountId + ".members", array);
@@ -153,7 +153,7 @@ public final class RetroConomy extends JavaPlugin implements RetroAPI {
 		switch (type) {
 			case SERVER_ACCOUNT:
 				config = serverDir;
-				config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + world + "." + accountId + ".balance", 0);
+				config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + world + "." + accountId + ".balance", "0.0");
 				config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + world + "." + accountId + ".owner", holder.getUniqueId().toString());
 				config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + world + "." + accountId + ".jointowner", holder.getUniqueId().toString());
 				config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + world + "." + accountId + ".members", array);
@@ -161,7 +161,7 @@ public final class RetroConomy extends JavaPlugin implements RetroAPI {
 				break;
 			case ENTITY_ACCOUNT:
 				config = entityDir;
-				config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + world + "." + accountId + ".balance", 0);
+				config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + world + "." + accountId + ".balance", "0.0");
 				config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + world + "." + accountId + ".owner", holder.getUniqueId().toString());
 				config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + world + "." + accountId + ".jointowner", holder.getUniqueId().toString());
 				config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + world + "." + accountId + ".members", array);
@@ -169,7 +169,7 @@ public final class RetroConomy extends JavaPlugin implements RetroAPI {
 				break;
 			case BANK_ACCOUNT:
 				config = bankDir;
-				config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + world + "." + accountId + ".balance", 0);
+				config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + world + "." + accountId + ".balance", "0.0");
 				config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + world + "." + accountId + ".owner", holder.getUniqueId().toString());
 				config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + world + "." + accountId + ".jointowner", holder.getUniqueId().toString());
 				config.getConfig().set("Index." + holder.getUniqueId().toString() + ".accounts." + world + "." + accountId + ".members", array);
@@ -347,9 +347,8 @@ public final class RetroConomy extends JavaPlugin implements RetroAPI {
 	}
 
 	@Override
-	public boolean accountHas(FundingSource type, String accountId, BigDecimal amount) {
+	public boolean accountExists(FundingSource type, String accountId) {
 		Config config = null;
-		boolean result = false;
 		switch (type) {
 			case SERVER_ACCOUNT:
 				config = serverDir;
@@ -367,71 +366,16 @@ public final class RetroConomy extends JavaPlugin implements RetroAPI {
 		for (String ent : config.getConfig().getConfigurationSection("Index").getKeys(false)) {
 			for (String world : config.getConfig().getConfigurationSection("Index." + ent + ".accounts").getKeys(false)) {
 				if (config.getConfig().getConfigurationSection("Index." + ent + ".accounts." + world).getKeys(false).contains(accountId)) {
-					result = BigDecimal.valueOf(config.getConfig().getDouble("Index." + ent + ".accounts." + world + "." + accountId + ".balance")).doubleValue() >= amount.doubleValue();
-					break;
+					return true;
 				}
 			}
 		}
-		return result;
-	}
-
-	@Override
-	public boolean accountHas(FundingSource type, String accountId, String world, BigDecimal amount) {
-		Config config = null;
-		boolean result = false;
-		switch (type) {
-			case SERVER_ACCOUNT:
-				config = serverDir;
-				break;
-			case ENTITY_ACCOUNT:
-				config = entityDir;
-				break;
-			case BANK_ACCOUNT:
-				config = bankDir;
-				break;
-		}
-		if (!config.exists() || config.getConfig().getConfigurationSection("Index").getKeys(false).isEmpty()) {
-			return false;
-		}
-		for (String ent : config.getConfig().getConfigurationSection("Index").getKeys(false)) {
-			if (config.getConfig().getConfigurationSection("Index." + ent + ".accounts." + world).getKeys(false).contains(accountId)) {
-				result = BigDecimal.valueOf(config.getConfig().getDouble("Index." + ent + ".accounts." + world + "." + accountId + ".balance")).doubleValue() >= amount.doubleValue();
-				break;
-			}
-		}
-		return result;
-	}
-
-	@Override
-	public boolean accountExists(FundingSource type, String accountId) {
-		Config config = null;
-		boolean result = false;
-		switch (type) {
-			case SERVER_ACCOUNT:
-				config = serverDir;
-				break;
-			case ENTITY_ACCOUNT:
-				config = entityDir;
-				break;
-			case BANK_ACCOUNT:
-				config = bankDir;
-				break;
-		}
-		if (!config.exists() || config.getConfig().getConfigurationSection("Index").getKeys(false).isEmpty()) {
-			return false;
-		}
-		for (String ent : config.getConfig().getConfigurationSection("Index").getKeys(false)) {
-			for (String world : config.getConfig().getConfigurationSection("Index." + ent + ".accounts").getKeys(false)) {
-				result = config.getConfig().getConfigurationSection("Index." + ent + ".accounts." + world).getKeys(false).contains(accountId);
-			}
-		}
-		return result;
+		return false;
 	}
 
 	@Override
 	public boolean accountExists(FundingSource type, String accountId, String world) {
 		Config config = null;
-		boolean result = false;
 		switch (type) {
 			case SERVER_ACCOUNT:
 				config = null;
@@ -453,62 +397,11 @@ public final class RetroConomy extends JavaPlugin implements RetroAPI {
 			return false;
 		}
 		for (String ent : config.getConfig().getConfigurationSection("Index").getKeys(false)) {
-			result = config.getConfig().getConfigurationSection("Index." + ent + ".accounts." + world).getKeys(false).contains(accountId);
-		}
-		return result;
-	}
-
-	@Override
-	public void depositAccount(FundingSource type, String accountId, BigDecimal amount) {
-
-		Config config = null;
-		switch (type) {
-
-			case SERVER_ACCOUNT:
-				config = serverDir;
-				break;
-			case ENTITY_ACCOUNT:
-				config = entityDir;
-				break;
-			case BANK_ACCOUNT:
-				config = bankDir;
-				break;
-		}
-		for (String ent : config.getConfig().getConfigurationSection("Index").getKeys(false)) {
-			for (String world : config.getConfig().getConfigurationSection("Index." + ent + ".accounts").getKeys(false)) {
-				if (config.getConfig().getConfigurationSection("Index." + ent + ".accounts." + world).getKeys(false).contains(accountId)) {
-					config.getConfig().set("Index." + ent + ".accounts." + world + "." + accountId + ".balance", (getAccountBalance(type, accountId).doubleValue() + amount.doubleValue()));
-					break;
-				}
-			}
-		}
-		config.saveConfig();
-	}
-
-	@Override
-	public void depositAccount(FundingSource type, String accountId, String world, BigDecimal amount) {
-
-		Config config = null;
-		switch (type) {
-
-			case SERVER_ACCOUNT:
-				config = serverDir;
-				break;
-			case ENTITY_ACCOUNT:
-				config = entityDir;
-				break;
-			case BANK_ACCOUNT:
-				config = bankDir;
-				break;
-		}
-		for (String ent : config.getConfig().getConfigurationSection("Index").getKeys(false)) {
 			if (config.getConfig().getConfigurationSection("Index." + ent + ".accounts." + world).getKeys(false).contains(accountId)) {
-				config.getConfig().set("Index." + ent + ".accounts." + world + "." + accountId + ".balance", (getAccountBalance(type, accountId).doubleValue() + amount.doubleValue()));
-				break;
+				return true;
 			}
 		}
-		config.saveConfig();
-
+		return false;
 	}
 
 	@Override
@@ -529,7 +422,7 @@ public final class RetroConomy extends JavaPlugin implements RetroAPI {
 		for (String ent : config.getConfig().getConfigurationSection("Index").getKeys(false)) {
 			for (String world : config.getConfig().getConfigurationSection("Index." + ent + ".accounts").getKeys(false)) {
 				if (config.getConfig().getConfigurationSection("Index." + ent + ".accounts." + world).getKeys(false).contains(accountId)) {
-					config.getConfig().set("Index." + ent + ".accounts." + world + "." + accountId + ".balance", amount.doubleValue());
+					config.getConfig().set("Index." + ent + ".accounts." + world + "." + accountId + ".balance", amount.toString());
 					break;
 				}
 			}
@@ -554,59 +447,7 @@ public final class RetroConomy extends JavaPlugin implements RetroAPI {
 		}
 		for (String ent : config.getConfig().getConfigurationSection("Index").getKeys(false)) {
 			if (config.getConfig().getConfigurationSection("Index." + ent + ".accounts." + world).getKeys(false).contains(accountId)) {
-				config.getConfig().set("Index." + ent + ".accounts." + world + "." + accountId + ".balance", amount.doubleValue());
-				break;
-			}
-		}
-		config.saveConfig();
-	}
-
-	@Override
-	public void withdrawAccount(FundingSource type, String accountId, BigDecimal amount) {
-
-		Config config = null;
-		switch (type) {
-
-			case SERVER_ACCOUNT:
-				config = serverDir;
-				break;
-			case ENTITY_ACCOUNT:
-				config = entityDir;
-				break;
-			case BANK_ACCOUNT:
-				config = bankDir;
-				break;
-		}
-		for (String ent : config.getConfig().getConfigurationSection("Index").getKeys(false)) {
-			for (String world : config.getConfig().getConfigurationSection("Index." + ent + ".accounts").getKeys(false)) {
-				if (config.getConfig().getConfigurationSection("Index." + ent + ".accounts." + world).getKeys(false).contains(accountId)) {
-					config.getConfig().set("Index." + ent + ".accounts." + world + "." + accountId + ".balance", (getAccountBalance(type, accountId).doubleValue() - amount.doubleValue()));
-					break;
-				}
-			}
-		}
-		config.saveConfig();
-	}
-
-	@Override
-	public void withdrawAccount(FundingSource type, String accountId, String world, BigDecimal amount) {
-
-		Config config = null;
-		switch (type) {
-
-			case SERVER_ACCOUNT:
-				config = serverDir;
-				break;
-			case ENTITY_ACCOUNT:
-				config = entityDir;
-				break;
-			case BANK_ACCOUNT:
-				config = bankDir;
-				break;
-		}
-		for (String ent : config.getConfig().getConfigurationSection("Index").getKeys(false)) {
-			if (config.getConfig().getConfigurationSection("Index." + ent + ".accounts." + world).getKeys(false).contains(accountId)) {
-				config.getConfig().set("Index." + ent + ".accounts." + world + "." + accountId + ".balance", (getAccountBalance(type, accountId).doubleValue() - amount.doubleValue()));
+				config.getConfig().set("Index." + ent + ".accounts." + world + "." + accountId + ".balance", amount.toString());
 				break;
 			}
 		}
@@ -617,7 +458,6 @@ public final class RetroConomy extends JavaPlugin implements RetroAPI {
 	public BigDecimal getAccountBalance(FundingSource type, String accountId) {
 
 		Config config = null;
-		BigDecimal result = null;
 		switch (type) {
 
 			case SERVER_ACCOUNT:
@@ -632,18 +472,17 @@ public final class RetroConomy extends JavaPlugin implements RetroAPI {
 		}
 		for (String ent : config.getConfig().getConfigurationSection("Index").getKeys(false)) {
 			for (String world : config.getConfig().getConfigurationSection("Index." + ent + ".accounts").getKeys(false)) {
-				result = BigDecimal.valueOf(config.getConfig().getDouble("Index." + ent + ".accounts." + world + "." + accountId + ".balance"));
-				break;
+//				result = BigDecimal.valueOf(config.getConfig().getDouble("Index." + ent + ".accounts." + world + "." + accountId + ".balance"));
+				return parseConfigNum(config, "Index." + ent + ".accounts." + world + "." + accountId + ".balance");
 			}
 		}
-		return result;
+		return null;
 	}
 
 	@Override
 	public BigDecimal getAccountBalance(FundingSource type, String accountId, String world) {
 
 		Config config = null;
-		BigDecimal result = null;
 		switch (type) {
 
 			case SERVER_ACCOUNT:
@@ -657,102 +496,10 @@ public final class RetroConomy extends JavaPlugin implements RetroAPI {
 				break;
 		}
 		for (String ent : config.getConfig().getConfigurationSection("Index").getKeys(false)) {
-			result = BigDecimal.valueOf(config.getConfig().getDouble("Index." + ent + ".accounts." + world + "." + accountId + ".balance"));
-			break;
+//			result = BigDecimal.valueOf(config.getConfig().getDouble("Index." + ent + ".accounts." + world + "." + accountId + ".balance"));
+			return parseConfigNum(config, "Index." + ent + ".accounts." + world + "." + accountId + ".balance");
 		}
-		return result;
-	}
-
-	@Override
-	public void depositWallet(String name, BigDecimal amount) {
-
-	}
-
-	@Override
-	public void depositWallet(String name, String world, BigDecimal amount) {
-
-	}
-
-	@Override
-	public void withdrawWallet(String name, BigDecimal amount) {
-
-	}
-
-	@Override
-	public void withdrawWallet(String name, String world, BigDecimal amount) {
-
-	}
-
-	@Override
-	public void depositWallet(UUID uuid, BigDecimal amount) {
-		Config config = walletDir;
-		double current = config.getConfig().getDouble("Index." + uuid.toString() + "." + Bukkit.getWorlds().get(0).getName() + ".balance");
-		double result = current + amount.doubleValue();
-		config.getConfig().set("Index." + uuid.toString() + "." + Bukkit.getWorlds().get(0).getName() + ".balance", result);
-		config.saveConfig();
-	}
-
-	@Override
-	public void depositWallet(UUID uuid, String world, BigDecimal amount) {
-		Config config = walletDir;
-		double current = config.getConfig().getDouble("Index." + uuid.toString() + "." + world + ".balance");
-		double result = current + amount.doubleValue();
-		config.getConfig().set("Index." + uuid.toString() + "." + world + ".balance", result);
-		config.saveConfig();
-	}
-
-	@Override
-	public void withdrawWallet(UUID uuid, BigDecimal amount) {
-		Config config = walletDir;
-		double current = config.getConfig().getDouble("Index." + uuid.toString() + "." + Bukkit.getWorlds().get(0).getName() + ".balance");
-		double result = current - amount.doubleValue();
-		config.getConfig().set("Index." + uuid.toString() + "." + Bukkit.getWorlds().get(0).getName() + ".balance", result);
-		config.saveConfig();
-	}
-
-	@Override
-	public void withdrawWallet(UUID uuid, String world, BigDecimal amount) {
-		Config config = walletDir;
-		double current = config.getConfig().getDouble("Index." + uuid.toString() + "." + world + ".balance");
-		double result = current - amount.doubleValue();
-		config.getConfig().set("Index." + uuid.toString() + "." + world + ".balance", result);
-		config.saveConfig();
-	}
-
-	@Override
-	public void depositWallet(OfflinePlayer offlinePlayer, BigDecimal amount) {
-		Config config = walletDir;
-		double current = config.getConfig().getDouble("Index." + offlinePlayer.getUniqueId().toString() + "." + Bukkit.getWorlds().get(0).getName() + ".balance");
-		double result = current + amount.doubleValue();
-		config.getConfig().set("Index." + offlinePlayer.getUniqueId().toString() + "." + Bukkit.getWorlds().get(0).getName() + ".balance", result);
-		config.saveConfig();
-	}
-
-	@Override
-	public void depositWallet(OfflinePlayer offlinePlayer, String world, BigDecimal amount) {
-		Config config = walletDir;
-		double current = config.getConfig().getDouble("Index." + offlinePlayer.getUniqueId().toString() + "." + world + ".balance");
-		double result = current + amount.doubleValue();
-		config.getConfig().set("Index." + offlinePlayer.getUniqueId().toString() + "." + world + ".balance", result);
-		config.saveConfig();
-	}
-
-	@Override
-	public void withdrawWallet(OfflinePlayer offlinePlayer, BigDecimal amount) {
-		Config config = walletDir;
-		double current = config.getConfig().getDouble("Index." + offlinePlayer.getUniqueId().toString() + "." + Bukkit.getWorlds().get(0).getName() + ".balance");
-		double result = current - amount.doubleValue();
-		config.getConfig().set("Index." + offlinePlayer.getUniqueId().toString() + "." + Bukkit.getWorlds().get(0).getName() + ".balance", result);
-		config.saveConfig();
-	}
-
-	@Override
-	public void withdrawWallet(OfflinePlayer offlinePlayer, String world, BigDecimal amount) {
-		Config config = walletDir;
-		double current = config.getConfig().getDouble("Index." + offlinePlayer.getUniqueId().toString() + "." + world + ".balance");
-		double result = current - amount.doubleValue();
-		config.getConfig().set("Index." + offlinePlayer.getUniqueId().toString() + "." + world + ".balance", result);
-		config.saveConfig();
+		return null;
 	}
 
 	@Override
@@ -767,72 +514,26 @@ public final class RetroConomy extends JavaPlugin implements RetroAPI {
 
 	@Override
 	public void walletSetBalance(UUID uuid, BigDecimal amount) {
-		Config config = walletDir;
-		config.getConfig().set("Index." + uuid.toString() + "." + Bukkit.getWorlds().get(0).getName() + ".balance", amount.doubleValue());
-		config.saveConfig();
+		walletDir.getConfig().set("Index." + uuid.toString() + "." + Bukkit.getWorlds().get(0).getName() + ".balance", amount.doubleValue());
+		walletDir.saveConfig();
 	}
 
 	@Override
 	public void walletSetBalance(UUID uuid, String world, BigDecimal amount) {
-		Config config = walletDir;
-		config.getConfig().set("Index." + uuid.toString() + "." + Bukkit.getWorlds().get(0).getName() + ".balance", amount.doubleValue());
-		config.saveConfig();
+		walletDir.getConfig().set("Index." + uuid.toString() + "." + Bukkit.getWorlds().get(0).getName() + ".balance", amount.doubleValue());
+		walletDir.saveConfig();
 	}
 
 	@Override
 	public void walletSetBalance(OfflinePlayer offlinePlayer, BigDecimal amount) {
-		Config config = walletDir;
-		config.getConfig().set("Index." + offlinePlayer.getUniqueId().toString() + "." + Bukkit.getWorlds().get(0).getName() + ".balance", amount.doubleValue());
-		config.saveConfig();
+		walletDir.getConfig().set("Index." + offlinePlayer.getUniqueId().toString() + "." + Bukkit.getWorlds().get(0).getName() + ".balance", amount.doubleValue());
+		walletDir.saveConfig();
 	}
 
 	@Override
 	public void walletSetBalance(OfflinePlayer offlinePlayer, String world, BigDecimal amount) {
-		Config config = walletDir;
-		config.getConfig().set("Index." + offlinePlayer.getUniqueId().toString() + "." + world + ".balance", amount.doubleValue());
-		config.saveConfig();
-	}
-
-	@Override
-	public boolean walletHas(String name, BigDecimal amount) {
-		return false;
-	}
-
-	@Override
-	public boolean walletHas(String name, String world, BigDecimal amount) {
-		return false;
-	}
-
-	@Override
-	public boolean walletHas(UUID uuid, BigDecimal amount) {
-		Config config = walletDir;
-		double current = config.getConfig().getDouble("Index." + uuid.toString() + "." + Bukkit.getWorlds().get(0).getName() + ".balance");
-		double result = current - amount.doubleValue();
-		return !String.valueOf(result).contains("-");
-	}
-
-	@Override
-	public boolean walletHas(UUID uuid, String world, BigDecimal amount) {
-		Config config = walletDir;
-		double current = config.getConfig().getDouble("Index." + uuid.toString() + "." + world + ".balance");
-		double result = current - amount.doubleValue();
-		return !String.valueOf(result).contains("-");
-	}
-
-	@Override
-	public boolean walletHas(OfflinePlayer offlinePlayer, BigDecimal amount) {
-		Config config = walletDir;
-		double current = config.getConfig().getDouble("Index." + offlinePlayer.getUniqueId().toString() + "." + Bukkit.getWorlds().get(0).getName() + ".balance");
-		double result = current - amount.doubleValue();
-		return !String.valueOf(result).contains("-");
-	}
-
-	@Override
-	public boolean walletHas(OfflinePlayer offlinePlayer, String world, BigDecimal amount) {
-		Config config = walletDir;
-		double current = config.getConfig().getDouble("Index." + offlinePlayer.getUniqueId().toString() + "." + world + ".balance");
-		double result = current - amount.doubleValue();
-		return !String.valueOf(result).contains("-");
+		walletDir.getConfig().set("Index." + offlinePlayer.getUniqueId().toString() + "." + world + ".balance", amount.doubleValue());
+		walletDir.saveConfig();
 	}
 
 	@Override
@@ -847,31 +548,32 @@ public final class RetroConomy extends JavaPlugin implements RetroAPI {
 
 	@Override
 	public BigDecimal getWalletBalance(UUID uuid) {
-		Config config = walletDir;
-		double current = config.getConfig().getDouble("Index." + uuid.toString() + "." + Bukkit.getWorlds().get(0).getName() + ".balance");
-		return BigDecimal.valueOf(current);
+		return parseConfigNum(walletDir, "Index." + uuid.toString() + "." + Bukkit.getWorlds().get(0).getName() + ".balance");
 	}
 
 	@Override
 	public BigDecimal getWalletBalance(UUID uuid, String world) {
-		Config config = walletDir;
-		double current = config.getConfig().getDouble("Index." + uuid.toString() + "." + world + ".balance");
-		return BigDecimal.valueOf(current);
+		return parseConfigNum(walletDir, "Index." + uuid.toString() + "." + world + ".balance");
 	}
 
 	@Override
 	public BigDecimal getWalletBalance(OfflinePlayer offlinePlayer) {
-		Config config = walletDir;
-		double current = config.getConfig().getDouble("Index." + offlinePlayer.getUniqueId().toString() + "." + Bukkit.getWorlds().get(0).getName() + ".balance");
-		return BigDecimal.valueOf(current);
+		return parseConfigNum(walletDir, "Index." + offlinePlayer.getUniqueId().toString() + "." + Bukkit.getWorlds().get(0).getName() + ".balance");
 	}
 
 	@Override
 	public BigDecimal getWalletBalance(OfflinePlayer offlinePlayer, String world) {
-		Config config = walletDir;
-		double current = config.getConfig().getDouble("Index." + offlinePlayer.getUniqueId().toString() + "." + world + ".balance");
-		return BigDecimal.valueOf(current);
+		return parseConfigNum(walletDir, "Index." + offlinePlayer.getUniqueId().toString() + "." + world + ".balance");
 	}
 
+	private BigDecimal parseConfigNum(Config config, String path) {
+		final String string = config.getConfig().getString(path);
+		try {
+			//noinspection ConstantConditions
+			return new BigDecimal(string);
+		} catch (NumberFormatException | NullPointerException e) {
+			throw new IllegalArgumentException("Config path '" + path + "' is not a valid BigDecimal! Input: " + string);
+		}
+	}
 
 }
