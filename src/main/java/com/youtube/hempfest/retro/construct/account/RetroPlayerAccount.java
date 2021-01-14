@@ -4,6 +4,9 @@ import com.youtube.hempfest.economy.construct.EconomyAction;
 import com.youtube.hempfest.economy.construct.account.PlayerAccount;
 import com.youtube.hempfest.economy.construct.account.permissive.AccountType;
 import com.youtube.hempfest.economy.construct.entity.EconomyEntity;
+import com.youtube.hempfest.retro.RetroConomy;
+import com.youtube.hempfest.retro.construct.api.RetroAPI;
+import com.youtube.hempfest.retro.data.Config;
 import org.bukkit.OfflinePlayer;
 
 import java.math.BigDecimal;
@@ -11,12 +14,39 @@ import java.util.UUID;
 
 public class RetroPlayerAccount extends PlayerAccount {
     private String accountId;
+    private Config config;
     public final UUID playerUid;
 
     public RetroPlayerAccount(String accountId, AccountType accountType, OfflinePlayer holder, EconomyEntity... members) {
         super(accountType, holder, members);
         this.accountId = accountId;
         this.playerUid = holder.getUniqueId();
+        switch (accountType) {
+            case SERVER_ACCOUNT:
+                config = RetroConomy.getInstance().serverDir;
+                if (accountId == null || accountId.isEmpty()) {
+                    this.accountId = RetroAPI.getInstance().getAccountID(FundingSource.SERVER_ACCOUNT, playerUid);
+                } else {
+                    this.accountId = accountId;
+                }
+                break;
+            case ENTITY_ACCOUNT:
+                config = RetroConomy.getInstance().entityDir;
+                if (accountId == null || accountId.isEmpty()) {
+                    this.accountId = RetroAPI.getInstance().getAccountID(FundingSource.ENTITY_ACCOUNT, playerUid);
+                } else {
+                    this.accountId = accountId;
+                }
+                break;
+            case BANK_ACCOUNT:
+                config = RetroConomy.getInstance().bankDir;
+                if (accountId == null || accountId.isEmpty()) {
+                    this.accountId = RetroAPI.getInstance().getAccountID(FundingSource.BANK_ACCOUNT, playerUid);
+                } else {
+                    this.accountId = accountId;
+                }
+                break;
+        }
     }
 
     /* TODO: Convert this logic to work in this object
