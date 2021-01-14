@@ -6,24 +6,24 @@ import com.youtube.hempfest.economy.construct.account.Account;
 import com.youtube.hempfest.economy.construct.account.Wallet;
 import com.youtube.hempfest.economy.construct.account.permissive.AccountType;
 import com.youtube.hempfest.economy.construct.currency.normal.EconomyCurrency;
-import com.youtube.hempfest.economy.construct.entity.types.PlayerEntity;
-import com.youtube.hempfest.economy.construct.entity.types.TemporaryPlayerEntity;
 import com.youtube.hempfest.economy.construct.implement.AdvancedEconomy;
 import com.youtube.hempfest.hempcore.library.HUID;
 import com.youtube.hempfest.retro.RetroConomy;
 import com.youtube.hempfest.retro.construct.account.FundingSource;
 import com.youtube.hempfest.retro.construct.account.RetroAccount;
+import com.youtube.hempfest.retro.construct.account.RetroPlayerAccount;
 import com.youtube.hempfest.retro.construct.api.RetroAPI;
-import com.youtube.hempfest.retro.construct.entity.RetroPlayer;
 import com.youtube.hempfest.retro.construct.entity.ServerEntity;
-import com.youtube.hempfest.retro.construct.wallet.RetroWallet;
+import com.youtube.hempfest.retro.construct.wallet.RetroPlayerWallet;
+import com.youtube.hempfest.retro.construct.wallet.RetroServerWallet;
 import com.youtube.hempfest.retro.data.Config;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.plugin.Plugin;
@@ -174,47 +174,60 @@ public class Economy implements AdvancedEconomy {
 
 	@Override
 	public Account getAccount(OfflinePlayer player, AccountType type) {
-		return new RetroAccount("", type, new PlayerEntity(player));
+		return new RetroPlayerAccount("", type, player);
 	}
 
 	@Override
 	public Account getAccount(OfflinePlayer player) {
-		return new RetroAccount("", AccountType.BANK_ACCOUNT, new PlayerEntity(player));
+		return new RetroPlayerAccount("", AccountType.BANK_ACCOUNT, player);
 	}
 
 	@Override
 	public Account getAccount(String accountId, OfflinePlayer player) {
-		return new RetroAccount(accountId, AccountType.BANK_ACCOUNT, new PlayerEntity(player));
+		return new RetroPlayerAccount(accountId, AccountType.BANK_ACCOUNT, player);
 	}
 
 	@Override
 	public Account getAccount(UUID uuid) {
-		return new RetroAccount("", AccountType.BANK_ACCOUNT, new PlayerEntity(Bukkit.getOfflinePlayer(uuid)));
+		// This has a good chance to blow up if we pass a non-player UUID
+		//return new RetroAccount("", AccountType.BANK_ACCOUNT, new PlayerEntity(Bukkit.getOfflinePlayer(uuid)));
+		// suggestion
+		final Optional<OfflinePlayer> optionalPlayer = getOfflinePlayerByUUID(uuid);
+		if (!optionalPlayer.isPresent()) throw new IllegalStateException("Invalid Player Uid!");
+		return new RetroPlayerAccount("", AccountType.BANK_ACCOUNT, optionalPlayer.get());
 	}
 
 	@Override
 	public Account getAccount(UUID uuid, AccountType type) {
-		return new RetroAccount("", type, new PlayerEntity(Bukkit.getOfflinePlayer(uuid)));
+		//return new RetroAccount("", type, new PlayerEntity(Bukkit.getOfflinePlayer(uuid)));
+		final Optional<OfflinePlayer> optionalPlayer = getOfflinePlayerByUUID(uuid);
+		if (!optionalPlayer.isPresent()) throw new IllegalStateException("Invalid Player Uid!");
+		return new RetroPlayerAccount("", type, optionalPlayer.get());
 	}
 
 	@Override
 	public Account getAccount(String accountId, UUID uuid) {
-		return new RetroAccount(accountId, AccountType.BANK_ACCOUNT, new PlayerEntity(Bukkit.getOfflinePlayer(uuid)));
+		//return new RetroAccount(accountId, AccountType.BANK_ACCOUNT, new PlayerEntity(Bukkit.getOfflinePlayer(uuid)));
+		final Optional<OfflinePlayer> optionalPlayer = getOfflinePlayerByUUID(uuid);
+		if (!optionalPlayer.isPresent()) throw new IllegalStateException("Invalid Player Uid!");
+		return new RetroPlayerAccount(accountId, AccountType.BANK_ACCOUNT, optionalPlayer.get());
 	}
 
 	@Override
 	public Wallet getWallet(String name) {
-		return new RetroWallet(new ServerEntity(name));
+		return new RetroServerWallet(new ServerEntity(name));
 	}
 
 	@Override
 	public Wallet getWallet(OfflinePlayer player) {
-		return new RetroWallet(new RetroPlayer(player));
+		return new RetroPlayerWallet(player);
 	}
 
 	@Override
-	public Wallet getWallet(UUID uuid) {
-		return new RetroWallet(new RetroPlayer(Bukkit.getOfflinePlayer(uuid)));
+	public Wallet getWallet(UUID uuid) { // TODO: Decide handling when UUID not of player
+		final Optional<OfflinePlayer> optionalPlayer = getOfflinePlayerByUUID(uuid);
+		if (!optionalPlayer.isPresent()) throw new IllegalStateException("Invalid Player Uid!");
+		return new RetroPlayerWallet(optionalPlayer.get());
 	}
 
 	@Override
@@ -497,5 +510,15 @@ public class Economy implements AdvancedEconomy {
 	@Override
 	public List<String> getAccountList() {
 		return null;
+	}
+
+	private static Optional<OfflinePlayer> getOfflinePlayerByUUID(UUID uuid) {
+		final OfflinePlayer[] offlinePlayers = Bukkit.getOfflinePlayers();
+		return Optional.ofNullable(CompletableFuture.supplyAsync(() -> {
+			for (OfflinePlayer offlinePlayer : offlinePlayers) {
+				if (offlinePlayer.getUniqueId().equals(uuid)) return offlinePlayer;
+			}
+			return null;
+		}).join());
 	}
 }

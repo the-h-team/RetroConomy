@@ -4,36 +4,24 @@ import com.youtube.hempfest.economy.construct.EconomyAction;
 import com.youtube.hempfest.economy.construct.account.Account;
 import com.youtube.hempfest.economy.construct.account.permissive.AccountType;
 import com.youtube.hempfest.economy.construct.entity.EconomyEntity;
-import com.youtube.hempfest.economy.construct.entity.types.PlayerEntity;
 import com.youtube.hempfest.retro.RetroConomy;
 import com.youtube.hempfest.retro.construct.api.RetroAPI;
 import com.youtube.hempfest.retro.data.Config;
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import org.bukkit.OfflinePlayer;
 
 public class RetroAccount extends Account {
 
-	private final AccountType type;
-
-	private final EconomyEntity holder;
-
-	private PlayerEntity player;
+	// note inherited fields `holder` (from Balance) `members` and `accountType` (from Account)
 
 	private String accountId;
-
-	private final List<EconomyEntity> members;
 
 	private Config config;
 
 	public RetroAccount(String accountId, AccountType accountType, EconomyEntity holder, EconomyEntity... members) {
 		super(accountType, holder, members);
-		this.type = accountType;
-		this.holder = holder;
-		this.members = Arrays.asList(members);
 		switch (accountType) {
 			case SERVER_ACCOUNT:
 				config = RetroConomy.getInstance().serverDir;
@@ -46,40 +34,6 @@ public class RetroAccount extends Account {
 				break;
 		}
 		this.accountId = accountId;
-	}
-
-	public RetroAccount(String accountId, AccountType accountType, PlayerEntity holder, EconomyEntity... members) {
-		super(accountType, holder, members);
-		this.type = accountType;
-		this.holder = holder;
-		this.player = holder;
-		this.members = Arrays.asList(members);
-		switch (accountType) {
-			case SERVER_ACCOUNT:
-				config = RetroConomy.getInstance().serverDir;
-				if (accountId == null || accountId.isEmpty()) {
-					this.accountId = RetroAPI.getInstance().getAccountID(FundingSource.SERVER_ACCOUNT, UUID.fromString(holder.id()));
-				} else {
-					this.accountId = accountId;
-				}
-				break;
-			case ENTITY_ACCOUNT:
-				config = RetroConomy.getInstance().entityDir;
-				if (accountId == null || accountId.isEmpty()) {
-					this.accountId = RetroAPI.getInstance().getAccountID(FundingSource.ENTITY_ACCOUNT, UUID.fromString(holder.id()));
-				} else {
-					this.accountId = accountId;
-				}
-				break;
-			case BANK_ACCOUNT:
-				config = RetroConomy.getInstance().bankDir;
-				if (accountId == null || accountId.isEmpty()) {
-					this.accountId = RetroAPI.getInstance().getAccountID(FundingSource.BANK_ACCOUNT, UUID.fromString(holder.id()));
-				} else {
-					this.accountId = accountId;
-				}
-				break;
-		}
 	}
 
 	@Override
@@ -118,7 +72,7 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isOwner(OfflinePlayer player) {
 		EconomyAction action = new EconomyAction(holder, false, "Something went wrong. Information unavailable.");
-		switch (type) {
+		switch (accountType) {
 
 			case BANK_ACCOUNT:
 				break;
@@ -133,7 +87,7 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isOwner(OfflinePlayer player, String world) {
 		EconomyAction action = new EconomyAction(holder, false, "Something went wrong. Information unavailable.");
-		switch (type) {
+		switch (accountType) {
 
 			case BANK_ACCOUNT:
 				break;
@@ -148,7 +102,7 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isOwner(UUID uuid) {
 		EconomyAction action = new EconomyAction(holder, false, "Something went wrong. Information unavailable.");
-		switch (type) {
+		switch (accountType) {
 
 			case BANK_ACCOUNT:
 				break;
@@ -163,7 +117,7 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isOwner(UUID uuid, String world) {
 		EconomyAction action = new EconomyAction(holder, false, "Something went wrong. Information unavailable.");
-		switch (type) {
+		switch (accountType) {
 
 			case BANK_ACCOUNT:
 				break;
@@ -178,7 +132,7 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isJointOwner(String name) {
 		EconomyAction action = new EconomyAction(holder, false, "Something went wrong. Information unavailable.");
-		switch (type) {
+		switch (accountType) {
 
 			case BANK_ACCOUNT:
 				break;
@@ -193,7 +147,7 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isJointOwner(String name, String world) {
 		EconomyAction action = new EconomyAction(holder, false, "Something went wrong. Information unavailable.");
-		switch (type) {
+		switch (accountType) {
 
 			case BANK_ACCOUNT:
 				break;
@@ -208,7 +162,7 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isJointOwner(OfflinePlayer player) {
 		EconomyAction action = new EconomyAction(holder, false, "Something went wrong. Information unavailable.");
-		switch (type) {
+		switch (accountType) {
 
 			case BANK_ACCOUNT:
 				break;
@@ -223,7 +177,7 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isJointOwner(OfflinePlayer player, String world) {
 		EconomyAction action = new EconomyAction(holder, false, "Something went wrong. Information unavailable.");
-		switch (type) {
+		switch (accountType) {
 
 			case BANK_ACCOUNT:
 				break;
@@ -238,7 +192,7 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isJointOwner(UUID uuid) {
 		EconomyAction action = new EconomyAction(holder, false, "Something went wrong. Information unavailable.");
-		switch (type) {
+		switch (accountType) {
 
 			case BANK_ACCOUNT:
 				break;
@@ -253,7 +207,7 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isJointOwner(UUID uuid, String world) {
 		EconomyAction action = new EconomyAction(holder, false, "Something went wrong. Information unavailable.");
-		switch (type) {
+		switch (accountType) {
 
 			case BANK_ACCOUNT:
 				break;
@@ -268,7 +222,7 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isMember(String name) {
 		EconomyAction action = new EconomyAction(holder, false, "Something went wrong. Information unavailable.");
-		switch (type) {
+		switch (accountType) {
 
 			case BANK_ACCOUNT:
 				break;
@@ -283,7 +237,7 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isMember(String name, String world) {
 		EconomyAction action = new EconomyAction(holder, false, "Something went wrong. Information unavailable.");
-		switch (type) {
+		switch (accountType) {
 
 			case BANK_ACCOUNT:
 				break;
@@ -298,7 +252,7 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isMember(OfflinePlayer player) {
 		EconomyAction action = new EconomyAction(holder, false, "Something went wrong. Information unavailable.");
-		switch (type) {
+		switch (accountType) {
 			case BANK_ACCOUNT:
 				action = new EconomyAction(holder, RetroAPI.getInstance().isAccountMember(FundingSource.BANK_ACCOUNT, accountId, player), RetroAPI.getInstance().isAccountMember(FundingSource.BANK_ACCOUNT, accountId, player) ? "The given player has member access" : "The given player has no access.");
 				break;
@@ -315,7 +269,7 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isMember(OfflinePlayer player, String world) {
 		EconomyAction action = new EconomyAction(holder, false, "Something went wrong. Information unavailable.");
-		switch (type) {
+		switch (accountType) {
 			case BANK_ACCOUNT:
 				action = new EconomyAction(holder, RetroAPI.getInstance().isAccountMember(FundingSource.BANK_ACCOUNT, accountId, world, player), RetroAPI.getInstance().isAccountMember(FundingSource.BANK_ACCOUNT, accountId, world, player) ? "The given player has member access" : "The given player has no access.");
 				break;
@@ -332,7 +286,7 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isMember(UUID uuid) {
 		EconomyAction action = new EconomyAction(holder, false, "Something went wrong. Information unavailable.");
-		switch (type) {
+		switch (accountType) {
 			case BANK_ACCOUNT:
 				action = new EconomyAction(holder, RetroAPI.getInstance().isAccountMember(FundingSource.BANK_ACCOUNT, accountId, uuid), RetroAPI.getInstance().isAccountMember(FundingSource.BANK_ACCOUNT, accountId, uuid) ? "The given holder has member access" : "The given holder has no access.");
 				break;
@@ -349,7 +303,7 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isMember(UUID uuid, String world) {
 		EconomyAction action = new EconomyAction(holder, false, "Something went wrong. Information unavailable.");
-		switch (type) {
+		switch (accountType) {
 			case BANK_ACCOUNT:
 				action = new EconomyAction(holder, RetroAPI.getInstance().isAccountMember(FundingSource.BANK_ACCOUNT, accountId, world, uuid), RetroAPI.getInstance().isAccountMember(FundingSource.BANK_ACCOUNT, accountId, world, uuid) ? "The given holder has member access" : "The given holder has no access.");
 				break;
@@ -437,7 +391,7 @@ public class RetroAccount extends Account {
 
 	@Override
 	public void setBalance(BigDecimal amount) {
-		switch (type) {
+		switch (accountType) {
 
 			case BANK_ACCOUNT:
 				RetroAPI.getInstance().setAccountBalance(FundingSource.BANK_ACCOUNT, accountId, amount);
@@ -453,7 +407,7 @@ public class RetroAccount extends Account {
 
 	@Override
 	public void setBalance(BigDecimal amount, String world) {
-		switch (type) {
+		switch (accountType) {
 
 			case BANK_ACCOUNT:
 				RetroAPI.getInstance().setAccountBalance(FundingSource.BANK_ACCOUNT, accountId, world, amount);
@@ -470,7 +424,7 @@ public class RetroAccount extends Account {
 	@Override
 	public boolean exists() {
 		boolean result = false;
-		switch (type) {
+		switch (accountType) {
 			case BANK_ACCOUNT:
 				result = RetroAPI.getInstance().accountExists(FundingSource.BANK_ACCOUNT, accountId);
 				break;
@@ -487,7 +441,7 @@ public class RetroAccount extends Account {
 	@Override
 	public boolean exists(String world) {
 		boolean result = false;
-		switch (type) {
+		switch (accountType) {
 
 			case BANK_ACCOUNT:
 				result = RetroAPI.getInstance().accountExists(FundingSource.BANK_ACCOUNT, accountId, world);
@@ -505,7 +459,7 @@ public class RetroAccount extends Account {
 	@Override
 	public BigDecimal getBalance() {
 		BigDecimal result = null;
-		switch (type) {
+		switch (accountType) {
 			case BANK_ACCOUNT:
 				result = RetroAPI.getInstance().getAccountBalance(FundingSource.BANK_ACCOUNT, accountId);
 				break;
@@ -522,7 +476,7 @@ public class RetroAccount extends Account {
 	@Override
 	public BigDecimal getBalance(String world) {
 		BigDecimal result = null;
-		switch (type) {
+		switch (accountType) {
 			case BANK_ACCOUNT:
 				result = RetroAPI.getInstance().getAccountBalance(FundingSource.BANK_ACCOUNT, accountId, world);
 				break;
@@ -539,7 +493,7 @@ public class RetroAccount extends Account {
 	@Override
 	public boolean has(BigDecimal amount) {
 		boolean result = false;
-		switch (type) {
+		switch (accountType) {
 			case BANK_ACCOUNT:
 				result = RetroAPI.getInstance().accountHas(FundingSource.BANK_ACCOUNT, accountId, amount);
 				break;
@@ -556,7 +510,7 @@ public class RetroAccount extends Account {
 	@Override
 	public boolean has(BigDecimal amount, String world) {
 		boolean result = false;
-		switch (type) {
+		switch (accountType) {
 			case BANK_ACCOUNT:
 				result = RetroAPI.getInstance().accountHas(FundingSource.BANK_ACCOUNT, accountId, world, amount);
 				break;
@@ -573,7 +527,7 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction deposit(BigDecimal amount) {
 		EconomyAction action = new EconomyAction(holder, false, "Something went wrong. Information unavailable.");
-		switch (type) {
+		switch (accountType) {
 			case BANK_ACCOUNT:
 				RetroAPI.getInstance().depositAccount(FundingSource.BANK_ACCOUNT, accountId, amount);
 				action = new EconomyAction(amount, holder, true, "Successfully updated " + holder.friendlyName() + " balance to " + amount.doubleValue());
@@ -593,7 +547,7 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction deposit(BigDecimal amount, String world) {
 		EconomyAction action = new EconomyAction(holder, false, "Something went wrong. Information unavailable.");
-		switch (type) {
+		switch (accountType) {
 			case BANK_ACCOUNT:
 				RetroAPI.getInstance().depositAccount(FundingSource.BANK_ACCOUNT, accountId, world, amount);
 				action = new EconomyAction(amount, holder, true, "Successfully updated " + holder.friendlyName() + " balance to " + amount.doubleValue());
@@ -614,7 +568,7 @@ public class RetroAccount extends Account {
 	public EconomyAction withdraw(BigDecimal amount) {
 		EconomyAction action = new EconomyAction(holder, false, "Something went wrong. Information unavailable.");
 		RetroAPI api = RetroAPI.getInstance();
-		switch (type) {
+		switch (accountType) {
 
 			case BANK_ACCOUNT:
 				if (api.accountExists(FundingSource.BANK_ACCOUNT, accountId)) {
@@ -654,7 +608,7 @@ public class RetroAccount extends Account {
 	public EconomyAction withdraw(BigDecimal amount, String world) {
 		EconomyAction action = new EconomyAction(holder, false, "Something went wrong. Information unavailable.");
 		RetroAPI api = RetroAPI.getInstance();
-		switch (type) {
+		switch (accountType) {
 
 			case BANK_ACCOUNT:
 				if (api.accountExists(FundingSource.BANK_ACCOUNT, accountId, world)) {
