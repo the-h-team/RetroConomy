@@ -1,0 +1,9 @@
+name: RetroConomy
+version: 1.0.0
+main: com.youtube.hempfest.retro.RetroConomy
+api-version: 1.13
+depend: [ Hemponomics, HempCore ]
+authors: [ Hempfest, ms5984 ]
+description: An advanced economy provider utilizing Hemponomic operations.
+loadbefore:
+  - ClansPro
