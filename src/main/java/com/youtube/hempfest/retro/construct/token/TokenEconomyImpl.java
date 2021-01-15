@@ -89,32 +89,32 @@ public class TokenEconomyImpl implements TokenEconomy {
 
     @Override
     public boolean hasAccount(String s) {
-        return false;
+        return getAccount(s).exists();
     }
 
     @Override
     public boolean hasAccount(String s, String s1) {
-        return false;
+        return getAccount(s).exists(s1);
     }
 
     @Override
     public boolean hasAccount(OfflinePlayer offlinePlayer) {
-        return false;
+        return getAccount(offlinePlayer).exists();
     }
 
     @Override
     public boolean hasAccount(OfflinePlayer offlinePlayer, String s) {
-        return false;
+        return getAccount(offlinePlayer).exists(s);
     }
 
     @Override
     public boolean hasAccount(UUID uuid) {
-        return false;
+        return TokenAccount.getTokenAccount(uuid).map(Balance::exists).orElse(false);
     }
 
     @Override
     public boolean hasAccount(UUID uuid, String s) {
-        return false;
+        return TokenAccount.getTokenAccount(uuid).map(account -> account.exists(s)).orElse(false);
     }
 
     @Override
