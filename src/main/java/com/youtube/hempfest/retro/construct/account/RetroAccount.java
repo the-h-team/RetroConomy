@@ -7,7 +7,6 @@ import com.youtube.hempfest.economy.construct.entity.EconomyEntity;
 import com.youtube.hempfest.retro.RetroConomy;
 import com.youtube.hempfest.retro.construct.ActionUtil;
 import com.youtube.hempfest.retro.construct.api.RetroAPI;
-import com.youtube.hempfest.retro.data.Config;
 import java.math.BigDecimal;
 import java.util.UUID;
 import org.bukkit.OfflinePlayer;
@@ -18,21 +17,8 @@ public class RetroAccount extends Account {
 
 	private String accountId;
 
-	private Config config;
-
 	public RetroAccount(String accountId, AccountType accountType, EconomyEntity holder, EconomyEntity... members) {
 		super(accountType, holder, members);
-		switch (accountType) {
-			case SERVER_ACCOUNT:
-				config = RetroConomy.getInstance().serverDir;
-				break;
-			case ENTITY_ACCOUNT:
-				config = RetroConomy.getInstance().entityDir;
-				break;
-			case BANK_ACCOUNT:
-				config = RetroConomy.getInstance().bankDir;
-				break;
-		}
 		this.accountId = accountId;
 	}
 
@@ -55,7 +41,7 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isOwner(String name) {
 		if (name.equals(RetroConomy.getInstance().getName())) {
-			return new EconomyAction(holder, true, "Server account accessed.");
+			return ActionUtil.serverAccountAccess(holder);
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
@@ -63,7 +49,7 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isOwner(String name, String world) {
 		if (name.equals(RetroConomy.getInstance().getName())) {
-			return new EconomyAction(holder, true, "Server account accessed.");
+			return ActionUtil.serverAccountAccess(holder);
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
@@ -71,13 +57,10 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isOwner(OfflinePlayer player) {
 		switch (accountType) {
-
 			case BANK_ACCOUNT:
-				break;
 			case ENTITY_ACCOUNT:
-				break;
 			case SERVER_ACCOUNT:
-				break;
+				return ActionUtil.owner(holder, RetroAPI.getInstance().isAccountOwner(convertAccountType(accountType), accountId, player));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
@@ -85,13 +68,10 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isOwner(OfflinePlayer player, String world) {
 		switch (accountType) {
-
 			case BANK_ACCOUNT:
-				break;
 			case ENTITY_ACCOUNT:
-				break;
 			case SERVER_ACCOUNT:
-				break;
+				return ActionUtil.owner(holder, RetroAPI.getInstance().isAccountOwner(convertAccountType(accountType), accountId, world, player));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
@@ -99,13 +79,10 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isOwner(UUID uuid) {
 		switch (accountType) {
-
 			case BANK_ACCOUNT:
-				break;
 			case ENTITY_ACCOUNT:
-				break;
 			case SERVER_ACCOUNT:
-				break;
+				return ActionUtil.owner(holder, RetroAPI.getInstance().isAccountOwner(convertAccountType(accountType), accountId, uuid));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
@@ -113,13 +90,10 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isOwner(UUID uuid, String world) {
 		switch (accountType) {
-
 			case BANK_ACCOUNT:
-				break;
 			case ENTITY_ACCOUNT:
-				break;
 			case SERVER_ACCOUNT:
-				break;
+				return ActionUtil.owner(holder, RetroAPI.getInstance().isAccountOwner(convertAccountType(accountType), accountId, world, uuid));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
@@ -127,13 +101,10 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isJointOwner(String name) {
 		switch (accountType) {
-
 			case BANK_ACCOUNT:
-				break;
 			case ENTITY_ACCOUNT:
-				break;
 			case SERVER_ACCOUNT:
-				break;
+				return ActionUtil.jointOwner(holder, RetroAPI.getInstance().isAccountJointOwner(convertAccountType(accountType), accountId, name));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
@@ -141,13 +112,10 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isJointOwner(String name, String world) {
 		switch (accountType) {
-
 			case BANK_ACCOUNT:
-				break;
 			case ENTITY_ACCOUNT:
-				break;
 			case SERVER_ACCOUNT:
-				break;
+				return ActionUtil.jointOwner(holder, RetroAPI.getInstance().isAccountJointOwner(convertAccountType(accountType), accountId, world, name));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
@@ -155,13 +123,10 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isJointOwner(OfflinePlayer player) {
 		switch (accountType) {
-
 			case BANK_ACCOUNT:
-				break;
 			case ENTITY_ACCOUNT:
-				break;
 			case SERVER_ACCOUNT:
-				break;
+				return ActionUtil.jointOwner(holder, RetroAPI.getInstance().isAccountJointOwner(convertAccountType(accountType), accountId, player));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
@@ -169,13 +134,10 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isJointOwner(OfflinePlayer player, String world) {
 		switch (accountType) {
-
 			case BANK_ACCOUNT:
-				break;
 			case ENTITY_ACCOUNT:
-				break;
 			case SERVER_ACCOUNT:
-				break;
+				return ActionUtil.jointOwner(holder, RetroAPI.getInstance().isAccountJointOwner(convertAccountType(accountType), accountId, world, player));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
@@ -183,13 +145,10 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isJointOwner(UUID uuid) {
 		switch (accountType) {
-
 			case BANK_ACCOUNT:
-				break;
 			case ENTITY_ACCOUNT:
-				break;
 			case SERVER_ACCOUNT:
-				break;
+				return ActionUtil.jointOwner(holder, RetroAPI.getInstance().isAccountJointOwner(convertAccountType(accountType), accountId, uuid));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
@@ -197,13 +156,10 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isJointOwner(UUID uuid, String world) {
 		switch (accountType) {
-
 			case BANK_ACCOUNT:
-				break;
 			case ENTITY_ACCOUNT:
-				break;
 			case SERVER_ACCOUNT:
-				break;
+				return ActionUtil.jointOwner(holder, RetroAPI.getInstance().isAccountJointOwner(convertAccountType(accountType), accountId, world, uuid));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
@@ -211,13 +167,10 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isMember(String name) {
 		switch (accountType) {
-
 			case BANK_ACCOUNT:
-				break;
 			case ENTITY_ACCOUNT:
-				break;
 			case SERVER_ACCOUNT:
-				break;
+				return ActionUtil.memberAccess(holder, RetroAPI.getInstance().isAccountMember(convertAccountType(accountType), accountId, name));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
@@ -225,43 +178,32 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction isMember(String name, String world) {
 		switch (accountType) {
-
 			case BANK_ACCOUNT:
-				break;
 			case ENTITY_ACCOUNT:
-				break;
 			case SERVER_ACCOUNT:
-				break;
+				return ActionUtil.memberAccess(holder, RetroAPI.getInstance().isAccountMember(convertAccountType(accountType), accountId, world, name));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
 
 	@Override
 	public EconomyAction isMember(OfflinePlayer player) {
-		EconomyAction action = new EconomyAction(holder, false, "Something went wrong. Information unavailable.");
 		switch (accountType) {
 			case BANK_ACCOUNT:
-				action = new EconomyAction(holder, RetroAPI.getInstance().isAccountMember(FundingSource.BANK_ACCOUNT, accountId, player), RetroAPI.getInstance().isAccountMember(FundingSource.BANK_ACCOUNT, accountId, player) ? "The given player has member access" : "The given player has no access.");
-				break;
 			case ENTITY_ACCOUNT:
-				action = new EconomyAction(holder, RetroAPI.getInstance().isAccountMember(FundingSource.ENTITY_ACCOUNT, accountId, player), RetroAPI.getInstance().isAccountMember(FundingSource.ENTITY_ACCOUNT, accountId, player) ? "The given player has member access" : "The given player has no access.");
-				break;
 			case SERVER_ACCOUNT:
-				action = new EconomyAction(holder, RetroAPI.getInstance().isAccountMember(FundingSource.SERVER_ACCOUNT, accountId, player), RetroAPI.getInstance().isAccountMember(FundingSource.SERVER_ACCOUNT, accountId, player) ? "The given player has member access" : "The given player has no access.");
-				break;
+				return ActionUtil.memberAccess(holder, RetroAPI.getInstance().isAccountMember(convertAccountType(accountType), accountId, player));
 		}
-		return action;
+		return ActionUtil.unsuccessful(holder);
 	}
 
 	@Override
 	public EconomyAction isMember(OfflinePlayer player, String world) {
 		switch (accountType) {
 			case BANK_ACCOUNT:
-				return new EconomyAction(holder, RetroAPI.getInstance().isAccountMember(FundingSource.BANK_ACCOUNT, accountId, world, player), RetroAPI.getInstance().isAccountMember(FundingSource.BANK_ACCOUNT, accountId, world, player) ? "The given player has member access" : "The given player has no access.");
 			case ENTITY_ACCOUNT:
-				return new EconomyAction(holder, RetroAPI.getInstance().isAccountMember(FundingSource.ENTITY_ACCOUNT, accountId, world, player), RetroAPI.getInstance().isAccountMember(FundingSource.ENTITY_ACCOUNT, accountId, world, player) ? "The given player has member access" : "The given player has no access.");
 			case SERVER_ACCOUNT:
-				return new EconomyAction(holder, RetroAPI.getInstance().isAccountMember(FundingSource.SERVER_ACCOUNT, accountId, world, player), RetroAPI.getInstance().isAccountMember(FundingSource.SERVER_ACCOUNT, accountId, world, player) ? "The given player has member access" : "The given player has no access.");
+				return ActionUtil.memberAccess(holder, RetroAPI.getInstance().isAccountMember(convertAccountType(accountType), accountId, world, player));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
@@ -270,11 +212,9 @@ public class RetroAccount extends Account {
 	public EconomyAction isMember(UUID uuid) {
 		switch (accountType) {
 			case BANK_ACCOUNT:
-				return new EconomyAction(holder, RetroAPI.getInstance().isAccountMember(FundingSource.BANK_ACCOUNT, accountId, uuid), RetroAPI.getInstance().isAccountMember(FundingSource.BANK_ACCOUNT, accountId, uuid) ? "The given holder has member access" : "The given holder has no access.");
 			case ENTITY_ACCOUNT:
-				return new EconomyAction(holder, RetroAPI.getInstance().isAccountMember(FundingSource.ENTITY_ACCOUNT, accountId, uuid), RetroAPI.getInstance().isAccountMember(FundingSource.ENTITY_ACCOUNT, accountId, uuid) ? "The given holder has member access" : "The given holder has no access.");
 			case SERVER_ACCOUNT:
-				return new EconomyAction(holder, RetroAPI.getInstance().isAccountMember(FundingSource.SERVER_ACCOUNT, accountId, uuid), RetroAPI.getInstance().isAccountMember(FundingSource.SERVER_ACCOUNT, accountId, uuid) ? "The given holder has member access" : "The given holder has no access.");
+				return ActionUtil.memberAccess(holder, RetroAPI.getInstance().isAccountMember(FundingSource.SERVER_ACCOUNT, accountId, uuid));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
@@ -283,11 +223,9 @@ public class RetroAccount extends Account {
 	public EconomyAction isMember(UUID uuid, String world) {
 		switch (accountType) {
 			case BANK_ACCOUNT:
-				return new EconomyAction(holder, RetroAPI.getInstance().isAccountMember(FundingSource.BANK_ACCOUNT, accountId, world, uuid), RetroAPI.getInstance().isAccountMember(FundingSource.BANK_ACCOUNT, accountId, world, uuid) ? "The given holder has member access" : "The given holder has no access.");
 			case ENTITY_ACCOUNT:
-				return new EconomyAction(holder, RetroAPI.getInstance().isAccountMember(FundingSource.ENTITY_ACCOUNT, accountId, world, uuid), RetroAPI.getInstance().isAccountMember(FundingSource.ENTITY_ACCOUNT, accountId, world, uuid) ? "The given holder has member access" : "The given holder has no access.");
 			case SERVER_ACCOUNT:
-				return new EconomyAction(holder, RetroAPI.getInstance().isAccountMember(FundingSource.SERVER_ACCOUNT, accountId, world, uuid), RetroAPI.getInstance().isAccountMember(FundingSource.SERVER_ACCOUNT, accountId, world, uuid) ? "The given holder has member access" : "The given holder has no access.");
+				return ActionUtil.memberAccess(holder, RetroAPI.getInstance().isAccountMember(FundingSource.BANK_ACCOUNT, accountId, world, uuid));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
@@ -571,5 +509,18 @@ public class RetroAccount extends Account {
 				break;
 		}
 		return ActionUtil.unsuccessful(holder);
+	}
+
+	public static FundingSource convertAccountType(AccountType accountType) {
+		switch (accountType) {
+			case BANK_ACCOUNT:
+				return FundingSource.BANK_ACCOUNT;
+			case ENTITY_ACCOUNT:
+				return FundingSource.ENTITY_ACCOUNT;
+			case SERVER_ACCOUNT:
+				return FundingSource.SERVER_ACCOUNT;
+			default:
+				throw new IllegalStateException("Unexpected value: " + accountType);
+		}
 	}
 }

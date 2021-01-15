@@ -9,13 +9,30 @@ public class ActionUtil {
     public static EconomyAction unsuccessful(EconomyEntity holder) {
         return new EconomyAction(holder, false, "Something went wrong. Information unavailable.");
     }
+
     public static EconomyAction notEnoughMoney(EconomyEntity holder) {
         return new EconomyAction(holder, false, "Not enough money.");
     }
+
     public static EconomyAction depositedAccount(EconomyEntity holder, BigDecimal amount, String accountId) {
         return new EconomyAction(amount, holder, true, "Successfully updated " + holder.friendlyName() + " balance to " + amount.doubleValue());
     }
     public static EconomyAction withdrewAccount(EconomyEntity holder, BigDecimal amount, String accountId) {
         return new EconomyAction(holder, true, "Withdrew " + amount.doubleValue() + " from account " + accountId);
+    }
+
+    public static EconomyAction serverAccountAccess(EconomyEntity holder) {
+        return new EconomyAction(holder, true, "Server account accessed.");
+    }
+
+    public static EconomyAction memberAccess(EconomyEntity holder, boolean isMember) {
+        return new EconomyAction(holder, isMember, isMember ? "The given player has member access" : "The given player has no access.");
+    }
+
+    public static EconomyAction owner(EconomyEntity holder, boolean isOwner) {
+        return new EconomyAction(holder, isOwner, holder.friendlyName() + " is" + (isOwner ? " not" : "") + " the account owner.");
+    }
+    public static EconomyAction jointOwner(EconomyEntity holder, boolean isJointOwner) {
+        return new EconomyAction(holder, isJointOwner, holder.friendlyName() + " is" + (isJointOwner ? " not" : "") + " a joint account owner.");
     }
 }
