@@ -23,6 +23,8 @@ public class EventListener implements Listener {
 		}
 		if (!RetroConomy.getTokenEconomy().hasWallet(p)) {
 			RetroConomy.getTokenEconomy().getWallet(p).setBalance(new BigDecimal("420"));
+		} else {
+			System.out.println("Player " + p.getName() + " has " + RetroConomy.getTokenEconomy().getWallet(p).getBalance());
 		}
 	}
 
