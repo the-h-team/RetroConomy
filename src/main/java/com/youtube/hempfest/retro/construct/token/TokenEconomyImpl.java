@@ -19,7 +19,7 @@ import java.util.*;
 
 public class TokenEconomyImpl implements TokenEconomy {
     private final Plugin plugin;
-    private final String mainWorldName;
+    protected final String mainWorldName;
     private final Map<String, TokenCurrency> currencies = new HashMap<>();
     protected final Config wallets = Config.get("Wallets", "Token");
     protected final Config accounts = Config.get("Accounts", "Token");

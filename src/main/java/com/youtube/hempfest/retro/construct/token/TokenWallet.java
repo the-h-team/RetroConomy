@@ -4,9 +4,12 @@ import com.youtube.hempfest.economy.construct.EconomyAction;
 import com.youtube.hempfest.economy.construct.account.Wallet;
 import com.youtube.hempfest.economy.construct.entity.EconomyEntity;
 import com.youtube.hempfest.economy.construct.entity.types.PlayerEntity;
+import com.youtube.hempfest.retro.RetroConomy;
 import com.youtube.hempfest.retro.construct.entity.ServerEntity;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigDecimal;
@@ -21,42 +24,79 @@ public class TokenWallet extends Wallet {
 
     @Override
     public void setBalance(BigDecimal amount) {
-
     }
 
     @Override
     public void setBalance(BigDecimal amount, String world) {
-
     }
 
     @Override
     public boolean exists() {
+        final FileConfiguration config = RetroConomy.getTokenEconomy().wallets.getConfig();
+        final ConfigurationSection wallets = config.getConfigurationSection("Wallets");
+        if (wallets != null) {
+            final String id = holder.id();
+            for (String key : wallets.getKeys(false)) {
+                if (key.equals(id)) return true;
+            }
+        }
         return false;
     }
 
     @Override
     public boolean exists(String world) {
+        final FileConfiguration config = RetroConomy.getTokenEconomy().wallets.getConfig();
+        final ConfigurationSection wallets = config.getConfigurationSection("Wallets");
+        if (wallets != null) {
+            final String id = holder.id();
+            for (String key : wallets.getKeys(false)) {
+                if (key.equals(id)) {
+                    final ConfigurationSection holderSection = config.getConfigurationSection("Wallets." + key);
+                    if (holderSection != null) {
+                        return holderSection.get(world) != null;
+                    }
+                }
+            }
+        }
         return false;
     }
 
     @Override
     public @Nullable BigDecimal getBalance() {
-        return null;
+        return getBalance(RetroConomy.getTokenEconomy().mainWorldName);
     }
 
     @Override
     public @Nullable BigDecimal getBalance(String world) {
+        final FileConfiguration config = RetroConomy.getTokenEconomy().wallets.getConfig();
+        final ConfigurationSection wallets = config.getConfigurationSection("Wallets");
+        if (wallets != null) {
+            final String id = holder.id();
+            for (String key : wallets.getKeys(false)) {
+                if (key.equals(id)) {
+                    final ConfigurationSection holderSection = config.getConfigurationSection("Wallets." + key);
+                    if (holderSection != null) {
+                        final String string = holderSection.getString(world);
+                        try {
+                            return (string != null) ? new BigDecimal(string) : null;
+                        } catch (NumberFormatException e) {
+                            System.out.println("Unable to parse token wallet balance for " + id + " in world " + world);;
+                        }
+                    }
+                }
+            }
+        }
         return null;
     }
 
     @Override
     public boolean has(BigDecimal amount) {
-        return false;
+        return Optional.ofNullable(getBalance()).map(balance -> balance.compareTo(amount) >= 0).orElse(false);
     }
 
     @Override
     public boolean has(BigDecimal amount, String world) {
-        return false;
+        return Optional.ofNullable(getBalance(world)).map(balance -> balance.compareTo(amount) >= 0).orElse(false);
     }
 
     @Override
