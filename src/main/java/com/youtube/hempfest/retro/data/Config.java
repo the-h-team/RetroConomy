@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -19,25 +20,27 @@ public class Config {
     private File file;
     private static final List<Config> configs = new ArrayList<>();
 
-    public Config(final String n, final String d) {
+    private Config(final String n, final String d) {
         this.n = n;
         this.d = d;
         configs.add(this);
     }
 
     public static void copy(InputStream in, File file) {
-        try {
-            OutputStream out = new FileOutputStream(file);
-            byte[] buf = new byte[1024];
-            int len;
-            while((len=in.read(buf))>0){
-                out.write(buf,0,len);
+        CompletableFuture.runAsync(() -> {
+            try {
+                OutputStream out = new FileOutputStream(file);
+                byte[] buf = new byte[1024];
+                int len;
+                while((len=in.read(buf))>0){
+                    out.write(buf,0,len);
+                }
+                out.close();
+                in.close();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            out.close();
-            in.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        }).join();
     }
 
     public String getName() {
@@ -80,20 +83,22 @@ public class Config {
     public File getFile() {
         if(this.file == null) {
             this.file = new File(this.getDataFolder(), this.getName() + ".yml"); //create method get data folder
-            if(!this.file.exists()) {
-                try {
-                    this.file.createNewFile();
-                }catch(final IOException e) {
-                    e.printStackTrace();
+            CompletableFuture.runAsync(() -> {
+                if(!this.file.exists()) {
+                    try {
+                        this.file.createNewFile();
+                    }catch(final IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-            }
+            });
         }
         return this.file;
     }
 
     public FileConfiguration getConfig() {
         if(this.fc == null) {
-            this.fc = YamlConfiguration.loadConfiguration(this.getFile());
+            CompletableFuture.runAsync(() -> this.fc = YamlConfiguration.loadConfiguration(this.getFile())).join();
         }
         return this.fc;
     }
@@ -133,27 +138,31 @@ public class Config {
         SERVER, ENTITY, BANK
     }
 
-    public void reload() {
-        this.file = new File(getDataFolder(), getName() + ".yml");
-        if (!this.file.exists())
+    public synchronized void reload() { // fork io but still wait for it on main thread; sync object access
+        CompletableFuture.runAsync(() -> {
+            this.file = new File(getDataFolder(), getName() + ".yml");
+            if (!this.file.exists())
+                try {
+                    this.file.createNewFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            this.fc = YamlConfiguration.loadConfiguration(this.file);
+            File defConfigStream = new File(getDataFolder(), getName() + ".yml");
+            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
+            this.fc.setDefaults(defConfig);
+            configs.removeIf(c -> c.getName().equals(n));
+        }).join();
+    }
+
+    public synchronized void saveConfig() { // fork io but still wait for it on main thread; sync object access
+        CompletableFuture.runAsync(() -> {
             try {
-                this.file.createNewFile();
+                this.getConfig().save(this.getFile());
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        this.fc = YamlConfiguration.loadConfiguration(this.file);
-        File defConfigStream = new File(getDataFolder(), getName() + ".yml");
-        YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
-        this.fc.setDefaults(defConfig);
-        configs.removeIf(c -> c.getName().equals(n));
-    }
-
-    public void saveConfig() {
-        try {
-            this.getConfig().save(this.getFile());
-        } catch (final IOException e) {
-            e.printStackTrace();
-        }
+        }).join();
     }
 
     @Override
