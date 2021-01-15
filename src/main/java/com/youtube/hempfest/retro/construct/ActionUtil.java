@@ -15,10 +15,10 @@ public class ActionUtil {
     }
 
     public static EconomyAction depositedAccount(EconomyEntity holder, BigDecimal amount, String accountId) {
-        return new EconomyAction(amount, holder, true, "Successfully updated " + holder.friendlyName() + " balance to " + amount.doubleValue());
+        return new EconomyAction(amount, holder, true, amount + " deposited to account " + accountId);
     }
     public static EconomyAction withdrewAccount(EconomyEntity holder, BigDecimal amount, String accountId) {
-        return new EconomyAction(holder, true, "Withdrew " + amount.doubleValue() + " from account " + accountId);
+        return new EconomyAction(amount, holder, true, amount + " withdrawn from account " + accountId);
     }
 
     public static EconomyAction serverAccountAccess(EconomyEntity holder) {
@@ -37,15 +37,15 @@ public class ActionUtil {
     }
 
     public static EconomyAction depositedWallet(EconomyEntity holder, BigDecimal amount) {
-        return new EconomyAction(amount, holder, true, "Deposited " + amount + " to " + holder.friendlyName() + " Wallet");
+        return new EconomyAction(amount, holder, true, amount + " deposited to Wallet");
     }
     public static EconomyAction withdrewWallet(EconomyEntity holder, BigDecimal amount) {
-        return new EconomyAction(holder, true, "Withdrew " + amount + " from " + holder.friendlyName() + " Wallet");
+        return new EconomyAction(amount, holder, true, amount + " withdrawn from Wallet");
     }
     public static EconomyAction depositedWallet(EconomyEntity holder, BigDecimal amount, String world) {
-        return new EconomyAction(amount, holder, true, "Deposited " + amount + " to " + holder.friendlyName() + " Wallet in world " + world);
+        return new EconomyAction(amount, holder, true, amount + " deposited to Wallet in world " + world);
     }
     public static EconomyAction withdrewWallet(EconomyEntity holder, BigDecimal amount, String world) {
-        return new EconomyAction(holder, true, "Withdrew " + amount + " from " + holder.friendlyName() + " Wallet in world " + world);
+        return new EconomyAction(amount, holder, true, amount + " withdrawn from Wallet in world " + world);
     }
 }
