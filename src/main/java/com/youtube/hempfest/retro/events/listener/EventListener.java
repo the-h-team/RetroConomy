@@ -21,6 +21,9 @@ public class EventListener implements Listener {
 		if (!RetroConomy.getInstance().walletDir.getConfig().isConfigurationSection("Index." + p.getUniqueId().toString())) {
 			RetroAPI.getInstance().walletSetBalance(p, p.getWorld().getName(), BigDecimal.ZERO);
 		}
+		if (!RetroConomy.getTokenEconomy().hasWallet(p)) {
+			RetroConomy.getTokenEconomy().getWallet(p).setBalance(new BigDecimal("420"));
+		}
 	}
 
 	@EventHandler

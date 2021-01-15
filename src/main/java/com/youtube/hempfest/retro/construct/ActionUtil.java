@@ -35,4 +35,17 @@ public class ActionUtil {
     public static EconomyAction jointOwner(EconomyEntity holder, boolean isJointOwner) {
         return new EconomyAction(holder, isJointOwner, holder.friendlyName() + " is" + (isJointOwner ? " not" : "") + " a joint account owner.");
     }
+
+    public static EconomyAction depositedWallet(EconomyEntity holder, BigDecimal amount) {
+        return new EconomyAction(amount, holder, true, "Deposited " + amount + " to " + holder.friendlyName() + " Wallet");
+    }
+    public static EconomyAction withdrewWallet(EconomyEntity holder, BigDecimal amount) {
+        return new EconomyAction(holder, true, "Withdrew " + amount + " from " + holder.friendlyName() + " Wallet");
+    }
+    public static EconomyAction depositedWallet(EconomyEntity holder, BigDecimal amount, String world) {
+        return new EconomyAction(amount, holder, true, "Deposited " + amount + " to " + holder.friendlyName() + " Wallet in world " + world);
+    }
+    public static EconomyAction withdrewWallet(EconomyEntity holder, BigDecimal amount, String world) {
+        return new EconomyAction(holder, true, "Withdrew " + amount + " from " + holder.friendlyName() + " Wallet in world " + world);
+    }
 }

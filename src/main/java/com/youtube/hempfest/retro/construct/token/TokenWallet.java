@@ -5,11 +5,13 @@ import com.youtube.hempfest.economy.construct.account.Wallet;
 import com.youtube.hempfest.economy.construct.entity.EconomyEntity;
 import com.youtube.hempfest.economy.construct.entity.types.PlayerEntity;
 import com.youtube.hempfest.retro.RetroConomy;
+import com.youtube.hempfest.retro.construct.ActionUtil;
 import com.youtube.hempfest.retro.construct.entity.ServerEntity;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigDecimal;
@@ -24,10 +26,24 @@ public class TokenWallet extends Wallet {
 
     @Override
     public void setBalance(BigDecimal amount) {
+        setBalance(amount, RetroConomy.getTokenEconomy().mainWorldName);
     }
 
     @Override
     public void setBalance(BigDecimal amount, String world) {
+        final FileConfiguration config = RetroConomy.getTokenEconomy().wallets.getConfig();
+        ConfigurationSection wallets = config.getConfigurationSection("Wallets");
+        if (wallets == null) {
+            wallets = config.createSection("Wallets");
+        }
+        final String id = holder.id();
+        wallets.set(id + "." + world, amount.toString());
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                RetroConomy.getTokenEconomy().wallets.saveConfig();
+            }
+        }.runTask(RetroConomy.getInstance()); // just schedule sync task, file io already async
     }
 
     @Override
@@ -101,22 +117,44 @@ public class TokenWallet extends Wallet {
 
     @Override
     public EconomyAction withdraw(BigDecimal amount) {
-        return null;
+        final BigDecimal balance = getBalance();
+        return Optional.ofNullable(balance).map(bigDecimal -> bigDecimal.compareTo(amount) >= 0).map(has -> {
+            if (has) {
+                setBalance(balance.subtract(amount));
+                return ActionUtil.withdrewWallet(holder, amount);
+            }
+            return ActionUtil.notEnoughMoney(holder);
+        }).orElse(ActionUtil.unsuccessful(holder));
     }
 
     @Override
     public EconomyAction withdraw(BigDecimal amount, String world) {
-        return null;
+        final BigDecimal worldBalance = getBalance(world);
+        return Optional.ofNullable(worldBalance).map(bigDecimal -> bigDecimal.compareTo(amount) >= 0).map(has -> {
+            if (has) {
+                setBalance(worldBalance.subtract(amount), world);
+                return ActionUtil.withdrewWallet(holder, amount, world);
+            }
+            return ActionUtil.notEnoughMoney(holder);
+        }).orElse(ActionUtil.unsuccessful(holder));
     }
 
     @Override
     public EconomyAction deposit(BigDecimal amount) {
-        return null;
+        final BigDecimal balance = getBalance();
+        return Optional.ofNullable(balance).map(original -> {
+            setBalance(original.add(amount));
+            return ActionUtil.depositedWallet(holder, amount);
+        }).orElse(ActionUtil.unsuccessful(holder));
     }
 
     @Override
     public EconomyAction deposit(BigDecimal amount, String world) {
-        return null;
+        final BigDecimal worldBalance = getBalance(world);
+        return Optional.ofNullable(worldBalance).map(original -> {
+            setBalance(original.add(amount), world);
+            return ActionUtil.depositedWallet(holder, amount, world);
+        }).orElse(ActionUtil.unsuccessful(holder));
     }
 
     public static Wallet getTokenWallet(String s) {
