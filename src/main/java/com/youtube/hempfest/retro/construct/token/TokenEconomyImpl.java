@@ -21,15 +21,13 @@ public class TokenEconomyImpl implements TokenEconomy {
     private final Plugin plugin;
     private final String mainWorldName;
     private final Map<String, TokenCurrency> currencies = new HashMap<>();
-    private final Config wallets;
-    private final Config accounts;
+    protected final Config wallets = Config.get("Wallets", "Token");
+    protected final Config accounts = Config.get("Accounts", "Token");
 
     public TokenEconomyImpl(RetroConomy plugin) {
         this.plugin = plugin;
         this.mainWorldName = plugin.getServer().getWorlds().get(0).getName();
         initializeCurrencies(this);
-        this.wallets = Config.get("Wallets", "Token");
-        this.accounts = Config.get("Accounts", "Token");
     }
 
     @Override

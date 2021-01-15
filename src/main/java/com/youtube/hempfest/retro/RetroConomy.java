@@ -5,6 +5,7 @@ import com.youtube.hempfest.hempcore.event.EventBuilder;
 import com.youtube.hempfest.retro.construct.account.FundingSource;
 import com.youtube.hempfest.retro.construct.api.RetroAPI;
 import com.youtube.hempfest.retro.construct.economy.Economy;
+import com.youtube.hempfest.retro.construct.token.TokenEconomyImpl;
 import com.youtube.hempfest.retro.data.Config;
 import com.youtube.hempfest.retro.hook.HempEconomy;
 import java.math.BigDecimal;
@@ -21,6 +22,7 @@ public final class RetroConomy extends JavaPlugin implements RetroAPI {
 	private static RetroConomy instance;
 
 	public final Economy economy = new Economy();
+	private TokenEconomyImpl tokenEconomy;
 
 	public HempEconomy hook;
 
@@ -41,6 +43,7 @@ public final class RetroConomy extends JavaPlugin implements RetroAPI {
 		}
 		new CommandBuilder(this).compileFields("com.youtube.hempfest.retro.command");
 		new EventBuilder(this).compileFields("com.youtube.hempfest.retro.events.listener");
+		tokenEconomy = new TokenEconomyImpl(this);
 	}
 
 	@Override
@@ -53,6 +56,9 @@ public final class RetroConomy extends JavaPlugin implements RetroAPI {
 
 	public static RetroConomy getInstance() {
 		return instance;
+	}
+	public static TokenEconomyImpl getTokenEconomy() {
+		return instance.tokenEconomy;
 	}
 
 	@Override

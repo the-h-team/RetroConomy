@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.jetbrains.annotations.Contract;
 
 public class Config {
     private final String n;
@@ -51,6 +52,7 @@ public class Config {
         return (d == null) ? "" : d;
     }
 
+    @Contract("null, _ -> null")
     public static Config get(final String n, final String d) {
         for (final Config c : Config.configs) {
             if (c.getName().equals(n) && c.getDirectory().equals(d)) {
