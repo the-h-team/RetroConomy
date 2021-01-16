@@ -40,6 +40,14 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <filters>
+                                <filter>
+                                    <artifact>com.github.Hempfest:Hemponomics</artifact>
+                                    <includes>
+                                        <include>com/youtube/hempfest/economy/construct/**</include>
+                                    </includes>
+                                </filter>
+                            </filters>
                         </configuration>
                     </execution>
                 </executions>
@@ -72,7 +80,7 @@
         <dependency>
             <groupId>com.github.Hempfest</groupId>
             <artifactId>Hemponomics</artifactId>
-            <version>fa34f4f</version>
+            <version>1e4e1a2</version>
         </dependency>
         <dependency>
             <groupId>com.github.Hempfest</groupId>
