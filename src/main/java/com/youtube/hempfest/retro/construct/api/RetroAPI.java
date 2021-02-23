@@ -89,53 +89,107 @@ public interface RetroAPI {
 
 	boolean isAccountJointOwner(FundingSource type, String accountId, String world, OfflinePlayer offlinePlayer);
 
-	boolean accountHas(FundingSource type, String accountId, BigDecimal amount);
+	default boolean accountHas(FundingSource type, String accountId, BigDecimal amount) {
+		if (accountExists(type, accountId)) {
+			return false;
+		}
+		return getAccountBalance(type, accountId).compareTo(amount) >= 0;
+	}
 
-	boolean accountHas(FundingSource type, String accountId, String world, BigDecimal amount);
+	default boolean accountHas(FundingSource type, String accountId, String world, BigDecimal amount) {
+		if (accountExists(type, accountId, world)) {
+			return false;
+		}
+		return getAccountBalance(type, accountId, world).compareTo(amount) >= 0;
+	}
 
 	boolean accountExists(FundingSource type, String accountId);
 
 	boolean accountExists(FundingSource type, String accountId, String world);
 
-	void depositAccount(FundingSource type, String accountId, BigDecimal amount);
+	default void depositAccount(FundingSource type, String accountId, BigDecimal amount) {
+		if (!accountExists(type, accountId)) {
+			return;
+		}
+		setAccountBalance(type, accountId, getAccountBalance(type, accountId).add(amount));
+	}
 
-	void depositAccount(FundingSource type, String accountId, String world, BigDecimal amount);
+	default void depositAccount(FundingSource type, String accountId, String world, BigDecimal amount) {
+		if (!accountExists(type, accountId, world)) {
+			return;
+		}
+		setAccountBalance(type, accountId, world, getAccountBalance(type, accountId, world).add(amount));
+	}
 
 	void setAccountBalance(FundingSource type, String accountId, BigDecimal amount);
 
 	void setAccountBalance(FundingSource type, String accountId, String world, BigDecimal amount);
 
-	void withdrawAccount(FundingSource type, String accountId, BigDecimal amount);
+	default void withdrawAccount(FundingSource type, String accountId, BigDecimal amount) {
+		if (!accountExists(type, accountId)) {
+			return;
+		}
+		setAccountBalance(type, accountId, getAccountBalance(type, accountId).subtract(amount));
+	}
 
-	void withdrawAccount(FundingSource type, String accountId, String world, BigDecimal amount);
+	default void withdrawAccount(FundingSource type, String accountId, String world, BigDecimal amount) {
+		if (!accountExists(type, accountId, world)) {
+			return;
+		}
+		setAccountBalance(type, accountId, world, getAccountBalance(type, accountId, world).subtract(amount));
+	}
 
 	BigDecimal getAccountBalance(FundingSource type, String accountId);
 
 	BigDecimal getAccountBalance(FundingSource type, String accountId, String world);
 
-	void depositWallet(String name, BigDecimal amount);
+	default void depositWallet(String name, BigDecimal amount) {
+		walletSetBalance(name, getWalletBalance(name).add(amount));
+	}
 
-	void depositWallet(String name, String world, BigDecimal amount);
+	default void depositWallet(String name, String world, BigDecimal amount) {
+		walletSetBalance(name, world, getWalletBalance(name, world).add(amount));
+	}
 
-	void withdrawWallet(String name, BigDecimal amount);
+	default void withdrawWallet(String name, BigDecimal amount) {
+		walletSetBalance(name, getWalletBalance(name).subtract(amount));
+	}
 
-	void withdrawWallet(String name, String world, BigDecimal amount);
+	default void withdrawWallet(String name, String world, BigDecimal amount) {
+		walletSetBalance(name, world, getWalletBalance(name, world).subtract(amount));
+	}
 
-	void depositWallet(UUID uuid, BigDecimal amount);
+	default void depositWallet(UUID uuid, BigDecimal amount) {
+		walletSetBalance(uuid, getWalletBalance(uuid).add(amount));
+	}
 
-	void depositWallet(UUID uuid, String world, BigDecimal amount);
+	default void depositWallet(UUID uuid, String world, BigDecimal amount) {
+		walletSetBalance(uuid, world, getWalletBalance(uuid, world).add(amount));
+	}
 
-	void withdrawWallet(UUID uuid, BigDecimal amount);
+	default void withdrawWallet(UUID uuid, BigDecimal amount) {
+		walletSetBalance(uuid, getWalletBalance(uuid).subtract(amount));
+	}
 
-	void withdrawWallet(UUID uuid, String world, BigDecimal amount);
+	default void withdrawWallet(UUID uuid, String world, BigDecimal amount) {
+		walletSetBalance(uuid, world, getWalletBalance(uuid, world).subtract(amount));
+	}
 
-	void depositWallet(OfflinePlayer offlinePlayer, BigDecimal amount);
+	default void depositWallet(OfflinePlayer offlinePlayer, BigDecimal amount) {
+		walletSetBalance(offlinePlayer, getWalletBalance(offlinePlayer).add(amount));
+	}
 
-	void depositWallet(OfflinePlayer offlinePlayer, String world, BigDecimal amount);
+	default void depositWallet(OfflinePlayer offlinePlayer, String world, BigDecimal amount) {
+		walletSetBalance(offlinePlayer, world, getWalletBalance(offlinePlayer, world).add(amount));
+	}
 
-	void withdrawWallet(OfflinePlayer offlinePlayer, BigDecimal amount);
+	default void withdrawWallet(OfflinePlayer offlinePlayer, BigDecimal amount) {
+		walletSetBalance(offlinePlayer, getWalletBalance(offlinePlayer).subtract(amount));
+	}
 
-	void withdrawWallet(OfflinePlayer offlinePlayer, String world, BigDecimal amount);
+	default void withdrawWallet(OfflinePlayer offlinePlayer, String world, BigDecimal amount) {
+		walletSetBalance(offlinePlayer, world, getWalletBalance(offlinePlayer, world).subtract(amount));
+	}
 
 	void walletSetBalance(String name, BigDecimal amount);
 
@@ -149,17 +203,41 @@ public interface RetroAPI {
 
 	void walletSetBalance(OfflinePlayer offlinePlayer, String world, BigDecimal amount);
 
-	boolean walletHas(String name, BigDecimal amount);
+	default boolean walletHas(String name, BigDecimal amount) {
+		return getWalletBalance(name).compareTo(amount) >= 0;
+	}
 
-	boolean walletHas(String name, String world, BigDecimal amount);
+	default boolean walletHas(String name, String world, BigDecimal amount) {
+		return getWalletBalance(name, world).compareTo(amount) >= 0;
+	}
 
-	boolean walletHas(UUID uuid, BigDecimal amount);
+	default boolean walletHas(UUID uuid, BigDecimal amount) {
+		/*double current = walletDir.getConfig().getDouble("Index." + uuid.toString() + "." + Bukkit.getWorlds().get(0).getName() + ".balance");
+		double result = current - amount.doubleValue();
+		return !String.valueOf(result).contains("-");*/
+		return getWalletBalance(uuid).compareTo(amount) >= 0;
+	}
 
-	boolean walletHas(UUID uuid, String world, BigDecimal amount);
+	default boolean walletHas(UUID uuid, String world, BigDecimal amount) {
+		/*double current = walletDir.getConfig().getDouble("Index." + uuid.toString() + "." + world + ".balance");
+		double result = current - amount.doubleValue();
+		return !String.valueOf(result).contains("-");*/
+		return getWalletBalance(uuid, world).compareTo(amount) >= 0;
+	}
 
-	boolean walletHas(OfflinePlayer offlinePlayer, BigDecimal amount);
+	default boolean walletHas(OfflinePlayer offlinePlayer, BigDecimal amount) {
+		/*double current = walletDir.getConfig().getDouble("Index." + offlinePlayer.getUniqueId().toString() + "." + Bukkit.getWorlds().get(0).getName() + ".balance");
+		double result = current - amount.doubleValue();
+		return !String.valueOf(result).contains("-");*/
+		return getWalletBalance(offlinePlayer).compareTo(amount) >= 0;
+	}
 
-	boolean walletHas(OfflinePlayer offlinePlayer, String world, BigDecimal amount);
+	default boolean walletHas(OfflinePlayer offlinePlayer, String world, BigDecimal amount) {
+		/*double current = walletDir.getConfig().getDouble("Index." + offlinePlayer.getUniqueId().toString() + "." + world + ".balance");
+		double result = current - amount.doubleValue();
+		return !String.valueOf(result).contains("-");*/
+		return getWalletBalance(offlinePlayer, world).compareTo(amount) >= 0;
+	}
 
 	BigDecimal getWalletBalance(String name);
 
