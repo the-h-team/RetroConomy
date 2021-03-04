@@ -1,9 +1,9 @@
 package com.youtube.hempfest.retro.construct.token;
 
-import com.youtube.hempfest.economy.construct.EconomyAction;
-import com.youtube.hempfest.economy.construct.account.Wallet;
-import com.youtube.hempfest.economy.construct.entity.EconomyEntity;
-import com.youtube.hempfest.economy.construct.entity.types.PlayerEntity;
+import com.github.sanctum.economy.construct.EconomyAction;
+import com.github.sanctum.economy.construct.account.Wallet;
+import com.github.sanctum.economy.construct.entity.EconomyEntity;
+import com.github.sanctum.economy.construct.entity.types.PlayerEntity;
 import com.youtube.hempfest.retro.RetroConomy;
 import com.youtube.hempfest.retro.construct.ActionUtil;
 import com.youtube.hempfest.retro.construct.entity.ServerEntity;

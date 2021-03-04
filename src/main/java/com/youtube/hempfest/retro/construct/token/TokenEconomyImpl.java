@@ -1,13 +1,13 @@
 package com.youtube.hempfest.retro.construct.token;
 
-import com.youtube.hempfest.economy.construct.EconomyAction;
-import com.youtube.hempfest.economy.construct.EconomyPriority;
-import com.youtube.hempfest.economy.construct.account.Account;
-import com.youtube.hempfest.economy.construct.account.Balance;
-import com.youtube.hempfest.economy.construct.account.Wallet;
-import com.youtube.hempfest.economy.construct.account.permissive.AccountType;
-import com.youtube.hempfest.economy.construct.currency.special.TokenCurrency;
-import com.youtube.hempfest.economy.construct.implement.TokenEconomy;
+import com.github.sanctum.economy.construct.EconomyAction;
+import com.github.sanctum.economy.construct.EconomyPriority;
+import com.github.sanctum.economy.construct.account.Account;
+import com.github.sanctum.economy.construct.account.Balance;
+import com.github.sanctum.economy.construct.account.Wallet;
+import com.github.sanctum.economy.construct.account.permissive.AccountType;
+import com.github.sanctum.economy.construct.currency.special.TokenCurrency;
+import com.github.sanctum.economy.construct.implement.TokenEconomy;
 import com.youtube.hempfest.retro.RetroConomy;
 import com.youtube.hempfest.retro.data.Config;
 import org.bukkit.OfflinePlayer;

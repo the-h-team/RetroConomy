@@ -9,7 +9,9 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.Contract;
@@ -123,6 +125,12 @@ public class Config {
         return Config.get("Options", "Settings");
     }
 
+    public static String getMessage(ResponseType type, String messagePath) {
+        if (type == ResponseType.NON_VALID)
+            return Config.get("Messages", "Settings").getConfig().getString("Non-valid." + messagePath);
+        return Config.get("Messages", "Settings").getConfig().getString("Valid." + messagePath);
+    }
+
     public static Config get(AccountFile type) {
         if (type == AccountFile.BANK) {
             return get("Accounts", "Bank");
@@ -138,6 +146,10 @@ public class Config {
 
     public enum AccountFile {
         SERVER, ENTITY, BANK
+    }
+
+    public enum ResponseType {
+        VALID, NON_VALID
     }
 
     public synchronized void reload() { // fork io but still wait for it on main thread; sync object access

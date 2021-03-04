@@ -1,7 +1,7 @@
 package com.youtube.hempfest.retro.construct.wallet;
 
-import com.youtube.hempfest.economy.construct.EconomyAction;
-import com.youtube.hempfest.economy.construct.account.PlayerWallet;
+import com.github.sanctum.economy.construct.EconomyAction;
+import com.github.sanctum.economy.construct.account.PlayerWallet;
 import com.youtube.hempfest.retro.RetroConomy;
 import com.youtube.hempfest.retro.construct.api.RetroAPI;
 import org.bukkit.OfflinePlayer;
@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 public class RetroPlayerWallet extends PlayerWallet {
-	private transient OfflinePlayer player;
+	private final transient OfflinePlayer player;
 
 	public RetroPlayerWallet(OfflinePlayer holder) {
 		super(holder);
@@ -19,30 +19,22 @@ public class RetroPlayerWallet extends PlayerWallet {
 
 	@Override
 	public void setBalance(BigDecimal amount) {
-		if (holder.friendlyName().equals(RetroConomy.getInstance().getName())) {
-			RetroAPI.getInstance().walletSetBalance(holder.friendlyName(), amount);
-		} else {
-			RetroAPI.getInstance().walletSetBalance(UUID.fromString(holder.id()), amount);
-		}
+		RetroAPI.getInstance().walletSetBalance(player.getUniqueId(), amount);
 	}
 
 	@Override
 	public void setBalance(BigDecimal amount, String world) {
-		if (holder.friendlyName().equals(RetroConomy.getInstance().getName())) {
-			RetroAPI.getInstance().walletSetBalance(holder.friendlyName(), world, amount);
-		} else {
-			RetroAPI.getInstance().walletSetBalance(UUID.fromString(holder.id()), world, amount);
-		}
+		RetroAPI.getInstance().walletSetBalance(player.getUniqueId(), world, amount);
 	}
 
 	@Override
 	public boolean exists() {
-		return true;
+		return RetroConomy.getInstance().walletDir.getConfig().isConfigurationSection("Index." + player.getUniqueId().toString());
 	}
 
 	@Override
 	public boolean exists(String world) {
-		return true;
+		return RetroConomy.getInstance().walletDir.getConfig().isConfigurationSection("Index." + player.getUniqueId().toString() + world);
 	}
 
 	@Override
@@ -87,11 +79,7 @@ public class RetroPlayerWallet extends PlayerWallet {
 
 	@Override
 	public EconomyAction deposit(BigDecimal amount) {
-		if (holder.friendlyName().equals(RetroConomy.getInstance().getName())) {
-			RetroAPI.getInstance().depositWallet(holder.friendlyName(), amount);
-		} else {
-			RetroAPI.getInstance().depositWallet(UUID.fromString(holder.id()), amount);
-		}
+		RetroAPI.getInstance().depositWallet(player.getUniqueId(), amount);
 		// status?
 		return new EconomyAction(amount, holder, true, "Deposited " + amount.doubleValue() + " into " + holder.friendlyName() + " wallet.");
 	}

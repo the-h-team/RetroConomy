@@ -1,18 +1,19 @@
 package com.youtube.hempfest.retro.command.wallet;
 
-import com.youtube.hempfest.hempcore.formatting.string.PaginatedAssortment;
-import com.youtube.hempfest.hempcore.library.Message;
-import com.youtube.hempfest.retro.RetroConomy;
-import com.youtube.hempfest.retro.construct.account.FundingSource;
+import com.github.sanctum.labyrinth.formatting.string.PaginatedAssortment;
+import com.github.sanctum.labyrinth.library.Message;
 import com.youtube.hempfest.retro.construct.api.RetroAPI;
-import com.youtube.hempfest.retro.construct.economy.Economy;
-import java.math.BigDecimal;
+import com.youtube.hempfest.retro.data.Config;
+import com.youtube.hempfest.retro.util.Coin;
+import com.youtube.hempfest.retro.util.RetroMisc;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.defaults.BukkitCommand;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 public class CommandWallet extends BukkitCommand {
 
@@ -40,13 +41,17 @@ public class CommandWallet extends BukkitCommand {
 
 		Message msg = new Message(p, "&f[&6RetroConomy&f]");
 
+		List<Material> mats = new ArrayList<>(Arrays.asList(Coin.getMajor().getType(), Coin.getMinor().getType()));
+		mats.addAll(Coin.getAltMap().keySet());
+
 		if (args.length == 0) {
 			// help menu
 			PaginatedAssortment assortment = new PaginatedAssortment(p, helpMenu());
 			assortment.setNavigateCommand("");
 			assortment.setLinesPerPage(5);
 			assortment.setListBorder("&f&m▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
-			assortment.setListTitle("&f[&6RetroConomy&f] Wallet Help.");
+			assortment.setListTitle("&f&m▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
+			msg.send("- Wallet Help.");
 			assortment.export(1);
 			return true;
 		}
@@ -72,38 +77,67 @@ public class CommandWallet extends BukkitCommand {
 		}
 
 		if (args.length == 2) {
-			String account = args[1];
 			if (args[0].equalsIgnoreCase("deposit")) {
 				try {
-					double amount = Double.parseDouble(args[1]);
-					msg.send("&a&oAttempting wallet deposit.");
-					api.depositWallet(p, p.getWorld().getName(), BigDecimal.valueOf(amount));
-					msg.send("&2&oNew balance: &f" + api.getWalletBalance(p, p.getWorld().getName()));
+					int amount = Integer.parseInt(args[1]);
+					double success = RetroMisc.depositItems(p, amount);
+					if (success > 0) {
+						msg.send(RetroMisc.format(p, Config.getMessage(Config.ResponseType.VALID, "money-deposit"), success));
+					} else {
+						msg.send(Config.getMessage(Config.ResponseType.NON_VALID, "money-deposit-fail"));
+					}
 				} catch (NumberFormatException e) {
-					msg.send("&c&oInvalid deposit amount.");
-					return true;
+					if (args[1].equalsIgnoreCase("all")) {
+						double total = 0.0;
+						for (ItemStack item : p.getInventory().getContents()) {
+							if (item != null && mats.contains(item.getType())) {
+								int size = item.getAmount();
+								double amount = RetroMisc.depositItems(p, size);
+								if (amount > 0) {
+									total += amount;
+								}
+							}
+						}
+						if (total == 0) {
+							return true;
+						}
+						msg.send(RetroMisc.format(p, Config.getMessage(Config.ResponseType.VALID, "money-deposit"), total));
+						return true;
+					}
+					msg.send(Config.getMessage(Config.ResponseType.NON_VALID, "invalid-amount"));
 				}
 				return true;
 			}
 			if (args[0].equalsIgnoreCase("withdraw")) {
-				try {
-					double amount = Double.parseDouble(args[1]);
-					msg.send("&a&oAttempting wallet withdrawal.");
-					if (api.walletHas(p, p.getWorld().getName(), BigDecimal.valueOf(amount))) {
-						api.withdrawWallet(p, p.getWorld().getName(), BigDecimal.valueOf(amount));
-						msg.send("&2&oNew balance: &f" + api.getWalletBalance(p, p.getWorld().getName()));
-					} else {
-						msg.send("&c&oYou don't have enough money.");
-						return true;
-					}
-				} catch (NumberFormatException e) {
-					msg.send("&c&oInvalid withdraw amount.");
-					return true;
-				}
+				msg.send("&7Invalid usage : &c/withdraw &famount &9<" + Coin.majorSingular() + ", " + Coin.minorSingular() + ">");
 				return true;
 			}
-
 			return true;
+		}
+
+		if (args.length == 3) {
+			if (args[0].equalsIgnoreCase("withdraw")) {
+				try {
+					int amount = Integer.parseInt(args[1]);
+					RetroMisc.WithdrawType type = RetroMisc.WithdrawType.MAJOR;
+					if (args[2].equalsIgnoreCase(Coin.minorSingular())) {
+						type = RetroMisc.WithdrawType.MINOR;
+					}
+					double success = RetroMisc.withdrawItems(p, amount, type);
+
+					if (success > 0) {
+						msg.send(RetroMisc.format(p, Config.getMessage(Config.ResponseType.VALID, "money-withdraw"), success));
+					} else {
+						msg.send(Config.getMessage(Config.ResponseType.NON_VALID, "money-insufficient"));
+					}
+					return true;
+
+				} catch (NumberFormatException e) {
+					msg.send(Config.getMessage(Config.ResponseType.NON_VALID, "invalid-amount"));
+				}
+				msg.send("&7Invalid usage : &c/withdraw &famount &9<" + Coin.majorSingular() + ", " + Coin.minorSingular() + ">");
+				return true;
+			}
 		}
 
 		return false;

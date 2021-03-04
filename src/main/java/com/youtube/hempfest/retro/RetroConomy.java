@@ -1,13 +1,15 @@
 package com.youtube.hempfest.retro;
 
-import com.youtube.hempfest.hempcore.command.CommandBuilder;
-import com.youtube.hempfest.hempcore.event.EventBuilder;
+import com.github.sanctum.economy.construct.implement.AdvancedEconomy;
+import com.github.sanctum.labyrinth.command.CommandBuilder;
+import com.github.sanctum.labyrinth.event.EventBuilder;
 import com.youtube.hempfest.retro.construct.account.FundingSource;
 import com.youtube.hempfest.retro.construct.api.RetroAPI;
 import com.youtube.hempfest.retro.construct.economy.Economy;
 import com.youtube.hempfest.retro.construct.token.TokenEconomyImpl;
 import com.youtube.hempfest.retro.data.Config;
 import com.youtube.hempfest.retro.hook.HempEconomy;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,10 +21,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public final class RetroConomy extends JavaPlugin implements RetroAPI {
 
-	private static RetroConomy instance;
+	private static JavaPlugin instance;
 
 	public final Economy economy = new Economy();
 	private TokenEconomyImpl tokenEconomy;
+	private AdvancedEconomy advancedEconomy;
 
 	public HempEconomy hook;
 
@@ -37,28 +40,44 @@ public final class RetroConomy extends JavaPlugin implements RetroAPI {
 	@Override
 	public void onEnable() {
 		instance = this;
-		if (Bukkit.getPluginManager().isPluginEnabled("Hemponomics")) {
+		if (Bukkit.getPluginManager().isPluginEnabled("Enterprise")) {
 			hook = new HempEconomy(this);
 			hook.hook();
 		}
 		new CommandBuilder(this).compileFields("com.youtube.hempfest.retro.command");
 		new EventBuilder(this).compileFields("com.youtube.hempfest.retro.events.listener");
 		tokenEconomy = new TokenEconomyImpl(this);
+		advancedEconomy = new Economy();
+		Config config = Config.get("Options", "Settings");
+		Config msg = Config.get("Messages", "Settings");
+		if (!config.exists()) {
+			InputStream stream = RetroConomy.getInstance().getResource("Options.yml");
+			Config.copy(stream, config.getFile());
+		}
+		if (!msg.exists()) {
+			InputStream stream = RetroConomy.getInstance().getResource("Messages.yml");
+			Config.copy(stream, msg.getFile());
+		}
 	}
 
 	@Override
 	public void onDisable() {
 		// Plugin shutdown logic
-		if (Bukkit.getPluginManager().isPluginEnabled("Hemponomics")) {
+		if (Bukkit.getPluginManager().isPluginEnabled("Enterprise")) {
 			hook.unhook();
 		}
 	}
 
 	public static RetroConomy getInstance() {
-		return instance;
+		return (RetroConomy) instance;
 	}
+
+	public static AdvancedEconomy getAdvancedEconomy() {
+		return getInstance().advancedEconomy;
+	}
+
 	public static TokenEconomyImpl getTokenEconomy() {
-		return instance.tokenEconomy;
+		return getInstance().tokenEconomy;
 	}
 
 	@Override

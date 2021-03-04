@@ -1,9 +1,10 @@
 package com.youtube.hempfest.retro.construct.account;
 
-import com.youtube.hempfest.economy.construct.EconomyAction;
-import com.youtube.hempfest.economy.construct.account.PlayerAccount;
-import com.youtube.hempfest.economy.construct.account.permissive.AccountType;
-import com.youtube.hempfest.economy.construct.entity.EconomyEntity;
+import com.github.sanctum.economy.construct.EconomyAction;
+import com.github.sanctum.economy.construct.account.Account;
+import com.github.sanctum.economy.construct.account.permissive.AccountType;
+import com.github.sanctum.economy.construct.entity.EconomyEntity;
+import com.github.sanctum.economy.construct.entity.types.PlayerEntity;
 import com.youtube.hempfest.retro.RetroConomy;
 import com.youtube.hempfest.retro.construct.api.RetroAPI;
 import com.youtube.hempfest.retro.data.Config;
@@ -12,13 +13,13 @@ import org.bukkit.OfflinePlayer;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-public class RetroPlayerAccount extends PlayerAccount {
+public class RetroPlayerAccount extends Account {
     private String accountId;
     private Config config;
     public final UUID playerUid;
 
     public RetroPlayerAccount(String accountId, AccountType accountType, OfflinePlayer holder, EconomyEntity... members) {
-        super(accountType, holder, members);
+        super(accountType, new PlayerEntity(holder), members);
         this.accountId = accountId;
         this.playerUid = holder.getUniqueId();
         switch (accountType) {

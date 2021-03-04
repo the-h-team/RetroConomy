@@ -1,6 +1,7 @@
 package com.youtube.hempfest.retro.hook;
 
-import com.youtube.hempfest.economy.construct.implement.AdvancedEconomy;
+import com.github.sanctum.economy.construct.implement.AdvancedEconomy;
+import com.github.sanctum.labyrinth.task.Schedule;
 import com.youtube.hempfest.retro.RetroConomy;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.ServicePriority;
@@ -16,7 +17,7 @@ public class HempEconomy {
 
 	public void hook() {
 		provider = plugin.economy;
-		Bukkit.getServicesManager().register(AdvancedEconomy.class, this.provider, this.plugin, ServicePriority.Highest);
+		Schedule.async(() -> Bukkit.getServicesManager().register(AdvancedEconomy.class, this.provider, this.plugin, ServicePriority.Highest)).wait(3);
 		plugin.getLogger().info("- Advanced economy hooked! Now registered as a provider");
 	}
 

@@ -1,8 +1,8 @@
 package com.youtube.hempfest.retro.construct;
 
-import com.youtube.hempfest.economy.construct.EconomyAction;
-import com.youtube.hempfest.economy.construct.entity.EconomyEntity;
 
+import com.github.sanctum.economy.construct.EconomyAction;
+import com.github.sanctum.economy.construct.entity.EconomyEntity;
 import java.math.BigDecimal;
 
 public class ActionUtil {

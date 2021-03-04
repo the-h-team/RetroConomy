@@ -1,9 +1,9 @@
 package com.youtube.hempfest.retro.construct.account;
 
-import com.youtube.hempfest.economy.construct.EconomyAction;
-import com.youtube.hempfest.economy.construct.account.Account;
-import com.youtube.hempfest.economy.construct.account.permissive.AccountType;
-import com.youtube.hempfest.economy.construct.entity.EconomyEntity;
+import com.github.sanctum.economy.construct.EconomyAction;
+import com.github.sanctum.economy.construct.account.Account;
+import com.github.sanctum.economy.construct.account.permissive.AccountType;
+import com.github.sanctum.economy.construct.entity.EconomyEntity;
 import com.youtube.hempfest.retro.RetroConomy;
 import com.youtube.hempfest.retro.construct.ActionUtil;
 import com.youtube.hempfest.retro.construct.api.RetroAPI;
@@ -13,30 +13,17 @@ import org.bukkit.OfflinePlayer;
 
 public class RetroAccount extends Account {
 
-	// note inherited fields `holder` (from Balance) `members` and `accountType` (from Account)
-
-	private String accountId;
+	private final String accountId;
 
 	public RetroAccount(String accountId, AccountType accountType, EconomyEntity holder, EconomyEntity... members) {
 		super(accountType, holder, members);
 		this.accountId = accountId;
 	}
 
-	// TODO: did these need overriding or nah?
-/*	@Override
-	public AccountType getType() {
-		return super.getType();
-	}
-
 	@Override
-	public List<String> getMembers() {
-		return super.getMembers();
+	public String getId() {
+		return accountId;
 	}
-
-	@Override
-	public EconomyEntity getHolder() {
-		return super.getHolder();
-	}*/
 
 	@Override
 	public EconomyAction isOwner(String name) {
@@ -56,161 +43,161 @@ public class RetroAccount extends Account {
 
 	@Override
 	public EconomyAction isOwner(OfflinePlayer player) {
-		switch (accountType) {
+		switch (getType()) {
 			case BANK_ACCOUNT:
 			case ENTITY_ACCOUNT:
 			case SERVER_ACCOUNT:
-				return ActionUtil.owner(holder, RetroAPI.getInstance().isAccountOwner(convertAccountType(accountType), accountId, player));
+				return ActionUtil.owner(holder, RetroAPI.getInstance().isAccountOwner(convertAccountType(getType()), accountId, player));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
 
 	@Override
 	public EconomyAction isOwner(OfflinePlayer player, String world) {
-		switch (accountType) {
+		switch (getType()) {
 			case BANK_ACCOUNT:
 			case ENTITY_ACCOUNT:
 			case SERVER_ACCOUNT:
-				return ActionUtil.owner(holder, RetroAPI.getInstance().isAccountOwner(convertAccountType(accountType), accountId, world, player));
+				return ActionUtil.owner(holder, RetroAPI.getInstance().isAccountOwner(convertAccountType(getType()), accountId, world, player));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
 
 	@Override
 	public EconomyAction isOwner(UUID uuid) {
-		switch (accountType) {
+		switch (getType()) {
 			case BANK_ACCOUNT:
 			case ENTITY_ACCOUNT:
 			case SERVER_ACCOUNT:
-				return ActionUtil.owner(holder, RetroAPI.getInstance().isAccountOwner(convertAccountType(accountType), accountId, uuid));
+				return ActionUtil.owner(holder, RetroAPI.getInstance().isAccountOwner(convertAccountType(getType()), accountId, uuid));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
 
 	@Override
 	public EconomyAction isOwner(UUID uuid, String world) {
-		switch (accountType) {
+		switch (getType()) {
 			case BANK_ACCOUNT:
 			case ENTITY_ACCOUNT:
 			case SERVER_ACCOUNT:
-				return ActionUtil.owner(holder, RetroAPI.getInstance().isAccountOwner(convertAccountType(accountType), accountId, world, uuid));
+				return ActionUtil.owner(holder, RetroAPI.getInstance().isAccountOwner(convertAccountType(getType()), accountId, world, uuid));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
 
 	@Override
 	public EconomyAction isJointOwner(String name) {
-		switch (accountType) {
+		switch (getType()) {
 			case BANK_ACCOUNT:
 			case ENTITY_ACCOUNT:
 			case SERVER_ACCOUNT:
-				return ActionUtil.jointOwner(holder, RetroAPI.getInstance().isAccountJointOwner(convertAccountType(accountType), accountId, name));
+				return ActionUtil.jointOwner(holder, RetroAPI.getInstance().isAccountJointOwner(convertAccountType(getType()), accountId, name));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
 
 	@Override
 	public EconomyAction isJointOwner(String name, String world) {
-		switch (accountType) {
+		switch (getType()) {
 			case BANK_ACCOUNT:
 			case ENTITY_ACCOUNT:
 			case SERVER_ACCOUNT:
-				return ActionUtil.jointOwner(holder, RetroAPI.getInstance().isAccountJointOwner(convertAccountType(accountType), accountId, world, name));
+				return ActionUtil.jointOwner(holder, RetroAPI.getInstance().isAccountJointOwner(convertAccountType(getType()), accountId, world, name));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
 
 	@Override
 	public EconomyAction isJointOwner(OfflinePlayer player) {
-		switch (accountType) {
+		switch (getType()) {
 			case BANK_ACCOUNT:
 			case ENTITY_ACCOUNT:
 			case SERVER_ACCOUNT:
-				return ActionUtil.jointOwner(holder, RetroAPI.getInstance().isAccountJointOwner(convertAccountType(accountType), accountId, player));
+				return ActionUtil.jointOwner(holder, RetroAPI.getInstance().isAccountJointOwner(convertAccountType(getType()), accountId, player));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
 
 	@Override
 	public EconomyAction isJointOwner(OfflinePlayer player, String world) {
-		switch (accountType) {
+		switch (getType()) {
 			case BANK_ACCOUNT:
 			case ENTITY_ACCOUNT:
 			case SERVER_ACCOUNT:
-				return ActionUtil.jointOwner(holder, RetroAPI.getInstance().isAccountJointOwner(convertAccountType(accountType), accountId, world, player));
+				return ActionUtil.jointOwner(holder, RetroAPI.getInstance().isAccountJointOwner(convertAccountType(getType()), accountId, world, player));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
 
 	@Override
 	public EconomyAction isJointOwner(UUID uuid) {
-		switch (accountType) {
+		switch (getType()) {
 			case BANK_ACCOUNT:
 			case ENTITY_ACCOUNT:
 			case SERVER_ACCOUNT:
-				return ActionUtil.jointOwner(holder, RetroAPI.getInstance().isAccountJointOwner(convertAccountType(accountType), accountId, uuid));
+				return ActionUtil.jointOwner(holder, RetroAPI.getInstance().isAccountJointOwner(convertAccountType(getType()), accountId, uuid));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
 
 	@Override
 	public EconomyAction isJointOwner(UUID uuid, String world) {
-		switch (accountType) {
+		switch (getType()) {
 			case BANK_ACCOUNT:
 			case ENTITY_ACCOUNT:
 			case SERVER_ACCOUNT:
-				return ActionUtil.jointOwner(holder, RetroAPI.getInstance().isAccountJointOwner(convertAccountType(accountType), accountId, world, uuid));
+				return ActionUtil.jointOwner(holder, RetroAPI.getInstance().isAccountJointOwner(convertAccountType(getType()), accountId, world, uuid));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
 
 	@Override
 	public EconomyAction isMember(String name) {
-		switch (accountType) {
+		switch (getType()) {
 			case BANK_ACCOUNT:
 			case ENTITY_ACCOUNT:
 			case SERVER_ACCOUNT:
-				return ActionUtil.memberAccess(holder, RetroAPI.getInstance().isAccountMember(convertAccountType(accountType), accountId, name));
+				return ActionUtil.memberAccess(holder, RetroAPI.getInstance().isAccountMember(convertAccountType(getType()), accountId, name));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
 
 	@Override
 	public EconomyAction isMember(String name, String world) {
-		switch (accountType) {
+		switch (getType()) {
 			case BANK_ACCOUNT:
 			case ENTITY_ACCOUNT:
 			case SERVER_ACCOUNT:
-				return ActionUtil.memberAccess(holder, RetroAPI.getInstance().isAccountMember(convertAccountType(accountType), accountId, world, name));
+				return ActionUtil.memberAccess(holder, RetroAPI.getInstance().isAccountMember(convertAccountType(getType()), accountId, world, name));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
 
 	@Override
 	public EconomyAction isMember(OfflinePlayer player) {
-		switch (accountType) {
+		switch (getType()) {
 			case BANK_ACCOUNT:
 			case ENTITY_ACCOUNT:
 			case SERVER_ACCOUNT:
-				return ActionUtil.memberAccess(holder, RetroAPI.getInstance().isAccountMember(convertAccountType(accountType), accountId, player));
+				return ActionUtil.memberAccess(holder, RetroAPI.getInstance().isAccountMember(convertAccountType(getType()), accountId, player));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
 
 	@Override
 	public EconomyAction isMember(OfflinePlayer player, String world) {
-		switch (accountType) {
+		switch (getType()) {
 			case BANK_ACCOUNT:
 			case ENTITY_ACCOUNT:
 			case SERVER_ACCOUNT:
-				return ActionUtil.memberAccess(holder, RetroAPI.getInstance().isAccountMember(convertAccountType(accountType), accountId, world, player));
+				return ActionUtil.memberAccess(holder, RetroAPI.getInstance().isAccountMember(convertAccountType(getType()), accountId, world, player));
 		}
 		return ActionUtil.unsuccessful(holder);
 	}
 
 	@Override
 	public EconomyAction isMember(UUID uuid) {
-		switch (accountType) {
+		switch (getType()) {
 			case BANK_ACCOUNT:
 			case ENTITY_ACCOUNT:
 			case SERVER_ACCOUNT:
@@ -221,7 +208,7 @@ public class RetroAccount extends Account {
 
 	@Override
 	public EconomyAction isMember(UUID uuid, String world) {
-		switch (accountType) {
+		switch (getType()) {
 			case BANK_ACCOUNT:
 			case ENTITY_ACCOUNT:
 			case SERVER_ACCOUNT:
@@ -292,7 +279,7 @@ public class RetroAccount extends Account {
 
 	@Override
 	public void setBalance(BigDecimal amount) {
-		switch (accountType) {
+		switch (getType()) {
 
 			case BANK_ACCOUNT:
 				RetroAPI.getInstance().setAccountBalance(FundingSource.BANK_ACCOUNT, accountId, amount);
@@ -308,7 +295,7 @@ public class RetroAccount extends Account {
 
 	@Override
 	public void setBalance(BigDecimal amount, String world) {
-		switch (accountType) {
+		switch (getType()) {
 
 			case BANK_ACCOUNT:
 				RetroAPI.getInstance().setAccountBalance(FundingSource.BANK_ACCOUNT, accountId, world, amount);
@@ -324,7 +311,7 @@ public class RetroAccount extends Account {
 
 	@Override
 	public boolean exists() {
-		switch (accountType) {
+		switch (getType()) {
 			case BANK_ACCOUNT:
 				return RetroAPI.getInstance().accountExists(FundingSource.BANK_ACCOUNT, accountId);
 			case ENTITY_ACCOUNT:
@@ -337,7 +324,7 @@ public class RetroAccount extends Account {
 
 	@Override
 	public boolean exists(String world) {
-		switch (accountType) {
+		switch (getType()) {
 
 			case BANK_ACCOUNT:
 				return RetroAPI.getInstance().accountExists(FundingSource.BANK_ACCOUNT, accountId, world);
@@ -351,7 +338,7 @@ public class RetroAccount extends Account {
 
 	@Override
 	public BigDecimal getBalance() {
-		switch (accountType) {
+		switch (getType()) {
 			case BANK_ACCOUNT:
 				return RetroAPI.getInstance().getAccountBalance(FundingSource.BANK_ACCOUNT, accountId);
 			case ENTITY_ACCOUNT:
@@ -364,7 +351,7 @@ public class RetroAccount extends Account {
 
 	@Override
 	public BigDecimal getBalance(String world) {
-		switch (accountType) {
+		switch (getType()) {
 			case BANK_ACCOUNT:
 				return RetroAPI.getInstance().getAccountBalance(FundingSource.BANK_ACCOUNT, accountId, world);
 			case ENTITY_ACCOUNT:
@@ -377,7 +364,7 @@ public class RetroAccount extends Account {
 
 	@Override
 	public boolean has(BigDecimal amount) {
-		switch (accountType) {
+		switch (getType()) {
 			case BANK_ACCOUNT:
 				return RetroAPI.getInstance().accountHas(FundingSource.BANK_ACCOUNT, accountId, amount);
 			case ENTITY_ACCOUNT:
@@ -390,7 +377,7 @@ public class RetroAccount extends Account {
 
 	@Override
 	public boolean has(BigDecimal amount, String world) {
-		switch (accountType) {
+		switch (getType()) {
 			case BANK_ACCOUNT:
 				return RetroAPI.getInstance().accountHas(FundingSource.BANK_ACCOUNT, accountId, world, amount);
 			case ENTITY_ACCOUNT:
@@ -403,7 +390,7 @@ public class RetroAccount extends Account {
 
 	@Override
 	public EconomyAction deposit(BigDecimal amount) {
-		switch (accountType) {
+		switch (getType()) {
 			case BANK_ACCOUNT:
 				RetroAPI.getInstance().depositAccount(FundingSource.BANK_ACCOUNT, accountId, amount);
 				return new EconomyAction(amount, holder, true, "Successfully updated " + holder.friendlyName() + " balance to " + amount.doubleValue());
@@ -419,9 +406,9 @@ public class RetroAccount extends Account {
 
 	@Override
 	public EconomyAction deposit(BigDecimal amount, String world) {
-		switch (accountType) {
+		switch (getType()) {
 			case BANK_ACCOUNT:
-				RetroAPI.getInstance().depositAccount(FundingSource.BANK_ACCOUNT, accountId, world, amount);
+				RetroAPI.getInstance().depositAccount(convertAccountType(getType()), accountId, world, amount);
 				return new EconomyAction(amount, holder, true, "Successfully updated " + holder.friendlyName() + " balance to " + amount.doubleValue());
 			case ENTITY_ACCOUNT:
 				RetroAPI.getInstance().depositAccount(FundingSource.ENTITY_ACCOUNT, accountId, world, amount);
@@ -436,7 +423,7 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction withdraw(BigDecimal amount) {
 		RetroAPI api = RetroAPI.getInstance();
-		switch (accountType) {
+		switch (getType()) {
 
 			case BANK_ACCOUNT:
 				if (api.accountExists(FundingSource.BANK_ACCOUNT, accountId)) {
@@ -475,7 +462,7 @@ public class RetroAccount extends Account {
 	@Override
 	public EconomyAction withdraw(BigDecimal amount, String world) {
 		RetroAPI api = RetroAPI.getInstance();
-		switch (accountType) {
+		switch (getType()) {
 
 			case BANK_ACCOUNT:
 				if (api.accountExists(FundingSource.BANK_ACCOUNT, accountId, world)) {

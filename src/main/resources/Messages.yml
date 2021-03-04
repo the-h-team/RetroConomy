@@ -1,0 +1,7 @@
+Valid:
+  money-deposit: '&aYou successfully deposited {AMOUNT_MAJOR} {MAJOR} & {AMOUNT_MINOR} {MINOR}'
+  money-withdraw: '&aYou successfully withdrew {AMOUNT_MAJOR} {MAJOR} & {AMOUNT_MINOR} {MINOR}'
+Non-valid:
+  invalid-amount: '&cYou have chosen an invalid amount.'
+  money-deposit-fail: '&cYou don''t have enough {MAJOR} in your inventory'
+  money-insufficient: '&cYou don''t have enough {MAJOR}'

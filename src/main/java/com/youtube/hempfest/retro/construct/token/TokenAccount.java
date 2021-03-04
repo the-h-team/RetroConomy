@@ -1,10 +1,10 @@
 package com.youtube.hempfest.retro.construct.token;
 
-import com.youtube.hempfest.economy.construct.EconomyAction;
-import com.youtube.hempfest.economy.construct.account.Account;
-import com.youtube.hempfest.economy.construct.account.permissive.AccountType;
-import com.youtube.hempfest.economy.construct.entity.EconomyEntity;
-import com.youtube.hempfest.economy.construct.entity.types.PlayerEntity;
+import com.github.sanctum.economy.construct.EconomyAction;
+import com.github.sanctum.economy.construct.account.Account;
+import com.github.sanctum.economy.construct.account.permissive.AccountType;
+import com.github.sanctum.economy.construct.entity.EconomyEntity;
+import com.github.sanctum.economy.construct.entity.types.PlayerEntity;
 import com.youtube.hempfest.retro.construct.entity.ServerEntity;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;

@@ -1,32 +1,37 @@
 package com.youtube.hempfest.retro.construct.economy;
 
-import com.youtube.hempfest.economy.construct.EconomyAction;
-import com.youtube.hempfest.economy.construct.EconomyPriority;
-import com.youtube.hempfest.economy.construct.account.Account;
-import com.youtube.hempfest.economy.construct.account.Wallet;
-import com.youtube.hempfest.economy.construct.account.permissive.AccountType;
-import com.youtube.hempfest.economy.construct.currency.normal.EconomyCurrency;
-import com.youtube.hempfest.economy.construct.implement.AdvancedEconomy;
-import com.youtube.hempfest.hempcore.library.HUID;
+import com.github.sanctum.economy.construct.EconomyAction;
+import com.github.sanctum.economy.construct.EconomyPriority;
+import com.github.sanctum.economy.construct.account.Account;
+import com.github.sanctum.economy.construct.account.Wallet;
+import com.github.sanctum.economy.construct.account.permissive.AccountType;
+import com.github.sanctum.economy.construct.currency.normal.EconomyCurrency;
+import com.github.sanctum.economy.construct.entity.types.PlayerEntity;
+import com.github.sanctum.economy.construct.implement.AdvancedEconomy;
+import com.github.sanctum.labyrinth.library.HUID;
 import com.youtube.hempfest.retro.RetroConomy;
 import com.youtube.hempfest.retro.construct.account.FundingSource;
 import com.youtube.hempfest.retro.construct.account.RetroAccount;
 import com.youtube.hempfest.retro.construct.account.RetroPlayerAccount;
+import com.youtube.hempfest.retro.util.Coin;
 import com.youtube.hempfest.retro.construct.api.RetroAPI;
 import com.youtube.hempfest.retro.construct.entity.ServerEntity;
 import com.youtube.hempfest.retro.construct.wallet.RetroPlayerWallet;
 import com.youtube.hempfest.retro.construct.wallet.RetroServerWallet;
-import com.youtube.hempfest.retro.data.Config;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 public class Economy implements AdvancedEconomy {
 
@@ -42,29 +47,12 @@ public class Economy implements AdvancedEconomy {
 
 	@Override
 	public EconomyCurrency getCurrency() {
-		Config options = Config.getOptions();
-		String ms = options.getConfig().getString("Currency.Major.Singular");
-		String mp = options.getConfig().getString("Currency.Major.Plural");
-		String mis = options.getConfig().getString("Currency.Minor.Singular");
-		String mip = options.getConfig().getString("Currency.Minor.Plural");
-		Locale locale = null;
-		switch (options.getConfig().getString("Currency.Format.locale").toLowerCase()) {
-			case "us":
-				locale = Locale.ENGLISH;
-				break;
-			case "ru":
-				locale = new Locale("ru", "RU");
-				break;
-			case "de":
-				locale = Locale.GERMAN;
-				break;
-		}
-		return EconomyCurrency.getCurrencyLayoutBuilder().setMajorSingular(ms).setMajorPlural(mp).setMinorSingular(mis).setMinorPlural(mip).setWorld(Bukkit.getWorlds().get(0).getName()).setLocale(locale).toCurrency();
+		return EconomyCurrency.getCurrencyLayoutBuilder().setMajorSingular(Coin.majorSingular()).setMajorPlural(Coin.majorPlural()).setMinorSingular(Coin.minorSingular()).setMinorPlural(Coin.minorPlural()).setWorld(Bukkit.getWorlds().get(0).getName()).setLocale(Coin.getLocale()).toCurrency();
 	}
 
 	@Override
 	public EconomyCurrency getCurrency(String world) {
-		return null;
+		return getCurrency();
 	}
 
 	@Override
@@ -89,7 +77,7 @@ public class Economy implements AdvancedEconomy {
 
 	@Override
 	public boolean isMultiWorld() {
-		return false;
+		return true;
 	}
 
 	@Override
@@ -99,12 +87,12 @@ public class Economy implements AdvancedEconomy {
 
 	@Override
 	public boolean hasMultiAccountSupport() {
-		return false;
+		return true;
 	}
 
 	@Override
 	public boolean hasWalletSizeLimit() {
-		return false;
+		return true;
 	}
 
 	@Override
@@ -233,247 +221,107 @@ public class Economy implements AdvancedEconomy {
 	@Override
 	public EconomyAction createAccount(AccountType type, String name) {
 		RetroAPI api = RetroAPI.getInstance();
-		switch (type) {
-
-			case BANK_ACCOUNT:
-				api.createAccount(FundingSource.BANK_ACCOUNT, name, HUID.randomID().toString());
-				break;
-			case ENTITY_ACCOUNT:
-				api.createAccount(FundingSource.ENTITY_ACCOUNT, name, HUID.randomID().toString());
-				break;
-			case SERVER_ACCOUNT:
-				api.createAccount(FundingSource.SERVER_ACCOUNT, name, HUID.randomID().toString());
-				break;
-		}
+		api.createAccount(FundingSource.SERVER_ACCOUNT, name, HUID.randomID().toString());
 		return new EconomyAction(new ServerEntity(name), true, "New " + type.name().toLowerCase().replace("_", "") + " created.");
 	}
 
 	@Override
 	public EconomyAction createAccount(AccountType type, String name, String accountId) {
 		RetroAPI api = RetroAPI.getInstance();
-		switch (type) {
-
-			case BANK_ACCOUNT:
-				api.createAccount(FundingSource.BANK_ACCOUNT, name, accountId);
-				break;
-			case ENTITY_ACCOUNT:
-				api.createAccount(FundingSource.ENTITY_ACCOUNT, name, accountId);
-				break;
-			case SERVER_ACCOUNT:
-				api.createAccount(FundingSource.SERVER_ACCOUNT, name, accountId);
-				break;
-		}
+		api.createAccount(FundingSource.SERVER_ACCOUNT, name, accountId);
 		return new EconomyAction(new ServerEntity(name), true, "New " + type.name().toLowerCase().replace("_", "") + " created.");
 	}
 
 	@Override
 	public EconomyAction createAccount(AccountType type, String name, BigDecimal startingAmount) {
 		RetroAPI api = RetroAPI.getInstance();
-		switch (type) {
-
-			case BANK_ACCOUNT:
-				api.createAccount(FundingSource.BANK_ACCOUNT, name, HUID.randomID().toString());
-				break;
-			case ENTITY_ACCOUNT:
-				api.createAccount(FundingSource.ENTITY_ACCOUNT, name, HUID.randomID().toString());
-				break;
-			case SERVER_ACCOUNT:
-				api.createAccount(FundingSource.SERVER_ACCOUNT, name, HUID.randomID().toString());
-				break;
-		}
+		api.createAccount(FundingSource.SERVER_ACCOUNT, name, HUID.randomID().toString());
 		return new EconomyAction(new ServerEntity(name), true, "New " + type.name().toLowerCase().replace("_", "") + " created.");
 	}
 
 	@Override
 	public EconomyAction createAccount(AccountType type, String name, String accountId, String world) {
 		RetroAPI api = RetroAPI.getInstance();
-		switch (type) {
-
-			case BANK_ACCOUNT:
-				api.createAccount(FundingSource.BANK_ACCOUNT, name, accountId, world);
-				break;
-			case ENTITY_ACCOUNT:
-				api.createAccount(FundingSource.ENTITY_ACCOUNT, name, accountId, world);
-				break;
-			case SERVER_ACCOUNT:
-				api.createAccount(FundingSource.SERVER_ACCOUNT, name, accountId, world);
-				break;
-		}
+		api.createAccount(FundingSource.SERVER_ACCOUNT, name, accountId, world);
 		return new EconomyAction(new ServerEntity(name), true, "New " + type.name().toLowerCase().replace("_", "") + " created in world " + world);
 	}
 
 	@Override
 	public EconomyAction createAccount(AccountType type, String name, String accountId, String world, BigDecimal startingAmount) {
 		RetroAPI api = RetroAPI.getInstance();
-		switch (type) {
-
-			case BANK_ACCOUNT:
-				api.createAccount(FundingSource.BANK_ACCOUNT, name, accountId, world);
-				break;
-			case ENTITY_ACCOUNT:
-				api.createAccount(FundingSource.ENTITY_ACCOUNT, name, accountId, world);
-				break;
-			case SERVER_ACCOUNT:
-				api.createAccount(FundingSource.SERVER_ACCOUNT, name, accountId, world);
-				break;
-		}
+		api.createAccount(FundingSource.SERVER_ACCOUNT, name, accountId, world);
 		return new EconomyAction(new ServerEntity(name), true, "New " + type.name().toLowerCase().replace("_", "") + " created in world " + world);
 	}
 
 	@Override
 	public EconomyAction createAccount(AccountType type, OfflinePlayer player) {
 		RetroAPI api = RetroAPI.getInstance();
-		switch (type) {
-			case BANK_ACCOUNT:
-				api.createAccount(FundingSource.BANK_ACCOUNT, player, HUID.randomID().toString());
-				break;
-			case ENTITY_ACCOUNT:
-				api.createAccount(FundingSource.ENTITY_ACCOUNT, player, HUID.randomID().toString());
-				break;
-			case SERVER_ACCOUNT:
-				api.createAccount(FundingSource.SERVER_ACCOUNT, player, HUID.randomID().toString());
-				break;
-		}
-		return null;
+		api.createAccount(RetroAccount.convertAccountType(type), player, HUID.randomID().toString());
+		return new EconomyAction(new PlayerEntity(player), true, "New " + type.name().toLowerCase().replace("_", "") + " created.");
 	}
 
 	@Override
 	public EconomyAction createAccount(AccountType type, OfflinePlayer player, String accountId) {
 		RetroAPI api = RetroAPI.getInstance();
-		switch (type) {
-
-			case BANK_ACCOUNT:
-				break;
-			case ENTITY_ACCOUNT:
-				break;
-			case SERVER_ACCOUNT:
-				break;
-		}
-		return null;
+		api.createAccount(RetroAccount.convertAccountType(type), player, accountId);
+		return new EconomyAction(new PlayerEntity(player), true, "New " + type.name().toLowerCase().replace("_", "") + " created.");
 	}
 
 	@Override
 	public EconomyAction createAccount(AccountType type, OfflinePlayer player, BigDecimal startingAmount) {
 		RetroAPI api = RetroAPI.getInstance();
-		switch (type) {
-
-			case BANK_ACCOUNT:
-				break;
-			case ENTITY_ACCOUNT:
-				break;
-			case SERVER_ACCOUNT:
-				break;
-		}
 		return null;
 	}
 
 	@Override
 	public EconomyAction createAccount(AccountType type, OfflinePlayer player, String accountId, String world) {
 		RetroAPI api = RetroAPI.getInstance();
-		switch (type) {
-
-			case BANK_ACCOUNT:
-				break;
-			case ENTITY_ACCOUNT:
-				break;
-			case SERVER_ACCOUNT:
-				break;
-		}
-		return null;
+		api.createAccount(RetroAccount.convertAccountType(type), player, accountId, world);
+		return new EconomyAction(new PlayerEntity(player), true, "New " + type.name().toLowerCase().replace("_", "") + " created in world " + world);
 	}
 
 	@Override
 	public EconomyAction createAccount(AccountType type, OfflinePlayer player, String accountId, String world, BigDecimal startingAmount) {
 		RetroAPI api = RetroAPI.getInstance();
-		switch (type) {
-
-			case BANK_ACCOUNT:
-				break;
-			case ENTITY_ACCOUNT:
-				break;
-			case SERVER_ACCOUNT:
-				break;
-		}
 		return null;
 	}
 
 	@Override
 	public EconomyAction createAccount(AccountType type, UUID uuid) {
 		RetroAPI api = RetroAPI.getInstance();
-		switch (type) {
-
-			case BANK_ACCOUNT:
-				break;
-			case ENTITY_ACCOUNT:
-				break;
-			case SERVER_ACCOUNT:
-				break;
-		}
-		return null;
+		api.createAccount(RetroAccount.convertAccountType(type), uuid, HUID.randomID().toString());
+		return new EconomyAction(new PlayerEntity(Bukkit.getOfflinePlayer(uuid)), true, "New " + type.name().toLowerCase().replace("_", "") + " created.");
 	}
 
 	@Override
 	public EconomyAction createAccount(AccountType type, UUID uuid, String accountId) {
 		RetroAPI api = RetroAPI.getInstance();
-		switch (type) {
-
-			case BANK_ACCOUNT:
-				break;
-			case ENTITY_ACCOUNT:
-				break;
-			case SERVER_ACCOUNT:
-				break;
-		}
-		return null;
+		api.createAccount(RetroAccount.convertAccountType(type), uuid, accountId);
+		return new EconomyAction(new PlayerEntity(Bukkit.getOfflinePlayer(uuid)), true, "New " + type.name().toLowerCase().replace("_", "") + " created.");
 	}
 
 	@Override
 	public EconomyAction createAccount(AccountType type, UUID uuid, BigDecimal startingAmount) {
 		RetroAPI api = RetroAPI.getInstance();
-		switch (type) {
-
-			case BANK_ACCOUNT:
-				break;
-			case ENTITY_ACCOUNT:
-				break;
-			case SERVER_ACCOUNT:
-				break;
-		}
 		return null;
 	}
 
 	@Override
 	public EconomyAction createAccount(AccountType type, UUID uuid, String accountId, String world) {
 		RetroAPI api = RetroAPI.getInstance();
-		switch (type) {
-
-			case BANK_ACCOUNT:
-				break;
-			case ENTITY_ACCOUNT:
-				break;
-			case SERVER_ACCOUNT:
-				break;
-		}
-		return null;
+		api.createAccount(RetroAccount.convertAccountType(type), uuid, accountId, world);
+		return new EconomyAction(new PlayerEntity(Bukkit.getOfflinePlayer(uuid)), true, "New " + type.name().toLowerCase().replace("_", "") + " created in world " + world);
 	}
 
 	@Override
 	public EconomyAction createAccount(AccountType type, UUID uuid, String accountId, String world, BigDecimal startingAmount) {
 		RetroAPI api = RetroAPI.getInstance();
-		switch (type) {
-
-			case BANK_ACCOUNT:
-				break;
-			case ENTITY_ACCOUNT:
-				break;
-			case SERVER_ACCOUNT:
-				break;
-		}
 		return null;
 	}
 
 	@Override
 	public EconomyAction deleteWalletAccount(Wallet wallet) {
+		RetroAPI api = RetroAPI.getInstance();
 		return null;
 	}
 
@@ -484,32 +332,79 @@ public class Economy implements AdvancedEconomy {
 
 	@Override
 	public EconomyAction deleteAccount(String accountID) {
-		return null;
+		final RetroAPI api = RetroAPI.getInstance();
+		AtomicReference<Account> owner = new AtomicReference<>();
+		getAccounts().forEach(a -> {
+			if (a.getId().equals(accountID)) {
+				owner.set(a);
+				new BukkitRunnable() {
+					@Override
+					public void run() {
+						api.deleteAccount(RetroAccount.convertAccountType(a.getType()), a.getId());
+					}
+				}.runTaskLaterAsynchronously(RetroConomy.getInstance(), 20);
+			}
+		});
+		return new EconomyAction(owner.get().getHolder(), true, "Deleted bank account " + accountID);
 	}
 
 	@Override
 	public EconomyAction deleteAccount(String accountID, String world) {
-		return null;
+		final RetroAPI api = RetroAPI.getInstance();
+		AtomicReference<Account> owner = new AtomicReference<>();
+		getAccounts().forEach(a -> {
+			if (a.getId().equals(accountID)) {
+				owner.set(a);
+				new BukkitRunnable() {
+					@Override
+					public void run() {
+						api.deleteAccount(RetroAccount.convertAccountType(a.getType()), a.getId(), world);
+					}
+				}.runTaskLaterAsynchronously(RetroConomy.getInstance(), 20);
+			}
+		});
+		return new EconomyAction(owner.get().getHolder(), true, "Deleted bank account " + accountID + " in world " + world);
 	}
 
 	@Override
 	public EconomyAction deleteAccount(Account account) {
-		return null;
+		RetroAPI api = RetroAPI.getInstance();
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				api.deleteAccount(RetroAccount.convertAccountType(account.getType()), account.getId());
+			}
+		}.runTaskLaterAsynchronously(RetroConomy.getInstance(), 20);
+		return new EconomyAction(account.getHolder(), true, "Deleted bank account " + account.getId());
 	}
 
 	@Override
 	public EconomyAction deleteAccount(Account account, String world) {
-		return null;
+		RetroAPI api = RetroAPI.getInstance();
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				api.deleteAccount(RetroAccount.convertAccountType(account.getType()), account.getId(), world);
+			}
+		}.runTaskLaterAsynchronously(RetroConomy.getInstance(), 20);
+		return new EconomyAction(account.getHolder(), true, "Deleted bank account " + account.getId());
 	}
 
 	@Override
 	public List<Account> getAccounts() {
-		return null;
+		List<Account> accounts = new ArrayList<>();
+		for (OfflinePlayer p : Bukkit.getOfflinePlayers()) {
+			Account temp = getAccount(p);
+			if (temp.exists() && temp.getType() == AccountType.BANK_ACCOUNT) {
+				accounts.add(temp);
+			}
+		}
+		return accounts;
 	}
 
 	@Override
 	public List<String> getAccountList() {
-		return null;
+		return getAccounts().stream().map(Account::getId).collect(Collectors.toList());
 	}
 
 	private static Optional<OfflinePlayer> getOfflinePlayerByUUID(UUID uuid) {

@@ -1,6 +1,6 @@
 package com.youtube.hempfest.retro.command.staff;
 
-import com.youtube.hempfest.hempcore.library.Message;
+import com.github.sanctum.labyrinth.library.Message;
 import com.youtube.hempfest.retro.construct.account.FundingSource;
 import com.youtube.hempfest.retro.construct.api.RetroAPI;
 import java.math.BigDecimal;

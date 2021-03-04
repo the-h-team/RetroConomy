@@ -1,7 +1,8 @@
 package com.youtube.hempfest.retro.construct.entity;
 
-import com.youtube.hempfest.economy.construct.entity.EconomyEntity;
-import com.youtube.hempfest.hempcore.library.HUID;
+import com.github.sanctum.economy.construct.entity.EconomyEntity;
+import com.github.sanctum.labyrinth.library.HUID;
+import org.jetbrains.annotations.NotNull;
 
 public class ServerEntity implements EconomyEntity {
 
@@ -14,12 +15,12 @@ public class ServerEntity implements EconomyEntity {
 	}
 
 	@Override
-	public String friendlyName() {
+	public @NotNull String friendlyName() {
 		return name;
 	}
 
 	@Override
-	public String id() {
+	public @NotNull String id() {
 		return id.toString();
 	}
 }

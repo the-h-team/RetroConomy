@@ -1,7 +1,7 @@
 package com.youtube.hempfest.retro.construct.wallet;
 
-import com.youtube.hempfest.economy.construct.EconomyAction;
-import com.youtube.hempfest.economy.construct.account.Wallet;
+import com.github.sanctum.economy.construct.EconomyAction;
+import com.github.sanctum.economy.construct.account.Wallet;
 import com.youtube.hempfest.retro.construct.entity.ServerEntity;
 
 import java.math.BigDecimal;
