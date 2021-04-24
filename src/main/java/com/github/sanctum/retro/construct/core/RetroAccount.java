@@ -32,7 +32,10 @@ public class RetroAccount {
 		this.manager = FileType.ACCOUNT.get();
 		this.members = new ArrayList<>(members);
 		this.id = id;
-		setBalance(RetroConomy.getInstance().getManager().getMain().getConfig().getDouble("Options.accounts.starting-balance"));
+		FileConfiguration c = manager.getConfig();
+		if (!c.isDouble("accounts." + id.toString() + ".balance." + Bukkit.getWorlds().get(0).getName())) {
+			setBalance(RetroConomy.getInstance().getManager().getMain().getConfig().getDouble("Options.accounts.starting-balance"));
+		}
 	}
 
 	public UUID getOwner() {
