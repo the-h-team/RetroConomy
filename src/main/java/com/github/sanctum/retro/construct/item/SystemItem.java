@@ -35,7 +35,7 @@ public class SystemItem implements ItemDemand {
 		this.sellerTimeMap = new HashMap<>(sellerTimeMap);
 		this.bought = 0;
 		this.sold = 0;
-		RetroConomy.getInstance().getManager().SHOP.add(this);
+		RetroConomy.getInstance().getManager().getShop().list().add(this);
 	}
 
 	@Override
