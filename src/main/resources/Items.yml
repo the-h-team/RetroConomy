@@ -1,0 +1,16 @@
+Items:
+  DIRT:
+    multiplier: 0.1
+    price: 0.44
+    usage-purchase: {}
+    usage-sold: {}
+  GRASS_BLOCK:
+    multiplier: 0.1
+    price: 2.18
+    usage-purchase: {}
+    usage-sold: {}
+  STONE:
+    multiplier: 0.1
+    price: 4.14
+    usage-purchase: {}
+    usage-sold: {}

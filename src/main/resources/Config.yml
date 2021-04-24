@@ -1,0 +1,35 @@
+Currency:
+  major:
+    color: '&6&l'
+    singular: '&6gold'
+    plural: '&6gold'
+  minor:
+    singular: '&eshilling'
+    plural: '&eshillings'
+
+  # If false currency items will not have currency naming.
+  custom: true
+  # Add as many items as you want for currency.
+  items:
+    dollar:
+      GOLD_INGOT: 1
+    change:
+      GOLD_NUGGET: 0.11
+    alt:
+      GOLD_BLOCK: 9
+
+
+Options:
+  prefix: '&7[<#ebd721>Retro</#eb7f21>] &8&m»&r'
+  # Choose the number formatting for the plugin [ en = US, it = Italy, nl = Netherlands, jp = Japan, de = Germany ]
+  format: en
+  wallets:
+    starting-balance: 500.00
+    max-balance: 5000000.00
+  accounts:
+    starting-balance: 0.0
+    max-balance: 500000000.00
+  multi-world:
+    enabled: true
+    # When multi-world is disabled falsify is used as the sole balance support.
+    falsify: 'world_name'
