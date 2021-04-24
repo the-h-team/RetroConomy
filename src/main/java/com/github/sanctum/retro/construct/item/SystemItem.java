@@ -152,6 +152,7 @@ public class SystemItem implements ItemDemand {
 				lastBuyer = user.toString();
 				bought++;
 				buyerMap.put(user.toString(), buyerMap.getOrDefault(user.toString(), 0L) + 1);
+				buyerTimeMap.put(user.toString(), System.currentTimeMillis());
 				// give item if online
 				double price = this.price * getMultiplier();
 				if (Bukkit.getOfflinePlayer(user).isOnline()) {
@@ -174,6 +175,7 @@ public class SystemItem implements ItemDemand {
 				lastSeller = user.toString();
 				sold++;
 				sellerMap.put(user.toString(), sellerMap.getOrDefault(user.toString(), 0L) + 1);
+				sellerTimeMap.put(user.toString(), System.currentTimeMillis());
 				// take item if online
 				if (Bukkit.getOfflinePlayer(user).isOnline()) {
 					Player u = Bukkit.getPlayer(user);
@@ -199,6 +201,7 @@ public class SystemItem implements ItemDemand {
 				lastBuyer = user.toString();
 				bought += count;
 				buyerMap.put(user.toString(), buyerMap.getOrDefault(user.toString(), 0L) + count);
+				buyerTimeMap.put(user.toString(), System.currentTimeMillis());
 				// give items if online
 				double price = (this.price * getMultiplier()) * count;
 				if (Bukkit.getOfflinePlayer(user).isOnline()) {
@@ -223,6 +226,7 @@ public class SystemItem implements ItemDemand {
 				lastSeller = user.toString();
 				sold += count;
 				sellerMap.put(user.toString(), sellerMap.getOrDefault(user.toString(), 0L) + count);
+				sellerTimeMap.put(user.toString(), System.currentTimeMillis());
 				// take items if online
 
 				if (Bukkit.getOfflinePlayer(user).isOnline()) {
