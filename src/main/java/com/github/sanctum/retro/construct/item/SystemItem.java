@@ -17,18 +17,22 @@ public class SystemItem implements ItemDemand {
 	private final double price;
 	private final Map<String, Long> buyerMap;
 	private final Map<String, Long> sellerMap;
+	private final Map<String, Long> buyerTimeMap;
+	private final Map<String, Long> sellerTimeMap;
 	private double multiplier;
 	private int bought;
 	private int sold;
 	private String lastBuyer = "No-one";
 	private String lastSeller = "No-one";
 
-	public SystemItem(ItemStack item, double price, double multiplier, Map<String, Long> buyerMap, Map<String, Long> sellerMap) {
+	public SystemItem(ItemStack item, double price, double multiplier, Map<String, Long> buyerMap, Map<String, Long> sellerMap, Map<String, Long> buyerTimeMap, Map<String, Long> sellerTimeMap) {
 		this.item = item;
 		this.price = price;
 		this.multiplier = multiplier;
 		this.buyerMap = new HashMap<>(buyerMap);
 		this.sellerMap = new HashMap<>(sellerMap);
+		this.buyerTimeMap = new HashMap<>(buyerTimeMap);
+		this.sellerTimeMap = new HashMap<>(sellerTimeMap);
 		this.bought = 0;
 		this.sold = 0;
 		RetroConomy.getInstance().getManager().SHOP.add(this);
@@ -65,6 +69,11 @@ public class SystemItem implements ItemDemand {
 	}
 
 	@Override
+	public long getSoldLast(String user) {
+		return sellerTimeMap.getOrDefault(user, 0L);
+	}
+
+	@Override
 	public long getSold() {
 		long sold = 0;
 		for (Map.Entry<String, Long> entry : getSellerMap().entrySet()) {
@@ -76,6 +85,11 @@ public class SystemItem implements ItemDemand {
 	@Override
 	public long getBought(String user) {
 		return buyerMap.getOrDefault(user, 0L);
+	}
+
+	@Override
+	public long getBoughtLast(String user) {
+		return buyerTimeMap.getOrDefault(user, 0L);
 	}
 
 	@Override
@@ -100,6 +114,16 @@ public class SystemItem implements ItemDemand {
 	@Override
 	public String getLastSeller() {
 		return lastSeller;
+	}
+
+	@Override
+	public Map<String, Long> getBuyerTimeMap() {
+		return buyerTimeMap;
+	}
+
+	@Override
+	public Map<String, Long> getSellerTimeMap() {
+		return sellerTimeMap;
 	}
 
 	@Override

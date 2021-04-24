@@ -131,13 +131,21 @@ public class RetroManager {
 			if (mat != null) {
 				Map<String, Long> buyMap = new HashMap<>();
 				Map<String, Long> sellMap = new HashMap<>();
+				Map<String, Long> buyMapDate = new HashMap<>();
+				Map<String, Long> sellMapDate = new HashMap<>();
 				for (String user : items.getConfig().getConfigurationSection("Items." + item + ".usage-purchase").getKeys(false)) {
-					buyMap.put(user, items.getConfig().getLong("Items." + item + ".usage-purchase" + "." + user));
+					buyMap.put(user, items.getConfig().getLong("Items." + item + ".usage-purchase" + "." + user + ".amount"));
 				}
 				for (String user : items.getConfig().getConfigurationSection("Items." + item + ".usage-sold").getKeys(false)) {
-					sellMap.put(user, items.getConfig().getLong("Items." + item + ".usage-sold" + "." + user));
+					sellMap.put(user, items.getConfig().getLong("Items." + item + ".usage-sold" + "." + user + ".amount"));
 				}
-				new SystemItem(new ItemStack(mat), items.getConfig().getDouble("Items." + item + ".price"), items.getConfig().getDouble("Items." + item + ".multiplier"), buyMap, sellMap);
+				for (String user : items.getConfig().getConfigurationSection("Items." + item + ".usage-purchase").getKeys(false)) {
+					buyMapDate.put(user, items.getConfig().getLong("Items." + item + ".usage-purchase" + "." + user + ".date"));
+				}
+				for (String user : items.getConfig().getConfigurationSection("Items." + item + ".usage-sold").getKeys(false)) {
+					sellMapDate.put(user, items.getConfig().getLong("Items." + item + ".usage-sold" + "." + user + ".date"));
+				}
+				new SystemItem(new ItemStack(mat), items.getConfig().getDouble("Items." + item + ".price"), items.getConfig().getDouble("Items." + item + ".multiplier"), buyMap, sellMap, buyMapDate, sellMapDate);
 			} else {
 				plugin.getLogger().severe("- An invalid item description was found within the items configuration, section '" + item + "'");
 				plugin.getServer().getPluginManager().disablePlugin(plugin);

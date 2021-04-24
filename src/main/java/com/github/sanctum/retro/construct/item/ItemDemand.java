@@ -10,9 +10,13 @@ public interface ItemDemand extends Modifiable, SellableItem{
 
 	long getSold(String user);
 
+	long getSoldLast(String user);
+
 	long getSold();
 
 	long getBought(String user);
+
+	long getBoughtLast(String user);
 
 	long getBought();
 
@@ -21,6 +25,10 @@ public interface ItemDemand extends Modifiable, SellableItem{
 	String getLastBuyer();
 
 	String getLastSeller();
+
+	Map<String, Long> getBuyerTimeMap();
+
+	Map<String, Long> getSellerTimeMap();
 
 	Map<String, Long> getBuyerMap();
 
