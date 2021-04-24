@@ -41,12 +41,22 @@ public class MarketItem implements ItemDemand{
 	}
 
 	@Override
+	public long getSoldLast(String user) {
+		return 0;
+	}
+
+	@Override
 	public long getSold() {
 		return 0;
 	}
 
 	@Override
 	public long getBought(String user) {
+		return 0;
+	}
+
+	@Override
+	public long getBoughtLast(String user) {
 		return 0;
 	}
 
@@ -67,6 +77,16 @@ public class MarketItem implements ItemDemand{
 
 	@Override
 	public String getLastSeller() {
+		return null;
+	}
+
+	@Override
+	public Map<String, Long> getBuyerTimeMap() {
+		return null;
+	}
+
+	@Override
+	public Map<String, Long> getSellerTimeMap() {
 		return null;
 	}
 
