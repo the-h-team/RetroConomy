@@ -163,9 +163,9 @@ public class ATM implements Serializable {
 
 	public BigDecimal collect() {
 		// get all tax from every transaction and clear after getting.
-		BigDecimal d = new BigDecimal(0);
+		BigDecimal d = BigDecimal.ZERO;
 		for (BankSlip slip : record) {
-			d.add(slip.getTax());
+			d = d.add(slip.getTax());
 			Schedule.sync(() -> record.remove(slip)).wait(1);
 		}
 		return d;
