@@ -48,15 +48,15 @@ import org.jetbrains.annotations.NotNull;
 
 public class RetroManager {
 
-	public LinkedList<RetroAccount> ACCOUNTS = new LinkedList<>();
+	public final LinkedList<RetroAccount> ACCOUNTS = new LinkedList<>();
 
-	public LinkedList<RetroWallet> WALLETS = new LinkedList<>();
+	public final LinkedList<RetroWallet> WALLETS = new LinkedList<>();
 
-	public LinkedList<Currency> CURRENCIES = new LinkedList<>();
+	public final LinkedList<Currency> CURRENCIES = new LinkedList<>();
 
-	public LinkedList<ATM> ATMS = new LinkedList<>();
+	public final LinkedList<ATM> ATMS = new LinkedList<>();
 
-	public LinkedList<ItemDemand> SHOP = new LinkedList<>();
+	public final LinkedList<ItemDemand> SHOP = new LinkedList<>();
 
 	public @NotNull FileManager getMain() {
 

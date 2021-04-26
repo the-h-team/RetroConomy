@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class BankSlip implements Serializable {
 
+	private static final long serialVersionUID = 5560327923404007555L;
 	private final OfflinePlayer holder;
 	private final BigDecimal amount;
 	private BigDecimal tax;

@@ -152,7 +152,7 @@ public class RetroConomy extends JavaPlugin implements RetroAPI {
 			}
 		}).wait(1);
 
-		getServer().getPluginManager().registerEvents(ATM.Listener, this);
+		getServer().getPluginManager().registerEvents(ATM.CONTROLLER, this);
 
 		registerCommands();
 

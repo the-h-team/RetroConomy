@@ -52,11 +52,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class ATM implements Serializable {
 
-	private static final NamespacedKey key = new NamespacedKey(JavaPlugin.getProvidingPlugin(RetroConomy.class), "retro_atm_block");
+	private static final NamespacedKey KEY = new NamespacedKey(JavaPlugin.getProvidingPlugin(RetroConomy.class), "retro_atm_block");
+	public static final Controller CONTROLLER = new Controller();
+	private static final long serialVersionUID = -4263717446113447098L;
 
-	public static Controller Listener = new Controller();
 	private final OfflinePlayer owner;
-	public List<BankSlip> record = new ArrayList<>();
+	public final List<BankSlip> record = new ArrayList<>();
 	private Location location = null;
 
 	private BigDecimal tax = BigDecimal.valueOf(2.13);
@@ -85,10 +86,10 @@ public class ATM implements Serializable {
 			return null;
 		}
 		TileState state = (TileState) b.getState();
-		if (!state.getPersistentDataContainer().has(key, PersistentDataType.STRING)) {
+		if (!state.getPersistentDataContainer().has(KEY, PersistentDataType.STRING)) {
 			return null;
 		}
-		return RetroConomy.getInstance().getManager().getATMs().filter(a -> state.getPersistentDataContainer().get(key, PersistentDataType.STRING).equals(a.getOwner().getUniqueId().toString())).findFirst().orElse(null);
+		return RetroConomy.getInstance().getManager().getATMs().filter(a -> state.getPersistentDataContainer().get(KEY, PersistentDataType.STRING).equals(a.getOwner().getUniqueId().toString())).findFirst().orElse(null);
 	}
 
 	public void take(BankSlip slip) {
@@ -206,7 +207,7 @@ public class ATM implements Serializable {
 			return false;
 		this.location = b.getLocation().add(0.5, 1, 0.5);
 		TileState state = (TileState) b.getState();
-		state.getPersistentDataContainer().set(key, PersistentDataType.STRING, getOwner().getUniqueId().toString());
+		state.getPersistentDataContainer().set(KEY, PersistentDataType.STRING, getOwner().getUniqueId().toString());
 		despawn();
 		if (state.update(true)) {
 			ArmorStand stand = b.getWorld().spawn(location, ArmorStand.class);
@@ -408,9 +409,7 @@ public class ATM implements Serializable {
 							.addElement(new ItemStack(Material.GOLDEN_HELMET))
 							.setText(StringUtils.use("&2Withdraw").translate())
 							.setLore(StringUtils.use("&7Click to transfer money to your wallet.").translate())
-							.setAction(click -> {
-								write(click.getPlayer(), atm, Type.WITHDRAW_ACCOUNT).open();
-							})
+							.setAction(click -> write(click.getPlayer(), atm, Type.WITHDRAW_ACCOUNT).open())
 							.assignToSlots(12)
 							.addElement(new ItemStack(Material.ENCHANTED_BOOK))
 							.setText(StringUtils.use("&2&m←&r &aChoose an option &2&m→").translate())
@@ -422,9 +421,7 @@ public class ATM implements Serializable {
 							.addElement(new ItemStack(Material.IRON_HELMET))
 							.setText(StringUtils.use("&aDeposit").translate())
 							.setLore(StringUtils.use("&7Click to transfer money to your account.").translate())
-							.setAction(click -> {
-								write(click.getPlayer(), atm, Type.DEPOSIT_ACCOUNT).open();
-							})
+							.setAction(click -> write(click.getPlayer(), atm, Type.DEPOSIT_ACCOUNT).open())
 							.assignToSlots(14)
 							.setFiller(new ItemStack(Material.GRAY_STAINED_GLASS_PANE))
 							.setText(" ")
@@ -435,9 +432,7 @@ public class ATM implements Serializable {
 							.addElement(new ItemStack(Material.GOLDEN_HELMET))
 							.setText(StringUtils.use("&2Withdraw").translate())
 							.setLore(StringUtils.use("&7Click to withdraw physical money.").translate())
-							.setAction(click -> {
-								write(click.getPlayer(), atm, Type.WITHDRAW_WALLET).open();
-							})
+							.setAction(click -> write(click.getPlayer(), atm, Type.WITHDRAW_WALLET).open())
 							.assignToSlots(12)
 							.addElement(new ItemStack(Material.ENCHANTED_BOOK))
 							.setText(StringUtils.use("&2&m←&r &aChoose an option &2&m→").translate())
@@ -449,9 +444,7 @@ public class ATM implements Serializable {
 							.addElement(new ItemStack(Material.IRON_HELMET))
 							.setText(StringUtils.use("&aDeposit").translate())
 							.setLore(StringUtils.use("&7Click to deposit physical money.").translate())
-							.setAction(click -> {
-								write(click.getPlayer(), atm, Type.DEPOSIT_WALLET).open();
-							})
+							.setAction(click -> write(click.getPlayer(), atm, Type.DEPOSIT_WALLET).open())
 							.assignToSlots(14)
 							.setFiller(new ItemStack(Material.GRAY_STAINED_GLASS_PANE))
 							.setText(" ")
