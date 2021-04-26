@@ -184,6 +184,76 @@ public class RetroAccount {
 		withdraw(amount, world);
 	}
 
+	public BankSlip record(TransactionType type, OfflinePlayer player, BigDecimal amount, World world) {
+		BankSlip slip;
+		switch (type) {
+			case WITHDRAW:
+					if (!multiWorld)
+						world = Bukkit.getWorld(this.world);
+					if (has(amount.doubleValue(), world)) {
+						RetroWallet wallet = RetroConomy.getInstance().getManager().getWallet(player).orElse(null);
+						if (wallet != null) {
+							wallet.deposit(amount, world);
+						}
+						slip = BankSlip.from(player, amount, this, TransactionType.WITHDRAW);
+						withdraw(amount, world);
+						return slip;
+					}
+					return BankSlip.from(player, BigDecimal.ZERO, this, TransactionType.WITHDRAW);
+
+			case DEPOSIT:
+				RetroWallet wallet = RetroConomy.getInstance().getManager().getWallet(player).orElse(null);
+				if (wallet != null) {
+					if (!multiWorld)
+						world = Bukkit.getWorld(this.world);
+					if (wallet.has(amount.doubleValue(), world)) {
+						wallet.withdraw(amount, world);
+						slip = BankSlip.from(player, amount, this, TransactionType.DEPOSIT);
+						deposit(amount, world);
+						return slip;
+					}
+				}
+				return BankSlip.from(player, BigDecimal.ZERO, this, TransactionType.DEPOSIT);
+			default:
+				throw new IllegalStateException();
+		}
+	}
+
+	public BankSlip record(TransactionType type, OfflinePlayer player, BigDecimal amount, BigDecimal tax, World world) {
+		BankSlip slip;
+		switch (type) {
+			case WITHDRAW:
+				if (!multiWorld)
+					world = Bukkit.getWorld(this.world);
+				if (has(amount.doubleValue(), world)) {
+					RetroWallet wallet = RetroConomy.getInstance().getManager().getWallet(player).orElse(null);
+					if (wallet != null) {
+						wallet.deposit(amount.subtract(tax), world);
+					}
+					slip = BankSlip.from(player, amount, tax, this, TransactionType.WITHDRAW);
+					withdraw(amount, world);
+					return slip;
+				}
+				return BankSlip.from(player, BigDecimal.ZERO, tax, this, TransactionType.WITHDRAW);
+
+			case DEPOSIT:
+				RetroWallet wallet = RetroConomy.getInstance().getManager().getWallet(player).orElse(null);
+				if (wallet != null) {
+					if (!multiWorld)
+						world = Bukkit.getWorld(this.world);
+					if (wallet.has(amount.doubleValue(), world)) {
+						wallet.withdraw(amount, world);
+						slip = BankSlip.from(player, amount, tax, this, TransactionType.DEPOSIT);
+						deposit(amount.subtract(tax), world);
+						return slip;
+					}
+				}
+				return BankSlip.from(player, BigDecimal.ZERO, tax, this, TransactionType.DEPOSIT);
+			default:
+				throw new IllegalStateException();
+		}
+	}
+
 	public void remove() {
 		FileConfiguration c = manager.getConfig();
 		c.set("accounts." + id.toString(), null);

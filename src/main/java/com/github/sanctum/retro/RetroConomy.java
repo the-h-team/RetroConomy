@@ -2,6 +2,8 @@ package com.github.sanctum.retro;
 
 import com.github.sanctum.labyrinth.data.FileList;
 import com.github.sanctum.labyrinth.data.FileManager;
+import com.github.sanctum.labyrinth.data.container.DataContainer;
+import com.github.sanctum.labyrinth.library.HFEncoded;
 import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.labyrinth.library.Message;
 import com.github.sanctum.labyrinth.task.Schedule;
@@ -20,6 +22,7 @@ import com.github.sanctum.retro.construct.internal.WithdrawCommand;
 import com.github.sanctum.retro.construct.item.Currency;
 import com.github.sanctum.retro.construct.item.ItemDemand;
 import com.github.sanctum.retro.enterprise.EnterpriseEconomy;
+import com.github.sanctum.retro.util.ATM;
 import com.github.sanctum.retro.util.ConfiguredMessage;
 import com.github.sanctum.retro.util.FileType;
 import com.github.sanctum.retro.util.PlaceHolder;
@@ -76,6 +79,9 @@ public class RetroConomy extends JavaPlugin implements RetroAPI {
 			manager.getConfig().set("accounts." + account.getId().toString() + ".members", account.getMembers());
 			manager.saveConfig();
 		}
+		for (ATM atm : getManager().ATMS) {
+			atm.save();
+		}
 	}
 
 	@Override
@@ -105,6 +111,15 @@ public class RetroConomy extends JavaPlugin implements RetroAPI {
 				}
 				manager.saveConfig();
 			}
+			HUID id = DataContainer.getHuid("Retro-ATM-" + p.getUniqueId().toString());
+			if (id != null) {
+				try {
+					ATM atm = (ATM) new HFEncoded(DataContainer.loadInstance(id, true).value()).deserialized();
+					getManager().ATMS.add(atm);
+				} catch (IOException | ClassNotFoundException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 
 		getManager().loadCurrencies();
@@ -128,6 +143,8 @@ public class RetroConomy extends JavaPlugin implements RetroAPI {
 				EnterpriseEconomy.register();
 			}
 		}).wait(1);
+
+		getServer().getPluginManager().registerEvents(ATM.Listener, this);
 
 		registerCommands();
 

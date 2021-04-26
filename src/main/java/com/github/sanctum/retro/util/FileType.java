@@ -8,10 +8,13 @@ public enum FileType {
 	MISC, ACCOUNT;
 
 	public FileManager get() {
-		if (this == FileType.ACCOUNT) {
-			return RetroConomy.getInstance().getFiles().find("Accounts", "Data");
+		switch (this) {
+			case ACCOUNT:
+				return RetroConomy.getInstance().getFiles().find("Accounts", "Data");
+			default:
+				throw new IllegalStateException("Invalid file type selected! This is not internal!");
 		}
-		throw new IllegalStateException("Invalid file type selected! This is not internal!");
+
 	}
 
 	public FileManager get(String name) {

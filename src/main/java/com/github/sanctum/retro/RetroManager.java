@@ -11,6 +11,8 @@ import com.github.sanctum.retro.construct.item.Currency;
 import com.github.sanctum.retro.construct.item.CurrencyType;
 import com.github.sanctum.retro.construct.item.ItemDemand;
 import com.github.sanctum.retro.construct.item.SystemItem;
+import com.github.sanctum.retro.util.ATM;
+import com.github.sanctum.retro.util.ATMList;
 import com.github.sanctum.retro.util.AccountList;
 import com.github.sanctum.retro.util.CurrencyList;
 import com.github.sanctum.retro.util.DemandList;
@@ -43,6 +45,8 @@ public class RetroManager {
 	public LinkedList<RetroWallet> WALLETS = new LinkedList<>();
 
 	public LinkedList<Currency> CURRENCIES = new LinkedList<>();
+
+	public LinkedList<ATM> ATMS = new LinkedList<>();
 
 	public LinkedList<ItemDemand> SHOP = new LinkedList<>();
 
@@ -230,6 +234,10 @@ public class RetroManager {
 
 	public UniformedComponents<ItemDemand> getShop() {
 		return new DemandList();
+	}
+
+	public UniformedComponents<ATM> getATMs() {
+		return new ATMList();
 	}
 
 	public String[] getCurrencyNames() {

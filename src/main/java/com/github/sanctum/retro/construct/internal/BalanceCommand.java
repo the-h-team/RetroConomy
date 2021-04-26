@@ -4,6 +4,7 @@ import com.github.sanctum.retro.RetroConomy;
 import com.github.sanctum.retro.command.CommandInformation;
 import com.github.sanctum.retro.command.CommandOrientation;
 import com.github.sanctum.retro.construct.core.RetroWallet;
+import com.github.sanctum.retro.util.ATM;
 import com.github.sanctum.retro.util.ConfiguredMessage;
 import com.github.sanctum.retro.util.PlaceHolder;
 import java.util.List;
@@ -26,6 +27,15 @@ public class BalanceCommand extends CommandOrientation {
 	@Override
 	public void player(Player player, String[] args) {
 		if (testPermission(player)) {
+
+			if (!ATM.has(player)) {
+				ATM atm = ATM.pick(player);
+				player.getWorld().dropItem(player.getLocation(), atm.get());
+				player.sendMessage("Place down your ATM to begin using it!");
+			} else {
+				sendMessage(player, "&cYou already have an atm!");
+			}
+
 			if (RetroConomy.getInstance().getManager().getWallet(player).isPresent()) {
 				RetroWallet wallet = RetroConomy.getInstance().getManager().getWallet(player).get();
 
