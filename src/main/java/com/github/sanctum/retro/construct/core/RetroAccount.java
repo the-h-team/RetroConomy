@@ -11,8 +11,8 @@ package com.github.sanctum.retro.construct.core;
 import com.github.sanctum.labyrinth.data.FileManager;
 import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.retro.RetroConomy;
-import com.github.sanctum.retro.construct.item.BankSlip;
 import com.github.sanctum.retro.util.FileType;
+import com.github.sanctum.retro.util.Savable;
 import com.github.sanctum.retro.util.TransactionType;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -33,6 +33,7 @@ public class RetroAccount {
 	private final boolean multiWorld = RetroConomy.getInstance().getManager().getMain().getConfig().getBoolean("Options.multi-world.enabled");
 	private final String world = RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.multi-world.falsify");
 	private UUID joint;
+	private final DebitCard debitCard;
 
 	public RetroAccount(UUID owner, UUID joint, HUID id, List<String> members) {
 		this.uuid = owner;
@@ -44,6 +45,7 @@ public class RetroAccount {
 		if (!c.isDouble("accounts." + id.toString() + ".balance." + Bukkit.getWorlds().get(0).getName())) {
 			setBalance(RetroConomy.getInstance().getManager().getMain().getConfig().getDouble("Options.accounts.starting-balance"));
 		}
+		this.debitCard = new DebitCard(this);
 	}
 
 	public UUID getOwner() {
@@ -66,6 +68,10 @@ public class RetroAccount {
 		c.set("accounts." + id.toString() + ".joint", newJointOwner.toString());
 		manager.saveConfig();
 		this.joint = newJointOwner;
+	}
+
+	public Savable getDebitCard() {
+		return debitCard;
 	}
 
 	public BigDecimal getBalance() {
@@ -160,7 +166,7 @@ public class RetroAccount {
 		BankSlip slip = BankSlip.from(player, amount, this, TransactionType.DEPOSIT);
 		if (player.isOnline()) {
 			Player target = player.getPlayer();
-			target.getInventory().addItem(slip.toItem());
+			target.getInventory().addItem(slip.get());
 		}
 		deposit(amount, world);
 	}
@@ -187,7 +193,7 @@ public class RetroAccount {
 		BankSlip slip = BankSlip.from(player, amount, this, TransactionType.WITHDRAW);
 		if (player.isOnline()) {
 			Player target = player.getPlayer();
-			target.getInventory().addItem(slip.toItem());
+			target.getInventory().addItem(slip.get());
 		}
 		withdraw(amount, world);
 	}

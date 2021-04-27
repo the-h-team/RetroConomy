@@ -10,6 +10,7 @@ package com.github.sanctum.retro.util;
 
 import com.github.sanctum.labyrinth.formatting.UniformedComponents;
 import com.github.sanctum.retro.RetroConomy;
+import com.github.sanctum.retro.construct.core.ATM;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;

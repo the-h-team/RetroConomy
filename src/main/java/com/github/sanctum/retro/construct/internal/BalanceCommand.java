@@ -8,11 +8,13 @@
  */
 package com.github.sanctum.retro.construct.internal;
 
+import com.github.sanctum.labyrinth.task.Schedule;
 import com.github.sanctum.retro.RetroConomy;
 import com.github.sanctum.retro.command.CommandInformation;
 import com.github.sanctum.retro.command.CommandOrientation;
+import com.github.sanctum.retro.construct.core.ATM;
+import com.github.sanctum.retro.construct.core.RetroAccount;
 import com.github.sanctum.retro.construct.core.RetroWallet;
-import com.github.sanctum.retro.util.ATM;
 import com.github.sanctum.retro.util.ConfiguredMessage;
 import com.github.sanctum.retro.util.PlaceHolder;
 import java.util.List;
@@ -39,7 +41,16 @@ public class BalanceCommand extends CommandOrientation {
 			if (!ATM.has(player)) {
 				ATM atm = ATM.pick(player);
 				player.getWorld().dropItem(player.getLocation(), atm.get());
-				player.sendMessage("Place down your ATM to begin using it!");
+				sendMessage(player, "Place down your ATM to begin using it!");
+				Schedule.sync(() -> {
+
+					RetroAccount account = RetroConomy.getInstance().getManager().getAccount(player).orElse(null);
+					if (account != null) {
+						sendMessage(player, "&aUse this card to access your bank account from any atm location.");
+						player.getWorld().dropItem(player.getLocation(), account.getDebitCard().get());
+					}
+
+				}).wait(2);
 			} else {
 				sendMessage(player, "&cYou already have an atm!");
 			}

@@ -6,13 +6,13 @@
  *  This software is currently in development and its licensing has not
  *  yet been chosen.
  */
-package com.github.sanctum.retro.construct.item;
+package com.github.sanctum.retro.construct.core;
 
+import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.labyrinth.library.StringUtils;
 import com.github.sanctum.retro.RetroConomy;
-import com.github.sanctum.retro.construct.core.RetroAccount;
+import com.github.sanctum.retro.util.Savable;
 import com.github.sanctum.retro.util.TransactionType;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.ZoneId;
 import java.util.Arrays;
@@ -23,9 +23,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.Nullable;
 
-public class BankSlip implements Serializable {
+public class BankSlip extends Savable {
 
-	private static final long serialVersionUID = 5560327923404007555L;
+	private static final long serialVersionUID = -6982006703415280538L;
 	private final OfflinePlayer holder;
 	private final BigDecimal amount;
 	private BigDecimal tax;
@@ -72,7 +72,8 @@ public class BankSlip implements Serializable {
 		return type;
 	}
 
-	public ItemStack toItem() {
+	@Override
+	public ItemStack get() {
 		ItemStack make = new ItemStack(Material.PAPER);
 		ItemMeta meta = make.getItemMeta();
 		meta.setDisplayName(StringUtils.use("&6&l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ &b[NOTE] &6&l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬").translate());
@@ -95,4 +96,8 @@ public class BankSlip implements Serializable {
 	}
 
 
+	@Override
+	public HUID id() {
+		return account.getId();
+	}
 }

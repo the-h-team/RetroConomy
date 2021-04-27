@@ -6,12 +6,13 @@
  *  This software is currently in development and its licensing has not
  *  yet been chosen.
  */
-package com.github.sanctum.retro.util;
+package com.github.sanctum.retro.construct.core;
 
 import com.github.sanctum.labyrinth.data.container.DataContainer;
 import com.github.sanctum.labyrinth.gui.InventoryRows;
 import com.github.sanctum.labyrinth.gui.menuman.Menu;
 import com.github.sanctum.labyrinth.gui.menuman.MenuBuilder;
+import com.github.sanctum.labyrinth.gui.menuman.MenuClick;
 import com.github.sanctum.labyrinth.gui.printer.AnvilBuilder;
 import com.github.sanctum.labyrinth.gui.printer.AnvilMenu;
 import com.github.sanctum.labyrinth.library.HUID;
@@ -19,8 +20,8 @@ import com.github.sanctum.labyrinth.library.Message;
 import com.github.sanctum.labyrinth.library.StringUtils;
 import com.github.sanctum.labyrinth.task.Schedule;
 import com.github.sanctum.retro.RetroConomy;
-import com.github.sanctum.retro.construct.item.BankSlip;
-import java.io.Serializable;
+import com.github.sanctum.retro.util.Savable;
+import com.github.sanctum.retro.util.TransactionType;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -50,7 +51,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class ATM implements Serializable {
+public class ATM extends Savable {
 
 	private static final NamespacedKey KEY = new NamespacedKey(JavaPlugin.getProvidingPlugin(RetroConomy.class), "retro_atm_block");
 	public static final Controller CONTROLLER = new Controller();
@@ -59,13 +60,14 @@ public class ATM implements Serializable {
 	private final OfflinePlayer owner;
 	public final List<BankSlip> record = new ArrayList<>();
 	private Location location = null;
-
+	private final HUID id;
 	private BigDecimal tax = BigDecimal.valueOf(2.13);
 
 	private boolean locked;
 
 	protected ATM(OfflinePlayer owner) {
 		this.owner = owner;
+		this.id = HUID.randomID();
 		RetroConomy.getInstance().getManager().ATMS.add(this);
 	}
 
@@ -102,6 +104,13 @@ public class ATM implements Serializable {
 		}
 	}
 
+	@Override
+	public HUID id() {
+		RetroAccount account = RetroConomy.getInstance().getManager().getAccount(getOwner()).orElse(null);
+		return account != null ? account.getId() : HUID.randomID();
+	}
+
+	@Override
 	public ItemStack get() {
 		ItemStack atm = new ItemStack(Material.CHEST);
 		ItemMeta meta = atm.getItemMeta();
@@ -231,7 +240,7 @@ public class ATM implements Serializable {
 							.setLeftItem(builder -> {
 								ItemStack paper = new ItemStack(Material.PAPER);
 								ItemMeta meta = paper.getItemMeta();
-								meta.setDisplayName(StringUtils.use("&aDeposit Amount &2&m→ ").translate());
+								meta.setDisplayName(StringUtils.use("&aDeposit Amount &2&m→&r ").translate());
 								meta.setLore(Collections.singletonList(StringUtils.use("&7Format ##.## &2&m→").translate()));
 								paper.setItemMeta(meta);
 								builder.setItem(paper);
@@ -242,7 +251,7 @@ public class ATM implements Serializable {
 											RetroConomy.getInstance().getManager().getAccount(p).ifPresent(account -> {
 												BankSlip slip = account.record(TransactionType.DEPOSIT, p, BigDecimal.valueOf(amount), atm.getTax(p), p.getWorld());
 												atm.take(slip);
-												Schedule.sync(() -> atm.getLocation().getWorld().dropItemNaturally(atm.getLocation().getBlock().getRelative(BlockFace.UP, 1).getLocation(), slip.toItem())).wait(1);
+												Schedule.sync(() -> atm.getLocation().getWorld().dropItemNaturally(atm.getLocation().getBlock().getRelative(BlockFace.UP, 1).getLocation(), slip.get())).wait(1);
 											});
 											p.closeInventory();
 										} catch (NumberFormatException e) {
@@ -257,7 +266,7 @@ public class ATM implements Serializable {
 												RetroConomy.getInstance().getManager().getAccount(p).ifPresent(account -> {
 													BankSlip slip = account.record(TransactionType.DEPOSIT, p, BigDecimal.valueOf(amount), atm.getTax(p), p.getWorld());
 													atm.take(slip);
-													Schedule.sync(() -> atm.getLocation().getWorld().dropItemNaturally(atm.getLocation().getBlock().getRelative(BlockFace.UP, 1).getLocation(), slip.toItem())).wait(1);
+													Schedule.sync(() -> atm.getLocation().getWorld().dropItemNaturally(atm.getLocation().getBlock().getRelative(BlockFace.UP, 1).getLocation(), slip.get())).wait(1);
 												});
 												p.closeInventory();
 											} catch (NumberFormatException ignored) {
@@ -272,7 +281,7 @@ public class ATM implements Serializable {
 							.setLeftItem(builder -> {
 								ItemStack paper = new ItemStack(Material.PAPER);
 								ItemMeta meta = paper.getItemMeta();
-								meta.setDisplayName(StringUtils.use("&aWithdraw Amount &2&m→ ").translate());
+								meta.setDisplayName(StringUtils.use("&aWithdraw Amount &2&m→&r ").translate());
 								meta.setLore(Collections.singletonList(StringUtils.use("&7Format ##.## &2&m→").translate()));
 								paper.setItemMeta(meta);
 								builder.setItem(paper);
@@ -283,7 +292,7 @@ public class ATM implements Serializable {
 											RetroConomy.getInstance().getManager().getAccount(p).ifPresent(account -> {
 												BankSlip slip = account.record(TransactionType.WITHDRAW, p, BigDecimal.valueOf(amount), atm.getTax(p), p.getWorld());
 												atm.take(slip);
-												Schedule.sync(() -> atm.getLocation().getWorld().dropItemNaturally(atm.getLocation().getBlock().getRelative(BlockFace.UP, 1).getLocation(), slip.toItem())).wait(1);
+												Schedule.sync(() -> atm.getLocation().getWorld().dropItemNaturally(atm.getLocation().getBlock().getRelative(BlockFace.UP, 1).getLocation(), slip.get())).wait(1);
 											});
 											p.closeInventory();
 										} catch (NumberFormatException e) {
@@ -298,7 +307,7 @@ public class ATM implements Serializable {
 												RetroConomy.getInstance().getManager().getAccount(p).ifPresent(account -> {
 													BankSlip slip = account.record(TransactionType.WITHDRAW, p, BigDecimal.valueOf(amount), atm.getTax(p), p.getWorld());
 													atm.take(slip);
-													Schedule.sync(() -> atm.getLocation().getWorld().dropItemNaturally(atm.getLocation().getBlock().getRelative(BlockFace.UP, 1).getLocation(), slip.toItem())).wait(1);
+													Schedule.sync(() -> atm.getLocation().getWorld().dropItemNaturally(atm.getLocation().getBlock().getRelative(BlockFace.UP, 1).getLocation(), slip.get())).wait(1);
 												});
 												p.closeInventory();
 											} catch (NumberFormatException ignored) {
@@ -313,7 +322,7 @@ public class ATM implements Serializable {
 							.setLeftItem(builder -> {
 								ItemStack paper = new ItemStack(Material.PAPER);
 								ItemMeta meta = paper.getItemMeta();
-								meta.setDisplayName(StringUtils.use("&aDeposit Amount &2&m→ ").translate());
+								meta.setDisplayName(StringUtils.use("&aDeposit Amount &2&m→&r ").translate());
 								meta.setLore(Collections.singletonList(StringUtils.use("&7Format # &2&m→").translate()));
 								paper.setItemMeta(meta);
 								builder.setItem(paper);
@@ -346,7 +355,7 @@ public class ATM implements Serializable {
 							.setLeftItem(builder -> {
 								ItemStack paper = new ItemStack(Material.PAPER);
 								ItemMeta meta = paper.getItemMeta();
-								meta.setDisplayName(StringUtils.use("&aWithdraw Amount &2&m→ ").translate());
+								meta.setDisplayName(StringUtils.use("&aWithdraw Amount &2&m→&r ").translate());
 								meta.setLore(Collections.singletonList(StringUtils.use("&7Format # &2&m→").translate()));
 								paper.setItemMeta(meta);
 								builder.setItem(paper);
@@ -370,6 +379,26 @@ public class ATM implements Serializable {
 											} catch (NumberFormatException ignored) {
 											}
 										}
+									}
+								});
+							})
+							.get();
+				case FORGOT_CARD:
+					return AnvilBuilder.from(p, StringUtils.use("&2Type your account id.").translate())
+							.setLeftItem(builder -> {
+								ItemStack paper = new ItemStack(Material.PAPER);
+								ItemMeta meta = paper.getItemMeta();
+								meta.setDisplayName(StringUtils.use("&aAccount ID &2&m→&r ").translate());
+								meta.setLore(Collections.singletonList(StringUtils.use("&7Format ####-####-#### &2&m→").translate()));
+								paper.setItemMeta(meta);
+								builder.setItem(paper);
+								builder.setClick((player, text, args) -> {
+									try {
+										HUID id = HUID.fromString(text);
+										if (RetroConomy.getInstance().getManager().getAccount(id).isPresent()) {
+											select(atm, Type.ACCOUNT).open(player);
+										}
+									} catch (Exception ignore) {
 									}
 								});
 							})
@@ -398,10 +427,50 @@ public class ATM implements Serializable {
 							.addElement(new ItemStack(Material.IRON_HELMET))
 							.setText(StringUtils.use("&eAccount").translate())
 							.setLore(StringUtils.use("&7Click to deposit/withdraw bank money.").translate())
-							.setAction(click -> select(atm, Type.ACCOUNT).open(click.getPlayer()))
+							.setAction(click -> select(atm, Type.ACCOUNT_LOGIN).open(click.getPlayer()))
 							.assignToSlots(14)
 							.setFiller(new ItemStack(Material.GRAY_STAINED_GLASS_PANE))
 							.setText(" ")
+							.set()
+							.create(JavaPlugin.getProvidingPlugin(RetroConomy.class));
+				case ACCOUNT_LOGIN:
+					return new MenuBuilder(InventoryRows.SIX, "Login (Place your card)")
+							.addElement(new ItemStack(Material.AIR))
+							.setAction(click -> {
+								click.allowClick();
+								if (!click.getItemOnMouseCursor().isPresent())
+									return;
+								if (DebitCard.matches(click.getItemOnMouseCursor().get())) {
+									String id = click.getItemOnMouseCursor().get().getItemMeta().getPersistentDataContainer().get(DebitCard.KEY, PersistentDataType.STRING);
+									RetroConomy.getInstance().getManager().getAccount(click.getPlayer()).ifPresent(a -> {
+										if (id.equals(a.getId().toString())) {
+											// access granted
+											final ItemStack copy = click.getItemOnMouseCursor().get().clone();
+											click.getItemOnMouseCursor().get().setAmount(0);
+											click.getPlayer().getWorld().dropItem(click.getPlayer().getLocation(), copy);
+											select(atm, Type.ACCOUNT).open(click.getPlayer());
+										} else {
+											click.getPlayer().closeInventory();
+											// access denied
+										}
+									});
+								}
+							})
+							.assignToSlots(24)
+							.addElement(new ItemStack(Material.BLUE_STAINED_GLASS_PANE))
+							.setText(StringUtils.use("&7Place your debit card in the slot. &a&m→").translate())
+							.assignToSlots(20)
+							.addElement(new ItemStack(Material.PLAYER_HEAD))
+							.setText(StringUtils.use("&7▼ &3Forgot Card.").translate())
+							.setLore()
+							.setAction(click -> {
+								// open manual id type.
+								write(click.getPlayer(), atm, Type.FORGOT_CARD).open();
+							})
+							.assignToSlots(40)
+							.setFiller(new ItemStack(Material.GRAY_STAINED_GLASS_PANE))
+							.setText(" ")
+							.setAction(MenuClick::disallowClick)
 							.set()
 							.create(JavaPlugin.getProvidingPlugin(RetroConomy.class));
 				case ACCOUNT:
@@ -456,7 +525,7 @@ public class ATM implements Serializable {
 		}
 
 		public enum Type {
-			MAIN, WALLET, ACCOUNT, DEPOSIT_ACCOUNT, WITHDRAW_ACCOUNT, DEPOSIT_WALLET, WITHDRAW_WALLET
+			MAIN, WALLET, ACCOUNT, ACCOUNT_LOGIN, FORGOT_CARD, DEPOSIT_ACCOUNT, WITHDRAW_ACCOUNT, DEPOSIT_WALLET, WITHDRAW_WALLET
 		}
 
 	}
