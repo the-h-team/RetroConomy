@@ -452,15 +452,15 @@ public class ATM implements Savable {
 							.setCloseAction(PaginatedClose::clear)
 							.setAlreadyFirst(StringUtils.use("").translate())
 							.setAlreadyLast(StringUtils.use("").translate())
-							.setNavigationBack(back.get(), 50, click -> {
+							.setNavigationBack(back.get(), 49, click -> {
 								RetroAccount wallet = RetroConomy.getInstance().getManager().getWallet(click.getPlayer()).orElse(null);
 								if (wallet != null) {
 									wallet.deposit(atm.collect(), click.getPlayer().getWorld());
 								}
 								browse(atm, type).open(click.getPlayer());
 							})
-							.setNavigationLeft(left.get(), 49, PaginatedClick::sync)
-							.setNavigationRight(right.get(), 51, PaginatedClick::sync)
+							.setNavigationLeft(left.get(), 48, PaginatedClick::sync)
+							.setNavigationRight(right.get(), 50, PaginatedClick::sync)
 							.collect(new LinkedList<>(atm.record.stream().map(BankSlip::slipId).map(HUID::toString).collect(Collectors.toList())))
 							.setupProcess(process -> process.applyLogic(e -> {
 								if (e.getId().equals(ID_MAP.get(type))) {
@@ -497,7 +497,7 @@ public class ATM implements Savable {
 							.setText(StringUtils.use("&eLog").translate())
 							.setLore(StringUtils.use("&7View the list of transactions to collect.").translate())
 							.setAction(click -> browse(atm, Type.LOG).open(click.getPlayer()))
-							.assignToSlots(0)
+							.assignToSlots(10)
 							.addElement(new ItemStack(Material.GOLDEN_HELMET))
 							.setText(StringUtils.use("&6Wallet").translate())
 							.setLore(StringUtils.use("&7Click to deposit/withdraw from your wallet.").translate())
