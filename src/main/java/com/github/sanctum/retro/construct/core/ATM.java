@@ -238,7 +238,7 @@ public class ATM implements Savable {
 		state.getPersistentDataContainer().set(KEY, PersistentDataType.STRING, getOwner().getUniqueId().toString());
 		int amount = despawn();
 		if (getOwner().isOnline()) {
-			Message.form(getOwner().getPlayer()).send("&8(&7" + amount + "&8) &aold marks were found and removed.");
+			Message.form(getOwner().getPlayer()).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix")).send("&8(&7" + amount + "&8) &aold marks were found and removed.");
 		}
 		if (state.update(true)) {
 			ArmorStand stand = b.getWorld().spawn(location, ArmorStand.class);
@@ -455,7 +455,10 @@ public class ATM implements Savable {
 							.setNavigationBack(back.get(), 49, click -> {
 								RetroAccount wallet = RetroConomy.getInstance().getManager().getWallet(click.getPlayer()).orElse(null);
 								if (wallet != null) {
-									wallet.deposit(atm.collect(), click.getPlayer().getWorld());
+									final BigDecimal amount = atm.collect();
+									if (wallet.deposit(amount, click.getPlayer().getWorld()).success()) {
+										Message.form(click.getPlayer()).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix")).send("&aYou received " + RetroConomy.getInstance().getManager().format(amount) + " of tax.");
+									}
 								}
 								browse(atm, type).open(click.getPlayer());
 							})
@@ -469,7 +472,10 @@ public class ATM implements Savable {
 										BankSlip slip = atm.getTransaction(e.getContext());
 										RetroAccount wallet = RetroConomy.getInstance().getManager().getWallet(click.getPlayer()).orElse(null);
 										if (wallet != null) {
-											wallet.deposit(slip.getTax(), click.getPlayer().getWorld());
+											final BigDecimal amount = slip.getTax();
+											if (wallet.deposit(amount, click.getPlayer().getWorld()).success()) {
+												Message.form(click.getPlayer()).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix")).send("&aYou received " + RetroConomy.getInstance().getManager().format(amount) + " of tax.");
+											}
 											atm.record.remove(slip);
 											browse(atm, type).open(click.getPlayer());
 										}
