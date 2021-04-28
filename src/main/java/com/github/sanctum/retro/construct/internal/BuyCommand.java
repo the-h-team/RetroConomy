@@ -14,11 +14,11 @@ import com.github.sanctum.labyrinth.library.Items;
 import com.github.sanctum.retro.RetroConomy;
 import com.github.sanctum.retro.command.CommandInformation;
 import com.github.sanctum.retro.command.CommandOrientation;
-import com.github.sanctum.retro.construct.item.ItemDemand;
-import com.github.sanctum.retro.construct.item.Modifiable;
-import com.github.sanctum.retro.construct.item.SellableItem;
+import com.github.sanctum.retro.construct.core.ItemDemand;
+import com.github.sanctum.retro.construct.core.Modifiable;
+import com.github.sanctum.retro.construct.core.SellableItem;
 import com.github.sanctum.retro.util.ConfiguredMessage;
-import com.github.sanctum.retro.util.PlaceHolder;
+import com.github.sanctum.retro.util.FormattedMessage;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.bukkit.Material;
@@ -67,7 +67,7 @@ public class BuyCommand extends CommandOrientation {
 						if (item != null) {
 							if (item.invoke(player.getUniqueId(), Modifiable.TransactionResult.Buy).isTransactionSuccess()) {
 								double price = item.getPrice() * item.getMultiplier();
-								String format = PlaceHolder.convert(ConfiguredMessage.getMessage("item-bought")).bought(request.name().toLowerCase(), price, price).replace("{AMOUNT}", "1");
+								String format = FormattedMessage.convert(ConfiguredMessage.getMessage("item-bought")).bought(request.name().toLowerCase(), price, price).replace("{AMOUNT}", "1");
 								sendMessage(player, format);
 							} else {
 								sendMessage(player, "&cNo wallet was found for a funding source.");
@@ -92,7 +92,7 @@ public class BuyCommand extends CommandOrientation {
 								if (item.invoke(player.getUniqueId(), Modifiable.TransactionResult.Buy, amount).isTransactionSuccess()) {
 									double price = (item.getPrice() * item.getMultiplier()) * amount;
 									double each = (item.getPrice() * item.getMultiplier());
-									String format = PlaceHolder.convert(ConfiguredMessage.getMessage("item-bought")).bought(request.name().toLowerCase(), price, each).replace("{AMOUNT}", amount + "");
+									String format = FormattedMessage.convert(ConfiguredMessage.getMessage("item-bought")).bought(request.name().toLowerCase(), price, each).replace("{AMOUNT}", amount + "");
 
 									sendMessage(player, format);
 								} else {

@@ -12,9 +12,9 @@ import com.github.sanctum.labyrinth.library.Items;
 import com.github.sanctum.retro.RetroConomy;
 import com.github.sanctum.retro.command.CommandInformation;
 import com.github.sanctum.retro.command.CommandOrientation;
-import com.github.sanctum.retro.construct.item.Modifiable;
+import com.github.sanctum.retro.construct.core.Modifiable;
 import com.github.sanctum.retro.util.ConfiguredMessage;
-import com.github.sanctum.retro.util.PlaceHolder;
+import com.github.sanctum.retro.util.FormattedMessage;
 import java.util.List;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
@@ -52,7 +52,7 @@ public class SellCommand extends CommandOrientation {
 								if (i.invoke(player.getUniqueId(), Modifiable.TransactionResult.Sell, item.getAmount()).isTransactionSuccess()) {
 									double each = (i.getPrice() * i.getMultiplier()) * 1 / 2;
 									double total = (i.getPrice() * i.getMultiplier()) * amount / 2;
-									String format = PlaceHolder.convert(ConfiguredMessage.getMessage("item-sold")).bought(i.getItem().getType().name().toLowerCase(), total, each).replace("{AMOUNT}", amount + "");
+									String format = FormattedMessage.convert(ConfiguredMessage.getMessage("item-sold")).bought(i.getItem().getType().name().toLowerCase(), total, each).replace("{AMOUNT}", amount + "");
 									sendMessage(player, format);
 								} else {
 									sendMessage(player, "&cNo wallet account was found to transfer the money to. Speak with an administrator.");
@@ -68,7 +68,7 @@ public class SellCommand extends CommandOrientation {
 							if (i.invoke(player.getUniqueId(), Modifiable.TransactionResult.Sell, item.getAmount()).isTransactionSuccess()) {
 								double each = (i.getPrice() * i.getMultiplier()) * 1 / 2;
 								double total = (i.getPrice() * i.getMultiplier()) * amount / 2;
-								String format = PlaceHolder.convert(ConfiguredMessage.getMessage("item-sold")).bought(i.getItem().getType().name().toLowerCase(), total, each).replace("{AMOUNT}", amount + "");
+								String format = FormattedMessage.convert(ConfiguredMessage.getMessage("item-sold")).bought(i.getItem().getType().name().toLowerCase(), total, each).replace("{AMOUNT}", amount + "");
 								sendMessage(player, format);
 							} else {
 								sendMessage(player, "&cNo wallet account was found to transfer the money to. Speak with an administrator.");
@@ -84,7 +84,7 @@ public class SellCommand extends CommandOrientation {
 								if (i.invoke(player.getUniqueId(), Modifiable.TransactionResult.Sell, amount).isTransactionSuccess()) {
 									double each = (i.getPrice() * i.getMultiplier()) * 1 / 2;
 									double total = (i.getPrice() * i.getMultiplier()) * amount / 2;
-									String format = PlaceHolder.convert(ConfiguredMessage.getMessage("item-sold")).bought(i.getItem().getType().name().toLowerCase(), total, each).replace("{AMOUNT}", amount + "");
+									String format = FormattedMessage.convert(ConfiguredMessage.getMessage("item-sold")).bought(i.getItem().getType().name().toLowerCase(), total, each).replace("{AMOUNT}", amount + "");
 									sendMessage(player, format);
 								} else {
 									sendMessage(player, "&cInvalid request received. Is it possible you tried selling to much?");
@@ -106,7 +106,7 @@ public class SellCommand extends CommandOrientation {
 								if (i.invoke(player.getUniqueId(), Modifiable.TransactionResult.Sell, item.getAmount()).isTransactionSuccess()) {
 									double each = (i.getPrice() * i.getMultiplier()) * 1 / 2;
 									double total = (i.getPrice() * i.getMultiplier()) * amount / 2;
-									String format = PlaceHolder.convert(ConfiguredMessage.getMessage("item-sold")).bought(i.getItem().getType().name().toLowerCase(), total, each).replace("{AMOUNT}", amount + "");
+									String format = FormattedMessage.convert(ConfiguredMessage.getMessage("item-sold")).bought(i.getItem().getType().name().toLowerCase(), total, each).replace("{AMOUNT}", amount + "");
 									sendMessage(player, format);
 								} else {
 									sendMessage(player, "&cInvalid request received. Is it possible you tried selling to much?");
@@ -125,7 +125,7 @@ public class SellCommand extends CommandOrientation {
 								if (i.invoke(player.getUniqueId(), Modifiable.TransactionResult.Sell, amount).isTransactionSuccess()) {
 									double each = (i.getPrice() * i.getMultiplier()) * 1 / 2;
 									double total = (i.getPrice() * i.getMultiplier()) * amount / 2;
-									String format = PlaceHolder.convert(ConfiguredMessage.getMessage("item-sold")).bought(i.getItem().getType().name().toLowerCase(), total, each).replace("{AMOUNT}", amount + "");
+									String format = FormattedMessage.convert(ConfiguredMessage.getMessage("item-sold")).bought(i.getItem().getType().name().toLowerCase(), total, each).replace("{AMOUNT}", amount + "");
 									sendMessage(player, format);
 								} else {
 									sendMessage(player, "&cInvalid request received. Is it possible you tried selling to much?");

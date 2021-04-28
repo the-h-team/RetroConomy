@@ -13,10 +13,10 @@ import com.github.sanctum.retro.RetroConomy;
 import com.github.sanctum.retro.command.CommandInformation;
 import com.github.sanctum.retro.command.CommandOrientation;
 import com.github.sanctum.retro.construct.core.ATM;
+import com.github.sanctum.retro.construct.core.BankAccount;
 import com.github.sanctum.retro.construct.core.RetroAccount;
-import com.github.sanctum.retro.construct.core.RetroWallet;
 import com.github.sanctum.retro.util.ConfiguredMessage;
-import com.github.sanctum.retro.util.PlaceHolder;
+import com.github.sanctum.retro.util.FormattedMessage;
 import java.util.List;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -40,14 +40,14 @@ public class BalanceCommand extends CommandOrientation {
 
 			if (!ATM.has(player)) {
 				ATM atm = ATM.pick(player);
-				player.getWorld().dropItem(player.getLocation(), atm.get());
+				player.getWorld().dropItem(player.getLocation(), atm.toItem());
 				sendMessage(player, "Place down your ATM to begin using it!");
 				Schedule.sync(() -> {
 
-					RetroAccount account = RetroConomy.getInstance().getManager().getAccount(player).orElse(null);
+					BankAccount account = RetroConomy.getInstance().getManager().getAccount(player).orElse(null);
 					if (account != null) {
 						sendMessage(player, "&aUse this card to access your bank account from any atm location.");
-						player.getWorld().dropItem(player.getLocation(), account.getDebitCard().get());
+						player.getWorld().dropItem(player.getLocation(), account.getDebitCard().toItem());
 					}
 
 				}).wait(2);
@@ -56,7 +56,7 @@ public class BalanceCommand extends CommandOrientation {
 			}
 
 			if (RetroConomy.getInstance().getManager().getWallet(player).isPresent()) {
-				RetroWallet wallet = RetroConomy.getInstance().getManager().getWallet(player).get();
+				RetroAccount wallet = RetroConomy.getInstance().getManager().getWallet(player).get();
 
 				String[] balance;
 				String bal = RetroConomy.getInstance().getManager().format(wallet.getBalance(player.getWorld()));
@@ -66,7 +66,7 @@ public class BalanceCommand extends CommandOrientation {
 					balance =bal.split(",");
 				}
 
-				String format = PlaceHolder.convert(ConfiguredMessage.getMessage("wallet-balance")).next(balance[0], balance.length == 2 ? balance[1] : 0 + "");
+				String format = FormattedMessage.convert(ConfiguredMessage.getMessage("wallet-balance")).next(balance[0], balance.length == 2 ? balance[1] : 0 + "");
 				sendMessage(player, format);
 			}
 		}

@@ -10,7 +10,7 @@ package com.github.sanctum.retro.vault;
 
 import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.retro.RetroConomy;
-import com.github.sanctum.retro.construct.core.RetroAccount;
+import com.github.sanctum.retro.construct.core.BankAccount;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -248,7 +248,7 @@ public class VaultEconomy implements Economy {
 
 	@Override
 	public List<String> getBanks() {
-		return RetroConomy.getInstance().getManager().getAccounts().map(RetroAccount::getId).map(HUID::toString).collect(Collectors.toList());
+		return RetroConomy.getInstance().getManager().getAccounts().map(BankAccount::getId).map(HUID::toString).collect(Collectors.toList());
 	}
 
 	@Override

@@ -17,8 +17,10 @@ import com.github.sanctum.labyrinth.library.Message;
 import com.github.sanctum.labyrinth.task.Schedule;
 import com.github.sanctum.retro.api.RetroAPI;
 import com.github.sanctum.retro.construct.core.ATM;
-import com.github.sanctum.retro.construct.core.RetroAccount;
-import com.github.sanctum.retro.construct.core.RetroWallet;
+import com.github.sanctum.retro.construct.core.BankAccount;
+import com.github.sanctum.retro.construct.core.Currency;
+import com.github.sanctum.retro.construct.core.ItemDemand;
+import com.github.sanctum.retro.construct.core.WalletAccount;
 import com.github.sanctum.retro.construct.internal.BalanceCommand;
 import com.github.sanctum.retro.construct.internal.BankCommand;
 import com.github.sanctum.retro.construct.internal.BuyCommand;
@@ -28,12 +30,10 @@ import com.github.sanctum.retro.construct.internal.PayCommand;
 import com.github.sanctum.retro.construct.internal.RetroCommand;
 import com.github.sanctum.retro.construct.internal.SellCommand;
 import com.github.sanctum.retro.construct.internal.WithdrawCommand;
-import com.github.sanctum.retro.construct.item.Currency;
-import com.github.sanctum.retro.construct.item.ItemDemand;
 import com.github.sanctum.retro.enterprise.EnterpriseEconomy;
 import com.github.sanctum.retro.util.ConfiguredMessage;
 import com.github.sanctum.retro.util.FileType;
-import com.github.sanctum.retro.util.PlaceHolder;
+import com.github.sanctum.retro.util.FormattedMessage;
 import com.github.sanctum.retro.vault.VaultEconomy;
 import java.io.IOException;
 import java.util.Map;
@@ -79,7 +79,7 @@ public class RetroConomy extends JavaPlugin implements RetroAPI {
 			}
 			items.saveConfig();
 		}
-		for (RetroAccount account : getManager().ACCOUNTS) {
+		for (BankAccount account : getManager().ACCOUNTS) {
 			manager.getConfig().set("accounts." + account.getId().toString() + ".owner", account.getOwner().toString());
 			if (account.getJointOwner() != null) {
 				manager.getConfig().set("accounts." + account.getId().toString() + ".joint", account.getJointOwner().toString());
@@ -133,11 +133,11 @@ public class RetroConomy extends JavaPlugin implements RetroAPI {
 		getManager().loadCurrencies();
 
 		for (String id : manager.getConfig().getConfigurationSection("accounts").getKeys(false)) {
-			this.manager.ACCOUNTS.add(new RetroAccount(UUID.fromString(manager.getConfig().getString("accounts." + id + ".owner")), manager.getConfig().getString("accounts." + id + ".joint") != null ? UUID.fromString(manager.getConfig().getString("accounts." + id + ".joint")) : null, HUID.fromString(id), manager.getConfig().getStringList("accounts." + id + ".members")));
+			this.manager.ACCOUNTS.add(new BankAccount(UUID.fromString(manager.getConfig().getString("accounts." + id + ".owner")), manager.getConfig().getString("accounts." + id + ".joint") != null ? UUID.fromString(manager.getConfig().getString("accounts." + id + ".joint")) : null, HUID.fromString(id), manager.getConfig().getStringList("accounts." + id + ".members")));
 		}
 		for (String id : manager.getConfig().getConfigurationSection("wallets").getKeys(false)) {
 			OfflinePlayer owner = Bukkit.getOfflinePlayer(UUID.fromString(id));
-			this.manager.WALLETS.add(new RetroWallet(owner.getUniqueId(), HUID.randomID()));
+			this.manager.WALLETS.add(new WalletAccount(owner.getUniqueId(), HUID.randomID()));
 		}
 
 		Schedule.sync(() -> {
@@ -164,20 +164,21 @@ public class RetroConomy extends JavaPlugin implements RetroAPI {
 	}
 
 	@Override
-	public int getTotalAmount(Player p, Currency c) {
+	public int currencyTotal(Player p, Currency c) {
 		if (c == null)
 			return 0;
 		int amount = 0;
 		for (int i = 0; i < 36; i++) {
 			ItemStack slot = p.getInventory().getItem(i);
-			if (slot == null || !slot.isSimilar(c.getItem()))
+			if (slot == null || !slot.isSimilar(c.toItem()))
 				continue;
 			amount += slot.getAmount();
 		}
 		return amount;
 	}
 
-	public int getTotalAmount(Player p, ItemStack item) {
+	@Override
+	public int itemStackTotal(Player p, ItemStack item) {
 		if (item == null)
 			return 0;
 		int amount = 0;
@@ -192,15 +193,15 @@ public class RetroConomy extends JavaPlugin implements RetroAPI {
 
 	@Override
 	public PlayerTransactionResult currencyRemoval(Player p, Currency c, int amount) {
-		if (getTotalAmount(p, c) < amount) {
-			Message.form(p).send(PlaceHolder.convert(ConfiguredMessage.getMessage("invalid-amount-item")).from(c.getItem().getItemMeta().getDisplayName()));
+		if (currencyTotal(p, c) < amount) {
+			Message.form(p).send(FormattedMessage.convert(ConfiguredMessage.getMessage("invalid-amount-item")).from(c.toItem().getItemMeta().getDisplayName()));
 			return PlayerTransactionResult.FAILED;
 		}
 		int size = 36;
 		for (int slot = 0; slot < size; slot++) {
 			ItemStack is = p.getInventory().getItem(slot);
 			if (is == null) continue;
-			if (is.isSimilar(c.getItem())) {
+			if (is.isSimilar(c.toItem())) {
 				int newAmount = is.getAmount() - amount;
 				if (newAmount > 0) {
 					is.setAmount(newAmount);
@@ -217,7 +218,7 @@ public class RetroConomy extends JavaPlugin implements RetroAPI {
 
 	@Override
 	public PlayerTransactionResult itemRemoval(Player p, ItemStack item, int amount) {
-		if (getTotalAmount(p, item) < amount) {
+		if (itemStackTotal(p, item) < amount) {
 			Message.form(p).setPrefix(getManager().getMain().getConfig().getString("Options.prefix")).send("&cYou don't have enough " + item.getType().name().toLowerCase());
 			return PlayerTransactionResult.FAILED;
 		}
@@ -266,6 +267,20 @@ public class RetroConomy extends JavaPlugin implements RetroAPI {
 		}
 
 		public boolean isTransactionSuccess() {
+			return transactionSuccess;
+		}
+	}
+
+	public enum TransactionResult {
+		SUCCESS(true), FAILED(false);
+
+		private final boolean transactionSuccess;
+
+		TransactionResult(boolean b) {
+			transactionSuccess = b;
+		}
+
+		public boolean success() {
 			return transactionSuccess;
 		}
 	}

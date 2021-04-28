@@ -14,11 +14,11 @@ import com.github.sanctum.labyrinth.library.StringUtils;
 import com.github.sanctum.retro.RetroConomy;
 import com.github.sanctum.retro.command.CommandInformation;
 import com.github.sanctum.retro.command.CommandOrientation;
-import com.github.sanctum.retro.construct.core.RetroWallet;
-import com.github.sanctum.retro.construct.item.Currency;
-import com.github.sanctum.retro.construct.item.CurrencyType;
+import com.github.sanctum.retro.construct.core.Currency;
+import com.github.sanctum.retro.construct.core.RetroAccount;
 import com.github.sanctum.retro.util.ConfiguredMessage;
-import com.github.sanctum.retro.util.PlaceHolder;
+import com.github.sanctum.retro.util.CurrencyType;
+import com.github.sanctum.retro.util.FormattedMessage;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +56,7 @@ public class WithdrawCommand extends CommandOrientation {
 	public void player(Player player, String[] args) {
 		if (testPermission(player)) {
 			if (RetroConomy.getInstance().getManager().getWallet(player).isPresent()) {
-				RetroWallet wallet = RetroConomy.getInstance().getManager().getWallet(player).get();
+				RetroAccount wallet = RetroConomy.getInstance().getManager().getWallet(player).get();
 
 				if (args.length == 0) {
 					sendUsage(player);
@@ -65,16 +65,16 @@ public class WithdrawCommand extends CommandOrientation {
 				if (args.length == 1) {
 					try {
 						int amount = Integer.parseInt(args[0]);
-						Optional<Currency> firstDollar = RetroConomy.getInstance().getManager().getCurrencies().filter(c -> c.getType() == CurrencyType.DOLLAR).findFirst();
+						Optional<Currency> firstDollar = RetroConomy.getInstance().getManager().getAcceptableCurrencies().filter(c -> c.getType() == CurrencyType.DOLLAR).findFirst();
 
 						if (firstDollar.isPresent()) {
 							Currency c = firstDollar.get();
 							double cost = c.getWorth() * amount;
-							String format = PlaceHolder.convert(ConfiguredMessage.getMessage("wallet-withdraw")).from(c.getItem().getItemMeta().getDisplayName(), cost, 0);
+							String format = FormattedMessage.convert(ConfiguredMessage.getMessage("wallet-withdraw")).from(c.toItem().getItemMeta().getDisplayName(), cost, 0);
 							if (wallet.has(cost, player.getWorld())) {
 								wallet.withdraw(BigDecimal.valueOf(cost), player.getWorld());
 								for (int i = 0; i < amount; i++) {
-									player.getLocation().getWorld().dropItem(player.getLocation(), c.getItem());
+									player.getLocation().getWorld().dropItem(player.getLocation(), c.toItem());
 								}
 								sendMessage(player, format);
 							} else {
@@ -104,15 +104,15 @@ public class WithdrawCommand extends CommandOrientation {
 					int amount = Integer.parseInt(args[0]);
 
 					if (isMajor) {
-						Optional<Currency> firstDollar = RetroConomy.getInstance().getManager().getCurrencies().filter(c -> c.getType() == CurrencyType.DOLLAR).findFirst();
+						Optional<Currency> firstDollar = RetroConomy.getInstance().getManager().getAcceptableCurrencies().filter(c -> c.getType() == CurrencyType.DOLLAR).findFirst();
 						if (firstDollar.isPresent()) {
 							Currency dollar = firstDollar.get();
 							double cost = dollar.getWorth() * amount;
-							String format = PlaceHolder.convert(ConfiguredMessage.getMessage("wallet-withdraw")).from(RetroConomy.getInstance().getManager().getMajorSingular(), cost, 0);
+							String format = FormattedMessage.convert(ConfiguredMessage.getMessage("wallet-withdraw")).from(RetroConomy.getInstance().getManager().getMajorSingular(), cost, 0);
 							if (wallet.has(cost, player.getWorld())) {
 								wallet.withdraw(BigDecimal.valueOf(cost), player.getWorld());
 								for (int i = 0; i < amount; i++) {
-									player.getLocation().getWorld().dropItem(player.getLocation(), dollar.getItem());
+									player.getLocation().getWorld().dropItem(player.getLocation(), dollar.toItem());
 								}
 								sendMessage(player, format);
 							} else {
@@ -122,15 +122,15 @@ public class WithdrawCommand extends CommandOrientation {
 							sendMessage(player, "&cThere is no dollar item present. Configure one then reload.");
 						}
 					} else {
-						Optional<Currency> firstChange = RetroConomy.getInstance().getManager().getCurrencies().filter(c -> c.getType() == CurrencyType.CHANGE).findFirst();
+						Optional<Currency> firstChange = RetroConomy.getInstance().getManager().getAcceptableCurrencies().filter(c -> c.getType() == CurrencyType.CHANGE).findFirst();
 						if (firstChange.isPresent()) {
 							Currency change = firstChange.get();
 							double cost = change.getWorth() * amount;
-							String format = PlaceHolder.convert(ConfiguredMessage.getMessage("wallet-withdraw")).from(RetroConomy.getInstance().getManager().getMinorPlural(), cost, 0);
+							String format = FormattedMessage.convert(ConfiguredMessage.getMessage("wallet-withdraw")).from(RetroConomy.getInstance().getManager().getMinorPlural(), cost, 0);
 							if (wallet.has(cost, player.getWorld())) {
 								wallet.withdraw(BigDecimal.valueOf(cost), player.getWorld());
 								for (int i = 0; i < amount; i++) {
-									player.getLocation().getWorld().dropItem(player.getLocation(), change.getItem());
+									player.getLocation().getWorld().dropItem(player.getLocation(), change.toItem());
 								}
 								sendMessage(player, format);
 							} else {

@@ -18,7 +18,7 @@ import com.github.sanctum.economy.construct.entity.types.PlayerEntity;
 import com.github.sanctum.economy.construct.implement.AdvancedEconomy;
 import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.retro.RetroConomy;
-import com.github.sanctum.retro.construct.core.RetroAccount;
+import com.github.sanctum.retro.construct.core.BankAccount;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -200,7 +200,7 @@ public class EnterpriseEconomy implements AdvancedEconomy {
 
 	@Override
 	public Account getAccount(String accountId, OfflinePlayer player) {
-		Optional<RetroAccount> account = RetroConomy.getInstance().getManager().getAccount(HUID.fromString(accountId));
+		Optional<BankAccount> account = RetroConomy.getInstance().getManager().getAccount(HUID.fromString(accountId));
 		if (account.isPresent()) {
 			if (account.get().getOwner().equals(player.getUniqueId()) || account.get().getMembers().contains(player.getUniqueId().toString())) {
 				return new EnterpriseAccount(player);
@@ -221,7 +221,7 @@ public class EnterpriseEconomy implements AdvancedEconomy {
 
 	@Override
 	public Account getAccount(String accountId, UUID uuid) {
-		Optional<RetroAccount> account = RetroConomy.getInstance().getManager().getAccount(HUID.fromString(accountId));
+		Optional<BankAccount> account = RetroConomy.getInstance().getManager().getAccount(HUID.fromString(accountId));
 		if (account.isPresent()) {
 			if (account.get().getOwner().equals(uuid) || account.get().getMembers().contains(uuid.toString())) {
 				return new EnterpriseAccount(uuid, new PlayerEntity[0]);
@@ -369,6 +369,6 @@ public class EnterpriseEconomy implements AdvancedEconomy {
 
 	@Override
 	public List<String> getAccountList() {
-		return RetroConomy.getInstance().getManager().getAccounts().map(RetroAccount::getId).map(HUID::toString).collect(Collectors.toList());
+		return RetroConomy.getInstance().getManager().getAccounts().map(BankAccount::getId).map(HUID::toString).collect(Collectors.toList());
 	}
 }

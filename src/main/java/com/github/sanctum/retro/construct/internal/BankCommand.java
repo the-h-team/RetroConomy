@@ -12,10 +12,11 @@ import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.retro.RetroConomy;
 import com.github.sanctum.retro.command.CommandInformation;
 import com.github.sanctum.retro.command.CommandOrientation;
+import com.github.sanctum.retro.construct.core.BankAccount;
 import com.github.sanctum.retro.construct.core.RetroAccount;
-import com.github.sanctum.retro.construct.core.RetroWallet;
 import com.github.sanctum.retro.util.ConfiguredMessage;
-import com.github.sanctum.retro.util.PlaceHolder;
+import com.github.sanctum.retro.util.FormattedMessage;
+import com.github.sanctum.retro.util.TransactionType;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
@@ -43,7 +44,7 @@ public class BankCommand extends CommandOrientation {
 	public void player(Player player, String[] args) {
 		if (testPermission(player)) {
 
-			RetroAccount account = RetroConomy.getInstance().getManager().getAccount(player).orElse(null);
+			BankAccount account = RetroConomy.getInstance().getManager().getAccount(player).orElse(null);
 
 			if (args.length == 0) {
 				// open either GUI? or paginated assortment
@@ -69,14 +70,14 @@ public class BankCommand extends CommandOrientation {
 						balance =bal.split(",");
 					}
 
-					String format = PlaceHolder.convert(ConfiguredMessage.getMessage("account-balance")).next(balance[0], balance.length == 2 ? balance[1] : 0 + "");
+					String format = FormattedMessage.convert(ConfiguredMessage.getMessage("account-balance")).next(balance[0], balance.length == 2 ? balance[1] : 0 + "");
 					sendMessage(player, format);
 					return;
 				}
 
 				if (args[0].equalsIgnoreCase("open")) {
 					if (account == null) {
-						RetroConomy.getInstance().getManager().loadAccount(new RetroAccount(player.getUniqueId(), null, HUID.randomID(), Collections.emptyList()));
+						RetroConomy.getInstance().getManager().loadAccount(new BankAccount(player.getUniqueId(), null, HUID.randomID(), Collections.emptyList()));
 						sendMessage(player, ConfiguredMessage.getMessage("account-open"));
 					} else {
 						// already opened
@@ -116,10 +117,10 @@ public class BankCommand extends CommandOrientation {
 							if (target != null) {
 								if (!account.getJointOwner().equals(target)) {
 									account.setJointOwner(target);
-									sendMessage(player, PlaceHolder.convert(ConfiguredMessage.getMessage("account-joint-set")).from(Bukkit.getOfflinePlayer(target)));
+									sendMessage(player, FormattedMessage.convert(ConfiguredMessage.getMessage("account-joint-set")).from(Bukkit.getOfflinePlayer(target)));
 								} else {
 									// already a member.
-									sendMessage(player, PlaceHolder.convert(ConfiguredMessage.getMessage("account-member-exists")).from(Bukkit.getOfflinePlayer(target)));
+									sendMessage(player, FormattedMessage.convert(ConfiguredMessage.getMessage("account-member-exists")).from(Bukkit.getOfflinePlayer(target)));
 								}
 							} else {
 								// target not found.
@@ -138,11 +139,11 @@ public class BankCommand extends CommandOrientation {
 							UUID target = Arrays.stream(Bukkit.getOfflinePlayers()).filter(p -> p.getName().equalsIgnoreCase(args[1])).map(OfflinePlayer::getUniqueId).findFirst().orElse(null);
 
 							if (target != null) {
-								if (account.addMember(target)) {
-									sendMessage(player, PlaceHolder.convert(ConfiguredMessage.getMessage("account-member-add")).from(Bukkit.getOfflinePlayer(target)));
+								if (account.addMember(target).success()) {
+									sendMessage(player, FormattedMessage.convert(ConfiguredMessage.getMessage("account-member-add")).from(Bukkit.getOfflinePlayer(target)));
 								} else {
 									// already a member.
-									sendMessage(player, PlaceHolder.convert(ConfiguredMessage.getMessage("account-member-exists")).from(Bukkit.getOfflinePlayer(target)));
+									sendMessage(player, FormattedMessage.convert(ConfiguredMessage.getMessage("account-member-exists")).from(Bukkit.getOfflinePlayer(target)));
 								}
 							} else {
 								// target not found.
@@ -164,10 +165,10 @@ public class BankCommand extends CommandOrientation {
 							UUID target = Arrays.stream(Bukkit.getOfflinePlayers()).filter(p -> p.getName().equalsIgnoreCase(args[1])).map(OfflinePlayer::getUniqueId).findFirst().orElse(null);
 
 							if (target != null) {
-								if (account.removeMember(target)) {
-									sendMessage(player, PlaceHolder.convert(ConfiguredMessage.getMessage("account-member-remove")).from(Bukkit.getOfflinePlayer(target)));
+								if (account.removeMember(target).success()) {
+									sendMessage(player, FormattedMessage.convert(ConfiguredMessage.getMessage("account-member-remove")).from(Bukkit.getOfflinePlayer(target)));
 								} else {
-									sendMessage(player, PlaceHolder.convert(ConfiguredMessage.getMessage("account-member-missing")).from(Bukkit.getOfflinePlayer(target)));
+									sendMessage(player, FormattedMessage.convert(ConfiguredMessage.getMessage("account-member-missing")).from(Bukkit.getOfflinePlayer(target)));
 								}
 							} else {
 								// target not found.
@@ -188,12 +189,12 @@ public class BankCommand extends CommandOrientation {
 						try {
 							double amount = Double.parseDouble(args[1]);
 
-							RetroWallet wallet = RetroConomy.getInstance().getManager().getWallet(player).orElse(null);
+							RetroAccount wallet = RetroConomy.getInstance().getManager().getWallet(player).orElse(null);
 
 							if (wallet != null) {
 								if (wallet.has(amount, player.getWorld())) {
 									wallet.withdraw(BigDecimal.valueOf(amount), player.getWorld());
-									account.deposit(player, BigDecimal.valueOf(amount), player.getWorld());
+									player.getWorld().dropItem(player.getLocation(), account.record(TransactionType.DEPOSIT, player, BigDecimal.valueOf(amount), player.getWorld()).toItem());
 								}
 							}
 
@@ -209,11 +210,11 @@ public class BankCommand extends CommandOrientation {
 						try {
 							double amount = Double.parseDouble(args[1]);
 
-							RetroWallet wallet = RetroConomy.getInstance().getManager().getWallet(player).orElse(null);
+							RetroAccount wallet = RetroConomy.getInstance().getManager().getWallet(player).orElse(null);
 
 							if (wallet != null) {
 								if (account.has(amount, player.getWorld())) {
-									account.withdraw(player, BigDecimal.valueOf(amount), player.getWorld());
+									player.getWorld().dropItem(player.getLocation(), account.record(TransactionType.WITHDRAW, player, BigDecimal.valueOf(amount), player.getWorld()).toItem());
 									wallet.deposit(BigDecimal.valueOf(amount), player.getWorld());
 								}
 							}

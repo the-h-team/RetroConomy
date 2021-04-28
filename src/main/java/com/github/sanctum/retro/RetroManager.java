@@ -14,17 +14,17 @@ import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.labyrinth.library.Items;
 import com.github.sanctum.labyrinth.library.StringUtils;
 import com.github.sanctum.retro.construct.core.ATM;
-import com.github.sanctum.retro.construct.core.RetroAccount;
-import com.github.sanctum.retro.construct.core.RetroWallet;
-import com.github.sanctum.retro.construct.item.Currency;
-import com.github.sanctum.retro.construct.item.CurrencyType;
-import com.github.sanctum.retro.construct.item.ItemDemand;
-import com.github.sanctum.retro.construct.item.SystemItem;
+import com.github.sanctum.retro.construct.core.BankAccount;
+import com.github.sanctum.retro.construct.core.Currency;
+import com.github.sanctum.retro.construct.core.ItemDemand;
+import com.github.sanctum.retro.construct.core.SystemItem;
+import com.github.sanctum.retro.construct.core.WalletAccount;
 import com.github.sanctum.retro.util.ATMList;
+import com.github.sanctum.retro.util.AcceptableCurrencies;
 import com.github.sanctum.retro.util.AccountList;
-import com.github.sanctum.retro.util.CurrencyList;
-import com.github.sanctum.retro.util.DemandList;
+import com.github.sanctum.retro.util.CurrencyType;
 import com.github.sanctum.retro.util.FileType;
+import com.github.sanctum.retro.util.Marketplace;
 import com.github.sanctum.retro.util.WalletList;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -48,9 +48,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class RetroManager {
 
-	public final LinkedList<RetroAccount> ACCOUNTS = new LinkedList<>();
+	public final LinkedList<BankAccount> ACCOUNTS = new LinkedList<>();
 
-	public final LinkedList<RetroWallet> WALLETS = new LinkedList<>();
+	public final LinkedList<WalletAccount> WALLETS = new LinkedList<>();
 
 	public final LinkedList<Currency> CURRENCIES = new LinkedList<>();
 
@@ -119,12 +119,14 @@ public class RetroManager {
 		return NumberFormat.getNumberInstance(locale).format(amount.doubleValue());
 	}
 
-	public void deleteAccount(RetroAccount account) {
+	public void deleteAccount(BankAccount account) {
 		ACCOUNTS.remove(account);
-		account.remove();
+		if (!account.remove().success()) {
+			Bukkit.getLogger().warning("{RetroConomy} - Something went wrong while attempting to delete account " + account.getId().toString());
+		}
 	}
 
-	public void loadAccount(RetroAccount account) {
+	public void loadAccount(BankAccount account) {
 		ACCOUNTS.add(account);
 	}
 
@@ -228,20 +230,20 @@ public class RetroManager {
 		}
 	}
 
-	public UniformedComponents<RetroWallet> getWallets() {
+	public UniformedComponents<WalletAccount> getWallets() {
 		return new WalletList();
 	}
 
-	public UniformedComponents<Currency> getCurrencies() {
-		return new CurrencyList();
+	public UniformedComponents<Currency> getAcceptableCurrencies() {
+		return new AcceptableCurrencies();
 	}
 
-	public UniformedComponents<RetroAccount> getAccounts() {
+	public UniformedComponents<BankAccount> getAccounts() {
 		return new AccountList();
 	}
 
 	public UniformedComponents<ItemDemand> getShop() {
-		return new DemandList();
+		return new Marketplace();
 	}
 
 	public UniformedComponents<ATM> getATMs() {
@@ -265,11 +267,11 @@ public class RetroManager {
 		return getShop().filter(i -> i.getItem().getType() == mat).findFirst();
 	}
 
-	public Optional<RetroAccount> getAccount(HUID accountId) {
+	public Optional<BankAccount> getAccount(HUID accountId) {
 		return getAccounts().filter(a -> a.getId().equals(accountId)).findFirst();
 	}
 
-	public Optional<RetroAccount> getAccount(String name) {
+	public Optional<BankAccount> getAccount(String name) {
 		return getAccounts().filter(a -> {
 			if (Bukkit.getOfflinePlayer(a.getOwner()).getName().equals(name)) {
 				return true;
@@ -281,7 +283,7 @@ public class RetroManager {
 		}).findFirst();
 	}
 
-	public Optional<RetroAccount> getAccount(UUID id) {
+	public Optional<BankAccount> getAccount(UUID id) {
 		return getAccounts().filter(a -> {
 			if (Bukkit.getOfflinePlayer(a.getOwner()).getUniqueId().equals(id)) {
 				return true;
@@ -293,7 +295,7 @@ public class RetroManager {
 		}).findFirst();
 	}
 
-	public Optional<RetroAccount> getAccount(OfflinePlayer player) {
+	public Optional<BankAccount> getAccount(OfflinePlayer player) {
 		return getAccounts().filter(a -> {
 			if (Bukkit.getOfflinePlayer(a.getOwner()).getName().equals(player.getName())) {
 				return true;
@@ -305,15 +307,15 @@ public class RetroManager {
 		}).findFirst();
 	}
 
-	public Optional<RetroWallet> getWallet(String name) {
+	public Optional<WalletAccount> getWallet(String name) {
 		return getWallets().filter(a -> a.getOwner().getName().equals(name)).findFirst();
 	}
 
-	public Optional<RetroWallet> getWallet(UUID id) {
+	public Optional<WalletAccount> getWallet(UUID id) {
 		return getWallets().filter(a -> a.getOwner().getUniqueId().equals(id)).findFirst();
 	}
 
-	public Optional<RetroWallet> getWallet(OfflinePlayer player) {
+	public Optional<WalletAccount> getWallet(OfflinePlayer player) {
 		return getWallets().filter(a -> a.getOwner().getUniqueId().equals(player.getUniqueId())).findFirst();
 	}
 

@@ -14,17 +14,18 @@ import com.github.sanctum.economy.construct.account.permissive.AccountType;
 import com.github.sanctum.economy.construct.entity.PlayerEconomyEntityBase;
 import com.github.sanctum.economy.construct.entity.types.PlayerEntity;
 import com.github.sanctum.retro.RetroConomy;
-import com.github.sanctum.retro.construct.core.RetroAccount;
+import com.github.sanctum.retro.construct.core.BankAccount;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.Nullable;
 
 public class EnterpriseAccount extends Account {
 
-	private final RetroAccount account;
+	private final BankAccount account;
 
 	protected EnterpriseAccount(UUID holder, PlayerEconomyEntityBase... members) {
 		super(AccountType.BANK_ACCOUNT, new PlayerEntity(Bukkit.getOfflinePlayer(holder)), members);
@@ -38,7 +39,7 @@ public class EnterpriseAccount extends Account {
 
 	@Override
 	public List<String> getMembers() {
-		return account.getMembers();
+		return account.getMembers().stream().map(UUID::toString).collect(Collectors.toList());
 	}
 
 	@Override

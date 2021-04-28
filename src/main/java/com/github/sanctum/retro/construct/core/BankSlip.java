@@ -11,7 +11,6 @@ package com.github.sanctum.retro.construct.core;
 import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.labyrinth.library.StringUtils;
 import com.github.sanctum.retro.RetroConomy;
-import com.github.sanctum.retro.util.Savable;
 import com.github.sanctum.retro.util.TransactionType;
 import java.math.BigDecimal;
 import java.time.ZoneId;
@@ -23,27 +22,30 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.Nullable;
 
-public class BankSlip extends Savable {
+public class BankSlip implements Savable {
 
 	private static final long serialVersionUID = -6982006703415280538L;
 	private final OfflinePlayer holder;
 	private final BigDecimal amount;
 	private BigDecimal tax;
-	private final RetroAccount account;
+	private final BankAccount account;
 	private final TransactionType type;
+	private final HUID slipId;
 
-	protected BankSlip(OfflinePlayer holder, BigDecimal amount, RetroAccount account, TransactionType type) {
+	protected BankSlip(OfflinePlayer holder, BigDecimal amount, BankAccount account, TransactionType type) {
 		this.holder = holder;
 		this.amount = amount;
 		this.type = type;
 		this.account = account;
+		this.slipId = HUID.randomID();
+
 	}
 
-	public static BankSlip from(OfflinePlayer holder, BigDecimal amount, RetroAccount account, TransactionType type) {
+	public static BankSlip from(OfflinePlayer holder, BigDecimal amount, BankAccount account, TransactionType type) {
 		return new BankSlip(holder, amount, account, type);
 	}
 
-	public static BankSlip from(OfflinePlayer holder, BigDecimal amount, BigDecimal tax, RetroAccount account, TransactionType type) {
+	public static BankSlip from(OfflinePlayer holder, BigDecimal amount, BigDecimal tax, BankAccount account, TransactionType type) {
 		return new BankSlip(holder, amount, account, type).setTax(tax);
 	}
 
@@ -60,7 +62,7 @@ public class BankSlip extends Savable {
 		return holder;
 	}
 
-	public @Nullable RetroAccount getAccount() {
+	public @Nullable BankAccount getAccount() {
 		return account;
 	}
 
@@ -73,7 +75,7 @@ public class BankSlip extends Savable {
 	}
 
 	@Override
-	public ItemStack get() {
+	public ItemStack toItem() {
 		ItemStack make = new ItemStack(Material.PAPER);
 		ItemMeta meta = make.getItemMeta();
 		meta.setDisplayName(StringUtils.use("&6&l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ &b[NOTE] &6&l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬").translate());
@@ -95,6 +97,9 @@ public class BankSlip extends Savable {
 		return make;
 	}
 
+	public HUID slipId() {
+		return slipId;
+	}
 
 	@Override
 	public HUID id() {

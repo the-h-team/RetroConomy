@@ -12,16 +12,16 @@ import com.github.sanctum.labyrinth.library.StringUtils;
 import com.github.sanctum.retro.RetroConomy;
 import org.bukkit.OfflinePlayer;
 
-public class PlaceHolder {
+public class FormattedMessage {
 
 	protected String context;
 
-	protected PlaceHolder(String context) {
+	protected FormattedMessage(String context) {
 		this.context = context;
 	}
 
-	public static PlaceHolder convert(String context) {
-		return new PlaceHolder(context);
+	public static FormattedMessage convert(String context) {
+		return new FormattedMessage(context);
 	}
 
 	public String next() {

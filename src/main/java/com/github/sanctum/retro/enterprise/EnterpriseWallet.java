@@ -11,7 +11,7 @@ package com.github.sanctum.retro.enterprise;
 import com.github.sanctum.economy.construct.EconomyAction;
 import com.github.sanctum.economy.construct.account.PlayerWallet;
 import com.github.sanctum.retro.RetroConomy;
-import com.github.sanctum.retro.construct.core.RetroWallet;
+import com.github.sanctum.retro.construct.core.WalletAccount;
 import java.math.BigDecimal;
 import java.util.UUID;
 import org.bukkit.Bukkit;
@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class EnterpriseWallet extends PlayerWallet {
 
-	private final RetroWallet wallet;
+	private final WalletAccount wallet;
 
 	protected EnterpriseWallet(UUID player) {
 		super(Bukkit.getOfflinePlayer(player));

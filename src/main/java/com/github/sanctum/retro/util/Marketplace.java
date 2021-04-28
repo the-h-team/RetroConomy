@@ -10,8 +10,8 @@ package com.github.sanctum.retro.util;
 
 import com.github.sanctum.labyrinth.formatting.UniformedComponents;
 import com.github.sanctum.retro.RetroConomy;
-import com.github.sanctum.retro.construct.item.ItemDemand;
-import com.github.sanctum.retro.construct.item.SellableItem;
+import com.github.sanctum.retro.construct.core.ItemDemand;
+import com.github.sanctum.retro.construct.core.SellableItem;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -19,7 +19,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public class DemandList extends UniformedComponents<ItemDemand> {
+public class Marketplace extends UniformedComponents<ItemDemand> {
 
 	@Override
 	public List<ItemDemand> list() {

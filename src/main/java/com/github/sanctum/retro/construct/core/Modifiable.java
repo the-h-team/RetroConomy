@@ -6,7 +6,7 @@
  *  This software is currently in development and its licensing has not
  *  yet been chosen.
  */
-package com.github.sanctum.retro.construct.item;
+package com.github.sanctum.retro.construct.core;
 
 import com.github.sanctum.retro.RetroConomy;
 import java.util.UUID;

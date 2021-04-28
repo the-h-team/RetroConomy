@@ -6,7 +6,7 @@
  *  This software is currently in development and its licensing has not
  *  yet been chosen.
  */
-package com.github.sanctum.retro.construct.item;
+package com.github.sanctum.retro.construct.core;
 
 
 import com.github.sanctum.retro.RetroConomy;
@@ -17,7 +17,7 @@ import org.bukkit.inventory.ItemStack;
 
 
 // To be made.. For possible player market setup. Not super important
-public class MarketItem implements ItemDemand{
+public class MarketItem implements ItemDemand {
 	@Override
 	public ItemStack getItem() {
 		return null;

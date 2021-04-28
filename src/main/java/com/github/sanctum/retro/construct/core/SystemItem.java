@@ -6,10 +6,9 @@
  *  This software is currently in development and its licensing has not
  *  yet been chosen.
  */
-package com.github.sanctum.retro.construct.item;
+package com.github.sanctum.retro.construct.core;
 
 import com.github.sanctum.retro.RetroConomy;
-import com.github.sanctum.retro.construct.core.RetroWallet;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
@@ -166,7 +165,7 @@ public class SystemItem implements ItemDemand {
 				if (Bukkit.getOfflinePlayer(user).isOnline()) {
 					Player u = Bukkit.getPlayer(user);
 					u.getWorld().dropItem(u.getLocation(), getItem());
-					Optional<RetroWallet> wallet = RetroConomy.getInstance().getManager().getWallet(user);
+					Optional<WalletAccount> wallet = RetroConomy.getInstance().getManager().getWallet(user);
 					if (wallet.isPresent() && !wallet.get().has(price, u.getWorld())) {
 						return RetroConomy.PlayerTransactionResult.FAILED;
 					}
@@ -217,7 +216,7 @@ public class SystemItem implements ItemDemand {
 					for (int i = 0; i < count; i++) {
 						u.getWorld().dropItem(u.getLocation(), getItem());
 					}
-					Optional<RetroWallet> wallet = RetroConomy.getInstance().getManager().getWallet(user);
+					Optional<WalletAccount> wallet = RetroConomy.getInstance().getManager().getWallet(user);
 					if (wallet.isPresent() && !wallet.get().has(price, u.getWorld())) {
 						return RetroConomy.PlayerTransactionResult.FAILED;
 					}

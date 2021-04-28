@@ -10,7 +10,7 @@ package com.github.sanctum.retro.util;
 
 import com.github.sanctum.labyrinth.formatting.UniformedComponents;
 import com.github.sanctum.retro.RetroConomy;
-import com.github.sanctum.retro.construct.item.Currency;
+import com.github.sanctum.retro.construct.core.Currency;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -18,7 +18,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public class CurrencyList extends UniformedComponents<Currency> {
+public class AcceptableCurrencies extends UniformedComponents<Currency> {
 
 	@Override
 	public List<Currency> list() {

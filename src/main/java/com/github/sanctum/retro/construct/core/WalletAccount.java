@@ -19,15 +19,16 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 
-public class RetroWallet {
+public class WalletAccount implements RetroAccount {
 
+	private static final long serialVersionUID = 193258191246087085L;
 	private final HUID id;
 	private final UUID owner;
 	private final FileManager manager;
 	private final boolean multiWorld = RetroConomy.getInstance().getManager().getMain().getConfig().getBoolean("Options.multi-world.enabled");
 	private final String world = RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.multi-world.falsify");
 
-	public RetroWallet(UUID owner, HUID id) {
+	public WalletAccount(UUID owner, HUID id) {
 		this.owner = owner;
 		this.manager = FileType.ACCOUNT.get();
 		this.id = id;
@@ -41,86 +42,116 @@ public class RetroWallet {
 		return Bukkit.getOfflinePlayer(owner);
 	}
 
+	@Override
 	public BigDecimal getBalance() {
-		return BigDecimal.valueOf(manager.getConfig().getDouble("wallets." + owner.toString() + ".balance." + Bukkit.getWorlds().get(0).getName()));
+		return BigDecimal.valueOf(manager.getConfig().getDouble("wallets." + owner.toString() + ".balance." + Bukkit.getWorld(this.world).getName()));
 	}
 
-	public void setBalance(BigDecimal amount) {
-		FileConfiguration c = manager.getConfig();
-		c.set("wallets." + owner.toString() + ".balance." + Bukkit.getWorlds().get(0).getName(), amount.doubleValue());
-		manager.saveConfig();
-	}
-
-	public void setBalance(double amount) {
-		FileConfiguration c = manager.getConfig();
-		c.set("wallets." + owner.toString() + ".balance." + Bukkit.getWorlds().get(0).getName(), amount);
-		manager.saveConfig();
-	}
-
+	@Override
 	public BigDecimal getBalance(World world) {
 		if (!multiWorld)
 			world = Bukkit.getWorld(this.world);
 		return BigDecimal.valueOf(manager.getConfig().getDouble("wallets." + owner.toString() + ".balance." + world.getName()));
 	}
 
-	public void setBalance(BigDecimal amount, World world) {
+	@Override
+	public RetroConomy.TransactionResult setBalance(BigDecimal amount) {
+		FileConfiguration c = manager.getConfig();
+		c.set("wallets." + owner.toString() + ".balance." + Bukkit.getWorld(this.world).getName(), amount.doubleValue());
+		manager.saveConfig();
+		return RetroConomy.TransactionResult.SUCCESS;
+	}
+
+	@Override
+	public RetroConomy.TransactionResult setBalance(double amount) {
+		FileConfiguration c = manager.getConfig();
+		c.set("wallets." + owner.toString() + ".balance." + Bukkit.getWorld(this.world).getName(), amount);
+		manager.saveConfig();
+		return RetroConomy.TransactionResult.SUCCESS;
+	}
+
+	@Override
+	public RetroConomy.TransactionResult setBalance(BigDecimal amount, World world) {
 		if (!multiWorld)
 			world = Bukkit.getWorld(this.world);
 		FileConfiguration c = manager.getConfig();
 		c.set("wallets." + owner.toString() + ".balance." + world.getName(), amount.doubleValue());
 		manager.saveConfig();
+		return RetroConomy.TransactionResult.SUCCESS;
 	}
 
-	public void setBalance(double amount, World world) {
+	@Override
+	public RetroConomy.TransactionResult setBalance(double amount, World world) {
 		if (!multiWorld)
 			world = Bukkit.getWorld(this.world);
 		FileConfiguration c = manager.getConfig();
 		c.set("wallets." + owner.toString() + ".balance." + world.getName(), amount);
 		manager.saveConfig();
+		return RetroConomy.TransactionResult.SUCCESS;
 	}
 
+	@Override
 	public boolean has(double amount) {
-		if (String.valueOf(amount).contains("-"))
+		if (BigDecimal.valueOf(amount).compareTo(BigDecimal.ZERO) < 0)
 			return false;
 		return getBalance().doubleValue() >= amount;
 	}
 
+	@Override
 	public boolean has(double amount, World world) {
-		if (String.valueOf(amount).contains("-"))
+		if (BigDecimal.valueOf(amount).compareTo(BigDecimal.ZERO) < 0)
 			return false;
 		return getBalance(world).doubleValue() >= amount;
 	}
 
-	public void deposit(BigDecimal amount) {
-		FileConfiguration c = manager.getConfig();
-		BigDecimal after = getBalance().add(amount);
-		c.set("wallets." + owner.toString() + ".balance." + Bukkit.getWorlds().get(0).getName(), after.doubleValue());
-		manager.saveConfig();
+	@Override
+	public boolean has(BigDecimal amount) {
+		return has(amount.doubleValue());
 	}
 
-	public void deposit(BigDecimal amount, World world) {
+	@Override
+	public boolean has(BigDecimal amount, World world) {
+		return has(amount.doubleValue(), world);
+	}
+
+	@Override
+	public RetroConomy.TransactionResult deposit(BigDecimal amount) {
+		FileConfiguration c = manager.getConfig();
+		BigDecimal after = getBalance().add(amount);
+		c.set("wallets." + owner.toString() + ".balance." + Bukkit.getWorld(this.world).getName(), after.doubleValue());
+		manager.saveConfig();
+		return RetroConomy.TransactionResult.SUCCESS;
+	}
+
+	@Override
+	public RetroConomy.TransactionResult deposit(BigDecimal amount, World world) {
 		if (!multiWorld)
 			world = Bukkit.getWorld(this.world);
 		FileConfiguration c = manager.getConfig();
 		BigDecimal after = getBalance(world).add(amount);
 		c.set("wallets." + owner.toString() + ".balance." + world.getName(), after.doubleValue());
 		manager.saveConfig();
+		return RetroConomy.TransactionResult.SUCCESS;
 	}
 
-	public void withdraw(BigDecimal amount) {
+	@Override
+	public RetroConomy.TransactionResult withdraw(BigDecimal amount) {
 		FileConfiguration c = manager.getConfig();
 		BigDecimal after = getBalance().subtract(amount);
-		c.set("wallets." + owner.toString() + ".balance." + Bukkit.getWorlds().get(0).getName(), after.doubleValue());
+		c.set("wallets." + owner.toString() + ".balance." + Bukkit.getWorld(this.world).getName(), after.doubleValue());
 		manager.saveConfig();
+		return RetroConomy.TransactionResult.SUCCESS;
 	}
 
-	public void withdraw(BigDecimal amount, World world) {
+	@Override
+	public RetroConomy.TransactionResult withdraw(BigDecimal amount, World world) {
 		if (!multiWorld)
 			world = Bukkit.getWorld(this.world);
 		FileConfiguration c = manager.getConfig();
 		BigDecimal after = getBalance(world).subtract(amount);
 		c.set("wallets." + owner.toString() + ".balance." + world.getName(), after.doubleValue());
 		manager.saveConfig();
+		return RetroConomy.TransactionResult.SUCCESS;
 	}
 
 }
