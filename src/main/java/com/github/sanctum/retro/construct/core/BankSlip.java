@@ -20,7 +20,6 @@ import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.jetbrains.annotations.Nullable;
 
 public class BankSlip implements Savable {
 
@@ -28,15 +27,15 @@ public class BankSlip implements Savable {
 	private final OfflinePlayer holder;
 	private final BigDecimal amount;
 	private BigDecimal tax;
-	private transient final BankAccount account;
 	private final TransactionType type;
 	private final HUID slipId;
+	private final HUID id;
 
 	protected BankSlip(OfflinePlayer holder, BigDecimal amount, BankAccount account, TransactionType type) {
 		this.holder = holder;
 		this.amount = amount;
 		this.type = type;
-		this.account = account;
+		this.id = account.getId();
 		this.slipId = HUID.randomID();
 
 	}
@@ -62,10 +61,6 @@ public class BankSlip implements Savable {
 		return holder;
 	}
 
-	public @Nullable BankAccount getAccount() {
-		return account;
-	}
-
 	public BigDecimal getAmount() {
 		return amount;
 	}
@@ -81,7 +76,7 @@ public class BankSlip implements Savable {
 		meta.setDisplayName(StringUtils.use("&6&l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ &b[NOTE] &6&l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬").translate());
 		if (getAmount().doubleValue() == 0) {
 			meta.setLore(Arrays.asList(StringUtils.use("&bHolder: &7" + holder.getName()).translate(),
-					StringUtils.use("&b#: &7" + account.getId().toString()).translate(),
+					StringUtils.use("&b#: &7" + id.toString()).translate(),
 					StringUtils.use("&bAmount: &c" + RetroConomy.getInstance().getManager().format(amount.doubleValue())).translate(),
 					StringUtils.use("&bTax: &c" + RetroConomy.getInstance().getManager().format(tax.doubleValue())).translate(),
 					StringUtils.use("&bDate: &7" + new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString()).translate(),
@@ -90,7 +85,7 @@ public class BankSlip implements Savable {
 			meta.setLore(Arrays.asList(StringUtils.use("&bHolder: &7" + holder.getName()).translate(),
 					this.type == TransactionType.DEPOSIT ? StringUtils.use("&bAmount: &a+&7" + RetroConomy.getInstance().getManager().format(amount.doubleValue())).translate() : StringUtils.use("&bAmount: &4-&7" + RetroConomy.getInstance().getManager().format(amount.doubleValue())).translate(),
 					StringUtils.use("&bTax: &c" + RetroConomy.getInstance().getManager().format(tax.doubleValue())).translate(),
-					StringUtils.use("&b#: &7" + account.getId().toString()).translate(),
+					StringUtils.use("&b#: &7" + id.toString()).translate(),
 					StringUtils.use("&bDate: &7" + new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString()).translate()));
 		}
 		make.setItemMeta(meta);
@@ -103,6 +98,6 @@ public class BankSlip implements Savable {
 
 	@Override
 	public HUID id() {
-		return account.getId();
+		return id;
 	}
 }
