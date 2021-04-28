@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -279,7 +280,7 @@ public class RetroManager {
 				if (a.getJointOwner() != null && Bukkit.getOfflinePlayer(a.getJointOwner()).getName().equals(name)) {
 					return true;
 				} else
-					return a.getMembers().contains(name);
+					return a.getMembers().contains(Arrays.stream(Bukkit.getOfflinePlayers()).filter(p -> p.getName().equals(name)).map(OfflinePlayer::getUniqueId).findFirst().get());
 		}).findFirst();
 	}
 
@@ -291,7 +292,7 @@ public class RetroManager {
 			if (a.getJointOwner() != null && Bukkit.getOfflinePlayer(a.getJointOwner()).getUniqueId().equals(id)) {
 				return true;
 			} else
-				return a.getMembers().contains(id.toString());
+				return a.getMembers().contains(id);
 		}).findFirst();
 	}
 
@@ -303,7 +304,7 @@ public class RetroManager {
 			if (a.getJointOwner() != null && Bukkit.getOfflinePlayer(a.getJointOwner()).getName().equals(player.getName())) {
 				return true;
 			} else
-				return a.getMembers().contains(player.getUniqueId().toString());
+				return a.getMembers().contains(player.getUniqueId());
 		}).findFirst();
 	}
 
