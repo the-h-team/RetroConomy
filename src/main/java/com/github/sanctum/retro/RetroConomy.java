@@ -38,6 +38,7 @@ import com.github.sanctum.retro.vault.VaultEconomy;
 import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
@@ -84,7 +85,7 @@ public class RetroConomy extends JavaPlugin implements RetroAPI {
 			if (account.getJointOwner() != null) {
 				manager.getConfig().set("accounts." + account.getId().toString() + ".joint", account.getJointOwner().toString());
 			}
-			manager.getConfig().set("accounts." + account.getId().toString() + ".members", account.getMembers());
+			manager.getConfig().set("accounts." + account.getId().toString() + ".members", account.getMembers().stream().map(UUID::toString).collect(Collectors.toList()));
 			manager.saveConfig();
 		}
 		for (ATM atm : getManager().ATMS) {

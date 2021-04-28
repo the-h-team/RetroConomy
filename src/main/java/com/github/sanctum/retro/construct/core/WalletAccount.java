@@ -44,7 +44,7 @@ public class WalletAccount implements RetroAccount {
 
 	@Override
 	public BigDecimal getBalance() {
-		return BigDecimal.valueOf(manager.getConfig().getDouble("wallets." + owner.toString() + ".balance." + Bukkit.getWorld(this.world).getName()));
+		return BigDecimal.valueOf(manager.getConfig().getDouble("wallets." + owner.toString() + ".balance." + this.world));
 	}
 
 	@Override
@@ -57,7 +57,7 @@ public class WalletAccount implements RetroAccount {
 	@Override
 	public RetroConomy.TransactionResult setBalance(BigDecimal amount) {
 		FileConfiguration c = manager.getConfig();
-		c.set("wallets." + owner.toString() + ".balance." + Bukkit.getWorld(this.world).getName(), amount.doubleValue());
+		c.set("wallets." + owner.toString() + ".balance." + this.world, amount.doubleValue());
 		manager.saveConfig();
 		return RetroConomy.TransactionResult.SUCCESS;
 	}
@@ -65,7 +65,7 @@ public class WalletAccount implements RetroAccount {
 	@Override
 	public RetroConomy.TransactionResult setBalance(double amount) {
 		FileConfiguration c = manager.getConfig();
-		c.set("wallets." + owner.toString() + ".balance." + Bukkit.getWorld(this.world).getName(), amount);
+		c.set("wallets." + owner.toString() + ".balance." + this.world, amount);
 		manager.saveConfig();
 		return RetroConomy.TransactionResult.SUCCESS;
 	}

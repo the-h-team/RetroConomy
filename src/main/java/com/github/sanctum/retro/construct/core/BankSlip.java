@@ -28,7 +28,7 @@ public class BankSlip implements Savable {
 	private final OfflinePlayer holder;
 	private final BigDecimal amount;
 	private BigDecimal tax;
-	private final BankAccount account;
+	private transient final BankAccount account;
 	private final TransactionType type;
 	private final HUID slipId;
 

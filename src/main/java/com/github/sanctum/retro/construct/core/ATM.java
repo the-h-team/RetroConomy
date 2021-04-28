@@ -42,6 +42,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.TileState;
@@ -418,6 +419,41 @@ public class ATM implements Savable {
 								});
 							})
 							.get();
+				case TAX_EDIT:
+					return AnvilBuilder.from(p, StringUtils.use("&6Type the new tax amount.").translate())
+							.setLeftItem(builder -> {
+								ItemStack paper = new ItemStack(Material.PAPER);
+								ItemMeta meta = paper.getItemMeta();
+								meta.setDisplayName(StringUtils.use("&eTax ##.## &6&m→&r ").translate());
+								meta.setLore(Collections.singletonList(StringUtils.use("&7Format ##.## &6&m→").translate()));
+								paper.setItemMeta(meta);
+								builder.setItem(paper);
+								builder.setClick((player, text, args) -> {
+									if (args.length == 0) {
+										try {
+											double amount = Double.parseDouble(text.replace(",", "."));
+											atm.setTax(BigDecimal.valueOf(amount));
+											Message.form(p).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix")).send("&aTax adjusted to &r" + amount);
+											p.closeInventory();
+										} catch (NumberFormatException e) {
+
+											return;
+										}
+									}
+									if (args.length > 0) {
+										for (String arg : args) {
+											try {
+												double amount = Double.parseDouble(arg.replace(",", "."));
+												atm.setTax(BigDecimal.valueOf(amount));
+												Message.form(p).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix")).send("&aTax adjusted to &r" + amount);
+												p.closeInventory();
+											} catch (NumberFormatException ignored) {
+											}
+										}
+									}
+								});
+							})
+							.get();
 				case FORGOT_CARD:
 					return AnvilBuilder.from(p, StringUtils.use("&2Type your account id.").translate())
 							.setLeftItem(builder -> {
@@ -521,6 +557,11 @@ public class ATM implements Savable {
 							.setLore(StringUtils.use("&7Click to deposit/withdraw bank money.").translate())
 							.setAction(click -> select(atm, Type.ACCOUNT_LOGIN).open(click.getPlayer()))
 							.assignToSlots(14)
+							.addElement(new ItemStack(Material.NAME_TAG))
+							.setText(StringUtils.use("&6Tax").translate())
+							.setLore(StringUtils.use("&7Adjust the transaction tax for account usage.").translate())
+							.setAction(click -> write(click.getPlayer(), atm, Type.TAX_EDIT).open())
+							.assignToSlots(16)
 							.setFiller(new ItemStack(Material.GRAY_STAINED_GLASS_PANE))
 							.setText(" ")
 							.set()
@@ -640,7 +681,7 @@ public class ATM implements Savable {
 		}
 
 		public enum Type {
-			MAIN, ADMIN_PANEL, LOG, WALLET, ACCOUNT, ACCOUNT_LOGIN, FORGOT_CARD, DEPOSIT_ACCOUNT, WITHDRAW_ACCOUNT, DEPOSIT_WALLET, WITHDRAW_WALLET
+			MAIN, ADMIN_PANEL, LOG, WALLET, ACCOUNT, ACCOUNT_LOGIN, FORGOT_CARD, TAX_EDIT, DEPOSIT_ACCOUNT, WITHDRAW_ACCOUNT, DEPOSIT_WALLET, WITHDRAW_WALLET
 		}
 
 	}
@@ -662,6 +703,7 @@ public class ATM implements Savable {
 					atm.remove();
 				} else {
 					msg.send("&cYou don't own this ATM you can't do this!");
+					p.getWorld().playSound(p.getLocation(), Sound.ENTITY_VILLAGER_AMBIENT, 10, 1);
 					e.setCancelled(true);
 				}
 			}

@@ -42,7 +42,7 @@ public class BankAccount implements RetroAccount, Shareable {
 		this.members = new ArrayList<>(members);
 		this.id = id;
 		FileConfiguration c = manager.getConfig();
-		if (!c.isDouble("accounts." + id.toString() + ".balance." + Bukkit.getWorld(this.world).getName())) {
+		if (!c.isDouble("accounts." + id.toString() + ".balance." + this.world)) {
 			setBalance(RetroConomy.getInstance().getManager().getMain().getConfig().getDouble("Options.accounts.starting-balance"));
 		}
 		this.debitCard = new DebitCard(this);
@@ -75,7 +75,7 @@ public class BankAccount implements RetroAccount, Shareable {
 
 	@Override
 	public BigDecimal getBalance() {
-		return BigDecimal.valueOf(manager.getConfig().getDouble("accounts." + id.toString() + ".balance." + Bukkit.getWorld(this.world).getName()));
+		return BigDecimal.valueOf(manager.getConfig().getDouble("accounts." + id.toString() + ".balance." + this.world));
 	}
 
 	@Override
@@ -105,14 +105,14 @@ public class BankAccount implements RetroAccount, Shareable {
 
 	@Override
 	public RetroConomy.TransactionResult setBalance(BigDecimal balance) {
-		manager.getConfig().set("accounts." + id.toString() + ".balance." + Bukkit.getWorld(this.world).getName(), balance.doubleValue());
+		manager.getConfig().set("accounts." + id.toString() + ".balance." + this.world, balance.doubleValue());
 		manager.saveConfig();
 		return RetroConomy.TransactionResult.SUCCESS;
 	}
 
 	@Override
 	public RetroConomy.TransactionResult setBalance(double balance) {
-		manager.getConfig().set("accounts." + id.toString() + ".balance." + Bukkit.getWorld(this.world).getName(), balance);
+		manager.getConfig().set("accounts." + id.toString() + ".balance." + this.world, balance);
 		manager.saveConfig();
 		return RetroConomy.TransactionResult.SUCCESS;
 	}
