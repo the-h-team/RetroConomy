@@ -38,6 +38,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -272,19 +273,19 @@ public class RetroManager {
 		return getAccounts().filter(a -> a.getId().equals(accountId)).findFirst();
 	}
 
-	public Optional<BankAccount> getAccount(String name) {
+	public List<BankAccount> getAccounts(String name) {
 		return getAccounts().filter(a -> {
 			if (Bukkit.getOfflinePlayer(a.getOwner()).getName().equals(name)) {
 				return true;
 			} else
-				if (a.getJointOwner() != null && Bukkit.getOfflinePlayer(a.getJointOwner()).getName().equals(name)) {
-					return true;
-				} else
-					return a.getMembers().contains(Arrays.stream(Bukkit.getOfflinePlayers()).filter(p -> p.getName().equals(name)).map(OfflinePlayer::getUniqueId).findFirst().get());
-		}).findFirst();
+			if (a.getJointOwner() != null && Bukkit.getOfflinePlayer(a.getJointOwner()).getName().equals(name)) {
+				return true;
+			} else
+				return a.getMembers().contains(Arrays.stream(Bukkit.getOfflinePlayers()).filter(p -> p.getName().equals(name)).map(OfflinePlayer::getUniqueId).findFirst().get());
+		}).collect(Collectors.toList());
 	}
 
-	public Optional<BankAccount> getAccount(UUID id) {
+	public List<BankAccount> getAccounts(UUID id) {
 		return getAccounts().filter(a -> {
 			if (Bukkit.getOfflinePlayer(a.getOwner()).getUniqueId().equals(id)) {
 				return true;
@@ -293,19 +294,19 @@ public class RetroManager {
 				return true;
 			} else
 				return a.getMembers().contains(id);
-		}).findFirst();
+		}).collect(Collectors.toList());
+	}
+
+	public Optional<BankAccount> getAccount(String name) {
+		return getAccounts(name).stream().filter(a -> a.isPrimary(Arrays.stream(Bukkit.getOfflinePlayers()).filter(p -> p.getName().equals(name)).map(OfflinePlayer::getUniqueId).findFirst().get())).findFirst();
+	}
+
+	public Optional<BankAccount> getAccount(UUID id) {
+		return getAccounts(id).stream().filter(a -> a.isPrimary(id)).findFirst();
 	}
 
 	public Optional<BankAccount> getAccount(OfflinePlayer player) {
-		return getAccounts().filter(a -> {
-			if (Bukkit.getOfflinePlayer(a.getOwner()).getName().equals(player.getName())) {
-				return true;
-			} else
-			if (a.getJointOwner() != null && Bukkit.getOfflinePlayer(a.getJointOwner()).getName().equals(player.getName())) {
-				return true;
-			} else
-				return a.getMembers().contains(player.getUniqueId());
-		}).findFirst();
+		return getAccounts(player.getUniqueId()).stream().filter(a -> a.isPrimary(player.getUniqueId())).findFirst();
 	}
 
 	public Optional<WalletAccount> getWallet(String name) {

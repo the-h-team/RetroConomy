@@ -14,6 +14,7 @@ import com.github.sanctum.labyrinth.library.StringUtils;
 import com.github.sanctum.retro.RetroConomy;
 import java.util.List;
 import java.util.Objects;
+import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -50,6 +51,14 @@ public abstract class CommandOrientation extends Command {
 
 	protected final void sendMessage(Player player, String msg) {
 		Message.form(player).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix")).send(msg);
+	}
+
+	protected final void sendComponent(Player player, BaseComponent msg) {
+		Message.form(player).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix")).build(msg);
+	}
+
+	protected final void sendComponent(Player player, BaseComponent... msg) {
+		Message.form(player).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix")).build(msg);
 	}
 
 	protected final void sendUsage(Player player) {

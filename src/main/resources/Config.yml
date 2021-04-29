@@ -20,16 +20,17 @@ Currency:
 
 
 Options:
-  prefix: '&7[<#ebd721>Retro</#eb7f21>] &8&m»&r'
+  prefix: '&7[<#ebd721>Retro</#eb7f21>&7] &8&m»&r'
   # Choose the number formatting for the plugin [ en = US, it = Italy, nl = Netherlands, jp = Japan, de = Germany ]
   format: en
   wallets:
     starting-balance: 500.00
     max-balance: 5000000.00
   accounts:
+    multiple-allowed: true
     starting-balance: 0.0
     max-balance: 500000000.00
   multi-world:
     enabled: true
     # When multi-world is disabled falsify is used as the sole balance support.
-    falsify: 'world_name'
+    falsify: 'world'

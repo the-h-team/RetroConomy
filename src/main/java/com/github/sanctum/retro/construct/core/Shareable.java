@@ -7,11 +7,15 @@ import java.util.List;
 import java.util.UUID;
 import org.bukkit.OfflinePlayer;
 
-public interface Shareable {
+public interface Shareable extends RetroAccount{
 
 	UUID getOwner();
 
 	UUID getJointOwner();
+
+	boolean isPrimary(UUID member);
+
+	void setPrimary(UUID member, boolean primary);
 
 	RetroConomy.TransactionResult setOwner(UUID newOwner);
 

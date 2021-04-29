@@ -98,7 +98,7 @@ public class EnterpriseEconomy implements AdvancedEconomy {
 
 	@Override
 	public boolean hasMultiAccountSupport() {
-		return false;
+		return true;
 	}
 
 	@Override
@@ -109,13 +109,13 @@ public class EnterpriseEconomy implements AdvancedEconomy {
 	@Override
 	@Deprecated
 	public boolean hasWalletAccount(String name) {
-		return false;
+		return RetroConomy.getInstance().getManager().getWallet(name).isPresent();
 	}
 
 	@Override
 	@Deprecated
 	public boolean hasWalletAccount(String name, String world) {
-		return false;
+		return RetroConomy.getInstance().getManager().getWallet(name).isPresent();
 	}
 
 	@Override
@@ -157,7 +157,7 @@ public class EnterpriseEconomy implements AdvancedEconomy {
 	@Override
 	@Deprecated
 	public boolean hasAccount(String accountId, String name) {
-		return false;
+		return RetroConomy.getInstance().getManager().getAccount(name).isPresent();
 	}
 
 	@Override

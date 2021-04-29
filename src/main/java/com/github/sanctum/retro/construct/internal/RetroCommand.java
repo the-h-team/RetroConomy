@@ -15,7 +15,7 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public enum RetroCommand implements CommandInformation {
-	DEPOSIT, WITHDRAW, PAY, BALANCE, TOP, BUY, SELL, RETRO, BANK;
+	DEPOSIT, WITHDRAW, PAY, BALANCE, TOP, BUY, SELL, RETRO, ATM, BANK;
 
 
 	@Override
@@ -37,6 +37,8 @@ public enum RetroCommand implements CommandInformation {
 				return "top";
 			case BALANCE:
 				return "balance";
+			case ATM:
+				return "atm";
 			case BANK:
 				return "bank";
 			default:
@@ -47,6 +49,8 @@ public enum RetroCommand implements CommandInformation {
 	@Override
 	public @NotNull String getDescription() {
 		switch (this) {
+			case ATM:
+				return "Buy an atm for passive income generation.";
 			case BUY:
 				return "Buy a specified amount of an item";
 			case SELL:
@@ -73,6 +77,8 @@ public enum RetroCommand implements CommandInformation {
 	@Override
 	public @NotNull String getUsage() {
 		switch (this) {
+			case ATM:
+				return "/atm buy";
 			case BUY:
 				return "/buy <itemName> <amount>";
 			case SELL:
@@ -99,6 +105,8 @@ public enum RetroCommand implements CommandInformation {
 	@Override
 	public @NotNull String getPermission() {
 		switch (this) {
+			case ATM:
+				return "retro.atm";
 			case SELL:
 				return "retro.sell";
 			case BUY:
@@ -125,6 +133,7 @@ public enum RetroCommand implements CommandInformation {
 	@Override
 	public @NotNull List<String> getAliases() {
 		switch (this) {
+			case ATM:
 			case SELL:
 			case BUY:
 				return Collections.emptyList();

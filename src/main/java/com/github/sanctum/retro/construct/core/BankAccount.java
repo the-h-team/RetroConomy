@@ -59,6 +59,24 @@ public class BankAccount implements RetroAccount, Shareable {
 	}
 
 	@Override
+	public boolean isPrimary(UUID member) {
+		FileConfiguration c = manager.getConfig();
+		return c.isString("wallets." + uuid.toString() + ".primary") && c.getString("wallets." + uuid.toString() + ".primary").equals(getId().toString());
+	}
+
+	@Override
+	public void setPrimary(UUID member, boolean primary) {
+		FileConfiguration c = manager.getConfig();
+		if (primary) {
+			c.set("wallets." + uuid.toString() + ".primary", getId().toString());
+		} else {
+			c.set("wallets." + uuid.toString() + ".primary", null);
+		}
+		manager.saveConfig();
+
+	}
+
+	@Override
 	public Savable getDebitCard() {
 		return debitCard;
 	}

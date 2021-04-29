@@ -20,6 +20,8 @@ import java.util.stream.Stream;
 
 public class AccountList extends UniformedComponents<BankAccount> {
 
+	private static final long serialVersionUID = -6489284949762803382L;
+
 	@Override
 	public List<BankAccount> list() {
 		return RetroConomy.getInstance().getManager().ACCOUNTS;

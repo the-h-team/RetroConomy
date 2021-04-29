@@ -28,7 +28,7 @@ public class DebitCard implements Savable {
 	public ItemStack toItem() {
 		ItemStack item = new ItemStack(SkullItem.Head.find(account.getOwner()));
 		ItemMeta meta = item.getItemMeta();
-		meta.setDisplayName(StringUtils.use("&7[&6Debit&7]").translate());
+		meta.setDisplayName(StringUtils.use("&7[&6Debit&7] &6" + account.getId().toString()).translate());
 		meta.getPersistentDataContainer().set(KEY, PersistentDataType.STRING, id().toString());
 		item.setItemMeta(meta);
 		return item;

@@ -21,6 +21,7 @@ import com.github.sanctum.retro.construct.core.BankAccount;
 import com.github.sanctum.retro.construct.core.Currency;
 import com.github.sanctum.retro.construct.core.ItemDemand;
 import com.github.sanctum.retro.construct.core.WalletAccount;
+import com.github.sanctum.retro.construct.internal.AtmCommand;
 import com.github.sanctum.retro.construct.internal.BalanceCommand;
 import com.github.sanctum.retro.construct.internal.BankCommand;
 import com.github.sanctum.retro.construct.internal.BuyCommand;
@@ -248,6 +249,7 @@ public class RetroConomy extends JavaPlugin implements RetroAPI {
 	}
 
 	private void registerCommands() {
+		new AtmCommand(RetroCommand.ATM);
 		new BankCommand(RetroCommand.BANK);
 		new BuyCommand(RetroCommand.BUY);
 		new SellCommand(RetroCommand.SELL);

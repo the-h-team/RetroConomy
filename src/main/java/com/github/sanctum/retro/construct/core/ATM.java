@@ -57,6 +57,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.Nullable;
 
 public class ATM implements Savable {
 
@@ -201,8 +202,10 @@ public class ATM implements Savable {
 	}
 
 	public BigDecimal getTax(OfflinePlayer target) {
-		if (getOwner().getUniqueId().equals(target.getUniqueId())) {
-			return BigDecimal.ZERO;
+		if (target != null) {
+			if (getOwner().getUniqueId().equals(target.getUniqueId())) {
+				return BigDecimal.ZERO;
+			}
 		}
 		return tax;
 	}
@@ -274,7 +277,7 @@ public class ATM implements Savable {
 			return s;
 		};
 
-		public static AnvilMenu write(ATM atm, Type type) {
+		public static AnvilMenu write(ATM atm, @Nullable HUID accountId, Type type) {
 			switch (type) {
 				case DEPOSIT_ACCOUNT:
 					return AnvilBuilder.from(StringUtils.use("&2Specify a deposit").translate())
@@ -290,7 +293,7 @@ public class ATM implements Savable {
 									if (args.length == 0) {
 										try {
 											double amount = Double.parseDouble(text.replace(",", "."));
-											RetroConomy.getInstance().getManager().getAccount(player).ifPresent(account -> Schedule.sync(() -> atm.getLocation().getWorld().dropItemNaturally(atm.getLocation().getBlock().getRelative(BlockFace.UP, 1).getLocation(), account.record(atm, TransactionType.DEPOSIT, player, BigDecimal.valueOf(amount)).toItem())).wait(1));
+											RetroConomy.getInstance().getManager().getAccount(accountId).ifPresent(account -> Schedule.sync(() -> atm.getLocation().getWorld().dropItemNaturally(atm.getLocation().getBlock().getRelative(BlockFace.UP, 1).getLocation(), account.record(atm, TransactionType.DEPOSIT, player, BigDecimal.valueOf(amount)).toItem())).wait(1));
 											msg.send("&a&oPrinting your receipt...");
 											player.closeInventory();
 
@@ -303,7 +306,7 @@ public class ATM implements Savable {
 										for (String arg : args) {
 											try {
 												double amount = Double.parseDouble(arg.replace(",", "."));
-												RetroConomy.getInstance().getManager().getAccount(player).ifPresent(account -> Schedule.sync(() -> atm.getLocation().getWorld().dropItemNaturally(atm.getLocation().getBlock().getRelative(BlockFace.UP, 1).getLocation(), account.record(atm, TransactionType.DEPOSIT, player, BigDecimal.valueOf(amount)).toItem())).wait(1));
+												RetroConomy.getInstance().getManager().getAccount(accountId).ifPresent(account -> Schedule.sync(() -> atm.getLocation().getWorld().dropItemNaturally(atm.getLocation().getBlock().getRelative(BlockFace.UP, 1).getLocation(), account.record(atm, TransactionType.DEPOSIT, player, BigDecimal.valueOf(amount)).toItem())).wait(1));
 												msg.send("&a&oPrinting your receipt...");
 												player.closeInventory();
 											} catch (NumberFormatException ignored) {
@@ -327,7 +330,7 @@ public class ATM implements Savable {
 									if (args.length == 0) {
 										try {
 											double amount = Double.parseDouble(text.replace(",", "."));
-											RetroConomy.getInstance().getManager().getAccount(player).ifPresent(account -> Schedule.sync(() -> atm.getLocation().getWorld().dropItemNaturally(atm.getLocation().getBlock().getRelative(BlockFace.UP, 1).getLocation(), account.record(atm, TransactionType.WITHDRAW, player, BigDecimal.valueOf(amount)).toItem())).wait(1));
+											RetroConomy.getInstance().getManager().getAccount(accountId).ifPresent(account -> Schedule.sync(() -> atm.getLocation().getWorld().dropItemNaturally(atm.getLocation().getBlock().getRelative(BlockFace.UP, 1).getLocation(), account.record(atm, TransactionType.WITHDRAW, player, BigDecimal.valueOf(amount)).toItem())).wait(1));
 											msg.send("&a&oPrinting your receipt...");
 											player.closeInventory();
 										} catch (NumberFormatException e) {
@@ -339,7 +342,7 @@ public class ATM implements Savable {
 										for (String arg : args) {
 											try {
 												double amount = Double.parseDouble(arg.replace(",", "."));
-												RetroConomy.getInstance().getManager().getAccount(player).ifPresent(account -> Schedule.sync(() -> atm.getLocation().getWorld().dropItemNaturally(atm.getLocation().getBlock().getRelative(BlockFace.UP, 1).getLocation(), account.record(atm, TransactionType.WITHDRAW, player, BigDecimal.valueOf(amount)).toItem())).wait(1));
+												RetroConomy.getInstance().getManager().getAccount(accountId).ifPresent(account -> Schedule.sync(() -> atm.getLocation().getWorld().dropItemNaturally(atm.getLocation().getBlock().getRelative(BlockFace.UP, 1).getLocation(), account.record(atm, TransactionType.WITHDRAW, player, BigDecimal.valueOf(amount)).toItem())).wait(1));
 												msg.send("&a&oPrinting your receipt...");
 												player.closeInventory();
 											} catch (NumberFormatException ignored) {
@@ -463,7 +466,7 @@ public class ATM implements Savable {
 									try {
 										HUID id = HUID.fromString(text);
 										if (RetroConomy.getInstance().getManager().getAccount(id).isPresent()) {
-											select(atm, Type.ACCOUNT).open(player);
+											select(atm, id, Type.ACCOUNT).open(player);
 										}
 									} catch (Exception ignore) {
 									}
@@ -492,7 +495,9 @@ public class ATM implements Savable {
 										Message.form(click.getPlayer()).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix")).send("&aYou received " + RetroConomy.getInstance().getManager().format(amount) + " of tax.");
 									}
 								}
-								browse(atm, type).open(click.getPlayer());
+								PaginatedMenu menu = browse(atm, type);
+								menu.recollect(new LinkedList<>(atm.record.stream().map(BankSlip::slipId).map(HUID::toString).collect(Collectors.toList())));
+								menu.open(click.getPlayer());
 							})
 							.setNavigationLeft(left.get(), 48, PaginatedClick::sync)
 							.setNavigationRight(right.get(), 50, PaginatedClick::sync)
@@ -516,6 +521,15 @@ public class ATM implements Savable {
 							.setFillType(Material.GREEN_STAINED_GLASS_PANE)
 							.setBorderType(Material.GRAY_STAINED_GLASS_PANE)
 							.fill()
+							.addElements()
+							.invoke(() -> {
+								ItemStack i = new ItemStack(Material.TOTEM_OF_UNDYING);
+								ItemMeta meta = i.getItemMeta();
+								meta.setDisplayName(StringUtils.use("&8(&fMain Menu&8)").translate());
+								i.setItemMeta(meta);
+								return i;
+							}, 45, click -> select(atm, null, Type.ADMIN_PANEL).open(click.getPlayer()))
+							.add()
 							.limit(28)
 							.build();
 				default:
@@ -523,7 +537,7 @@ public class ATM implements Savable {
 			}
 		}
 
-		public static Menu select(ATM atm, Type type) {
+		public static Menu select(ATM atm, HUID account, Type type) {
 			switch (type) {
 				case ADMIN_PANEL:
 					return new MenuBuilder(InventoryRows.THREE, "")
@@ -535,7 +549,7 @@ public class ATM implements Savable {
 							.addElement(new ItemStack(Material.GOLDEN_HELMET))
 							.setText(StringUtils.use("&6Wallet").translate())
 							.setLore(StringUtils.use("&7Click to deposit/withdraw from your wallet.").translate())
-							.setAction(click -> select(atm, Type.WALLET).open(click.getPlayer()))
+							.setAction(click -> select(atm, null, Type.WALLET).open(click.getPlayer()))
 							.assignToSlots(12)
 							.addElement(new ItemStack(Material.ENCHANTED_BOOK))
 							.setText(StringUtils.use("&2&m←&r &aChoose a funding source &2&m→").translate())
@@ -547,12 +561,12 @@ public class ATM implements Savable {
 							.addElement(new ItemStack(Material.IRON_HELMET))
 							.setText(StringUtils.use("&eAccount").translate())
 							.setLore(StringUtils.use("&7Click to deposit/withdraw bank money.").translate())
-							.setAction(click -> select(atm, Type.ACCOUNT_LOGIN).open(click.getPlayer()))
+							.setAction(click -> select(atm, null, Type.ACCOUNT_LOGIN).open(click.getPlayer()))
 							.assignToSlots(14)
 							.addElement(new ItemStack(Material.NAME_TAG))
 							.setText(StringUtils.use("&6Tax").translate())
 							.setLore(StringUtils.use("&7Adjust the transaction tax for account usage.").translate())
-							.setAction(click -> write(atm, Type.TAX_EDIT).setViewer(click.getPlayer()).open())
+							.setAction(click -> write(atm, null, Type.TAX_EDIT).setViewer(click.getPlayer()).open())
 							.assignToSlots(16)
 							.setFiller(new ItemStack(Material.GRAY_STAINED_GLASS_PANE))
 							.setText(" ")
@@ -563,7 +577,7 @@ public class ATM implements Savable {
 							.addElement(new ItemStack(Material.GOLDEN_HELMET))
 							.setText(StringUtils.use("&6Wallet").translate())
 							.setLore(StringUtils.use("&7Click to deposit/withdraw from your wallet.").translate())
-							.setAction(click -> select(atm, Type.WALLET).open(click.getPlayer()))
+							.setAction(click -> select(atm, null, Type.WALLET).open(click.getPlayer()))
 							.assignToSlots(12)
 							.addElement(new ItemStack(Material.ENCHANTED_BOOK))
 							.setText(StringUtils.use("&2&m←&r &aChoose a funding source &2&m→").translate())
@@ -575,7 +589,7 @@ public class ATM implements Savable {
 							.addElement(new ItemStack(Material.IRON_HELMET))
 							.setText(StringUtils.use("&eAccount").translate())
 							.setLore(StringUtils.use("&7Click to deposit/withdraw bank money.").translate())
-							.setAction(click -> select(atm, Type.ACCOUNT_LOGIN).open(click.getPlayer()))
+							.setAction(click -> select(atm, null, Type.ACCOUNT_LOGIN).open(click.getPlayer()))
 							.assignToSlots(14)
 							.setFiller(new ItemStack(Material.GRAY_STAINED_GLASS_PANE))
 							.setText(" ")
@@ -586,34 +600,46 @@ public class ATM implements Savable {
 							.addElement(new ItemStack(Material.AIR))
 							.setAction(click -> {
 								click.allowClick();
+								Message msg = Message.form(click.getPlayer()).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix"));
 								if (!click.getItemOnMouseCursor().isPresent())
 									return;
 								if (DebitCard.matches(click.getItemOnMouseCursor().get())) {
 									String id = click.getItemOnMouseCursor().get().getItemMeta().getPersistentDataContainer().get(DebitCard.KEY, PersistentDataType.STRING);
-									RetroConomy.getInstance().getManager().getAccount(click.getPlayer()).ifPresent(a -> {
-										if (id.equals(a.getId().toString())) {
+
+									RetroConomy.getInstance().getManager().getAccount(HUID.fromString(id)).ifPresent(a -> {
+										if (a.getOwner().equals(click.getPlayer().getUniqueId()) || a.getJointOwner() != null && a.getJointOwner().equals(click.getPlayer().getUniqueId()) || a.getMembers().contains(click.getPlayer().getUniqueId())) {
 											// access granted
 											final ItemStack copy = click.getItemOnMouseCursor().get().clone();
 											click.getItemOnMouseCursor().get().setAmount(0);
 											click.getPlayer().getWorld().dropItem(click.getPlayer().getLocation(), copy);
-											select(atm, Type.ACCOUNT).open(click.getPlayer());
+											select(atm, a.getId(), Type.ACCOUNT).open(click.getPlayer());
 										} else {
 											click.getPlayer().closeInventory();
 											// access denied
+											Schedule.sync(() -> click.getPlayer().getWorld().playSound(atm.getLocation(), Sound.ENTITY_VILLAGER_NO, 10, 10)).cancelAfter(18).repeat(0, 20);
+											msg.send("&cYou don't have access to this bank account.");
 										}
 									});
+								} else {
+
+									msg.send("&cThis debit card is invalid.");
+									click.getPlayer().getWorld().playSound(click.getPlayer().getLocation(), Sound.ENTITY_VILLAGER_NO, 10, 1);
+									click.getPlayer().closeInventory();
 								}
 							})
 							.assignToSlots(24)
 							.addElement(new ItemStack(Material.BLUE_STAINED_GLASS_PANE))
 							.setText(StringUtils.use("&7Place your debit card in the slot. &a&m→").translate())
 							.assignToSlots(20)
+							.addElement(new ItemStack(Material.GOLD_NUGGET))
+							.setText(StringUtils.use("&8(&7Tax&8) &a&m→&6 " + RetroConomy.getInstance().getManager().format(atm.getTax(null))).translate())
+							.assignToSlots(22)
 							.addElement(new ItemStack(Material.PLAYER_HEAD))
 							.setText(StringUtils.use("&7▼ &3Forgot Card.").translate())
 							.setLore()
 							.setAction(click -> {
 								// open manual id type.
-								write(atm, Type.FORGOT_CARD).setViewer(click.getPlayer()).open();
+								write(atm, null, Type.FORGOT_CARD).setViewer(click.getPlayer()).open();
 							})
 							.assignToSlots(40)
 							.setFiller(new ItemStack(Material.GRAY_STAINED_GLASS_PANE))
@@ -626,7 +652,7 @@ public class ATM implements Savable {
 							.addElement(new ItemStack(Material.GOLDEN_HELMET))
 							.setText(StringUtils.use("&2Withdraw").translate())
 							.setLore(StringUtils.use("&7Click to transfer money to your wallet.").translate())
-							.setAction(click -> write(atm, Type.WITHDRAW_ACCOUNT).setViewer(click.getPlayer()).open())
+							.setAction(click -> write(atm, account, Type.WITHDRAW_ACCOUNT).setViewer(click.getPlayer()).open())
 							.assignToSlots(12)
 							.addElement(new ItemStack(Material.ENCHANTED_BOOK))
 							.setText(StringUtils.use("&2&m←&r &aChoose an option &2&m→").translate())
@@ -638,7 +664,7 @@ public class ATM implements Savable {
 							.addElement(new ItemStack(Material.IRON_HELMET))
 							.setText(StringUtils.use("&aDeposit").translate())
 							.setLore(StringUtils.use("&7Click to transfer money to your account.").translate())
-							.setAction(click -> write(atm, Type.DEPOSIT_ACCOUNT).setViewer(click.getPlayer()).open())
+							.setAction(click -> write(atm, account, Type.DEPOSIT_ACCOUNT).setViewer(click.getPlayer()).open())
 							.assignToSlots(14)
 							.setFiller(new ItemStack(Material.GRAY_STAINED_GLASS_PANE))
 							.setText(" ")
@@ -649,7 +675,7 @@ public class ATM implements Savable {
 							.addElement(new ItemStack(Material.GOLDEN_HELMET))
 							.setText(StringUtils.use("&2Withdraw").translate())
 							.setLore(StringUtils.use("&7Click to withdraw physical money.").translate())
-							.setAction(click -> write(atm, Type.WITHDRAW_WALLET).setViewer(click.getPlayer()).open())
+							.setAction(click -> write(atm, null, Type.WITHDRAW_WALLET).setViewer(click.getPlayer()).open())
 							.assignToSlots(12)
 							.addElement(new ItemStack(Material.ENCHANTED_BOOK))
 							.setText(StringUtils.use("&2&m←&r &aChoose an option &2&m→").translate())
@@ -661,7 +687,7 @@ public class ATM implements Savable {
 							.addElement(new ItemStack(Material.IRON_HELMET))
 							.setText(StringUtils.use("&aDeposit").translate())
 							.setLore(StringUtils.use("&7Click to deposit physical money.").translate())
-							.setAction(click -> write(atm, Type.DEPOSIT_WALLET).setViewer(click.getPlayer()).open())
+							.setAction(click -> write(atm, null, Type.DEPOSIT_WALLET).setViewer(click.getPlayer()).open())
 							.assignToSlots(14)
 							.setFiller(new ItemStack(Material.GRAY_STAINED_GLASS_PANE))
 							.setText(" ")
@@ -721,9 +747,9 @@ public class ATM implements Savable {
 					e.setCancelled(true);
 					if (atm.getOwner().getUniqueId().equals(p.getUniqueId())) {
 
-						GUI.select(atm, GUI.Type.ADMIN_PANEL).open(p);
+						GUI.select(atm, null, GUI.Type.ADMIN_PANEL).open(p);
 					} else {
-						GUI.select(atm, GUI.Type.MAIN).open(p);
+						GUI.select(atm, null, GUI.Type.MAIN).open(p);
 					}
 				}
 			}

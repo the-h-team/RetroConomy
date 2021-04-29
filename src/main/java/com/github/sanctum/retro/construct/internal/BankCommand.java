@@ -9,6 +9,7 @@
 package com.github.sanctum.retro.construct.internal;
 
 import com.github.sanctum.labyrinth.library.HUID;
+import com.github.sanctum.labyrinth.library.TextLib;
 import com.github.sanctum.retro.RetroConomy;
 import com.github.sanctum.retro.command.CommandInformation;
 import com.github.sanctum.retro.command.CommandOrientation;
@@ -38,6 +39,20 @@ public class BankCommand extends CommandOrientation {
 	@Override
 	public @Nullable List<String> complete(Player p, String[] args) {
 		return null;
+	}
+
+	private int maxAccounts(Player p) {
+
+		if (p.hasPermission("retro.bank.infinite")) {
+			return 999999999;
+		}
+
+		for (int i = 0; i < 1000; i++) {
+			if (p.hasPermission("retro.bank." + i)) {
+				return i;
+			}
+		}
+		return 0;
 	}
 
 	@Override
@@ -75,22 +90,58 @@ public class BankCommand extends CommandOrientation {
 					return;
 				}
 
+				if (args[0].equalsIgnoreCase("list")) {
+					sendMessage(player, "&fYou have &8(&7" + RetroConomy.getInstance().getManager().getAccounts(player.getUniqueId()).size() + "&8) &fopen accounts.");
+					sendMessage(player, "&f&l&m▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
+					for (BankAccount a : RetroConomy.getInstance().getManager().getAccounts(player.getUniqueId())) {
+						sendComponent(player, TextLib.getInstance().textRunnable("&2Account: &f(&6" + a.getId().toString() + "&f) / (&a$" + a.getBalance().doubleValue() + "&f) ", "&f[&6&lSwitch&f]", "Click to make me the primary account.", "bank switch " + a.getId().toString()));
+					}
+					sendMessage(player, "&f&l&m▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
+				}
+
 				if (args[0].equalsIgnoreCase("open")) {
 					if (account == null) {
-						RetroConomy.getInstance().getManager().loadAccount(new BankAccount(player.getUniqueId(), null, HUID.randomID(), Collections.emptyList()));
+						BankAccount ac = new BankAccount(player.getUniqueId(), null, HUID.randomID(), Collections.emptyList());
+						ac.setPrimary(player.getUniqueId(), true);
+						RetroConomy.getInstance().getManager().loadAccount(ac);
 						sendMessage(player, ConfiguredMessage.getMessage("account-open"));
 					} else {
 						// already opened
-						sendMessage(player, ConfiguredMessage.getMessage("account-exists"));
+						if (RetroConomy.getInstance().getManager().getMain().getConfig().getBoolean("Options.accounts.multiple-allowed")) {
+							if (RetroConomy.getInstance().getManager().getAccounts(player.getUniqueId()).size() >= maxAccounts(player)) {
+								sendMessage(player, FormattedMessage.convert(ConfiguredMessage.getMessage("account-cap-reached")).next(maxAccounts(player), 0.0));
+							} else {
+								BankAccount ac = new BankAccount(player.getUniqueId(), null, HUID.randomID(), Collections.emptyList());
+								RetroConomy.getInstance().getManager().loadAccount(ac);
+								sendMessage(player, ConfiguredMessage.getMessage("account-open"));
+							}
+						} else {
+							sendMessage(player, ConfiguredMessage.getMessage("account-exists"));
+						}
 					}
 				}
 				if (args[0].equalsIgnoreCase("close")) {
 					if (account != null) {
-						RetroConomy.getInstance().getManager().deleteAccount(account);
-						sendMessage(player, ConfiguredMessage.getMessage("account-close"));
+						if (account.getOwner().equals(player.getUniqueId())) {
+							RetroConomy.getInstance().getManager().deleteAccount(account);
+							RetroConomy.getInstance().getManager().getAccounts(player.getUniqueId()).stream().findFirst().ifPresent(a -> a.setPrimary(player.getUniqueId(), true));
+							sendMessage(player, ConfiguredMessage.getMessage("account-close"));
+						} else {
+							sendMessage(player, ConfiguredMessage.getMessage("account-perms-needed"));
+						}
 					} else {
 						// noo account
 						sendMessage(player, ConfiguredMessage.getMessage("account-missing"));
+					}
+				}
+				if (args[0].equalsIgnoreCase("card")) {
+					if (account != null) {
+						if (!player.getInventory().contains(account.getDebitCard().toItem())) {
+							sendMessage(player, "&aUse this card to access your bank account from any atm location.");
+							player.getWorld().dropItem(player.getLocation(), account.getDebitCard().toItem());
+						} else {
+							sendMessage(player, "&cYou already have a copy of this accounts card within your inventory!");
+						}
 					}
 				}
 				if (args[0].equalsIgnoreCase("deposit")) {
@@ -109,6 +160,31 @@ public class BankCommand extends CommandOrientation {
 			}
 
 			if (args.length == 2) {
+
+				if (args[0].equalsIgnoreCase("switch")) {
+
+					if (account == null) {
+
+						return;
+					}
+
+					try {
+						HUID id = HUID.fromString(args[1]);
+						BankAccount a = RetroConomy.getInstance().getManager().getAccount(id).orElse(null);
+						if (a != null) {
+							if (a.getOwner().equals(player.getUniqueId()) || a.getJointOwner() != null && a.getJointOwner().equals(player.getUniqueId()) || a.getMembers().contains(player.getUniqueId())) {
+								account.setPrimary(player.getUniqueId(), false);
+								a.setPrimary(player.getUniqueId(), true);
+								sendMessage(player, "&aYou have updated account &6" + a.getId().toString() + "&a as primary funding source.");
+							}
+						}
+					} catch (Exception e) {
+
+					}
+
+					return;
+				}
+
 				if (args[0].equalsIgnoreCase("joint")) {
 					if (account != null) {
 						if (account.getOwner().equals(player.getUniqueId())) {
