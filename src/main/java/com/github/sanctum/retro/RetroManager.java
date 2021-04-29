@@ -161,7 +161,7 @@ public class RetroManager {
 				for (String user : items.getConfig().getConfigurationSection("Items." + item + ".usage-sold").getKeys(false)) {
 					sellMapDate.put(user, items.getConfig().getLong("Items." + item + ".usage-sold" + "." + user + ".date"));
 				}
-				new SystemItem(new ItemStack(mat), items.getConfig().getDouble("Items." + item + ".price"), items.getConfig().getDouble("Items." + item + ".multiplier"), buyMap, sellMap, buyMapDate, sellMapDate);
+				new SystemItem(new ItemStack(mat), items.getConfig().getDouble("Items." + item + ".price"), items.getConfig().getDouble("Items." + item + ".multiplier"), items.getConfig().getDouble("Items." + item + ".ceiling"), items.getConfig().getDouble("Items." + item + ".floor"), buyMap, sellMap, buyMapDate, sellMapDate);
 			} else {
 				plugin.getLogger().severe("- An invalid item description was found within the items configuration, section '" + item + "'");
 				plugin.getServer().getPluginManager().disablePlugin(plugin);
@@ -244,7 +244,7 @@ public class RetroManager {
 		return new AccountList();
 	}
 
-	public UniformedComponents<ItemDemand> getShop() {
+	public UniformedComponents<ItemDemand> getMarket() {
 		return new Marketplace();
 	}
 
@@ -262,11 +262,11 @@ public class RetroManager {
 	}
 
 	public Optional<ItemDemand> getDemand(ItemStack item) {
-		return getShop().filter(i -> i.getItem().isSimilar(item)).findFirst();
+		return getMarket().filter(i -> i.getItem().isSimilar(item)).findFirst();
 	}
 
 	public Optional<ItemDemand> getDemand(Material mat) {
-		return getShop().filter(i -> i.getItem().getType() == mat).findFirst();
+		return getMarket().filter(i -> i.getItem().getType() == mat).findFirst();
 	}
 
 	public Optional<BankAccount> getAccount(HUID accountId) {

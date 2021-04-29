@@ -240,8 +240,8 @@ public class BankAccount implements RetroAccount, Shareable {
 		return RetroConomy.TransactionResult.SUCCESS;
 	}
 
-	public BankSlip record(TransactionType type, OfflinePlayer player, BigDecimal amount, World world) {
-		BankSlip slip;
+	public TransactionStatement record(TransactionType type, OfflinePlayer player, BigDecimal amount, World world) {
+		TransactionStatement slip;
 		switch (type) {
 			case WITHDRAW:
 					if (!multiWorld)
@@ -251,11 +251,11 @@ public class BankAccount implements RetroAccount, Shareable {
 						if (wallet != null) {
 							wallet.deposit(amount, world);
 						}
-						slip = BankSlip.from(player, amount, this, TransactionType.WITHDRAW);
+						slip = TransactionStatement.from(player, amount, this, TransactionType.WITHDRAW);
 						withdraw(amount, world);
 						return slip;
 					}
-					return BankSlip.from(player, BigDecimal.ZERO, this, TransactionType.WITHDRAW);
+					return TransactionStatement.from(player, BigDecimal.ZERO, this, TransactionType.WITHDRAW);
 
 			case DEPOSIT:
 				WalletAccount wallet = RetroConomy.getInstance().getManager().getWallet(player).orElse(null);
@@ -264,20 +264,20 @@ public class BankAccount implements RetroAccount, Shareable {
 						world = Bukkit.getWorld(this.world);
 					if (wallet.has(amount.doubleValue(), world)) {
 						wallet.withdraw(amount, world);
-						slip = BankSlip.from(player, amount, this, TransactionType.DEPOSIT);
+						slip = TransactionStatement.from(player, amount, this, TransactionType.DEPOSIT);
 						deposit(amount, world);
 						return slip;
 					}
 				}
-				return BankSlip.from(player, BigDecimal.ZERO, this, TransactionType.DEPOSIT);
+				return TransactionStatement.from(player, BigDecimal.ZERO, this, TransactionType.DEPOSIT);
 			default:
 				throw new IllegalStateException();
 		}
 	}
 
 	@Override
-	public BankSlip record(ATM atm, TransactionType type, OfflinePlayer player, BigDecimal amount) {
-		BankSlip slip;
+	public TransactionStatement record(ATM atm, TransactionType type, OfflinePlayer player, BigDecimal amount) {
+		TransactionStatement slip;
 		World world = atm.getLocation().getWorld();
 		if (!multiWorld)
 			world = Bukkit.getWorld(this.world);
@@ -288,23 +288,23 @@ public class BankAccount implements RetroAccount, Shareable {
 					if (wallet != null) {
 						wallet.deposit(amount.subtract(atm.getTax(player)), world);
 					}
-					slip = BankSlip.from(player, amount, atm.getTax(player), this, TransactionType.WITHDRAW);
+					slip = TransactionStatement.from(player, amount, atm.getTax(player), this, TransactionType.WITHDRAW);
 					withdraw(amount, world);
 					return atm.take(slip);
 				}
-				return atm.take(BankSlip.from(player, BigDecimal.ZERO, atm.getTax(player), this, TransactionType.WITHDRAW));
+				return atm.take(TransactionStatement.from(player, BigDecimal.ZERO, atm.getTax(player), this, TransactionType.WITHDRAW));
 
 			case DEPOSIT:
 				WalletAccount wallet = RetroConomy.getInstance().getManager().getWallet(player).orElse(null);
 				if (wallet != null) {
 					if (wallet.has(amount.doubleValue(), world)) {
 						wallet.withdraw(amount, world);
-						slip = BankSlip.from(player, amount, atm.getTax(player), this, TransactionType.DEPOSIT);
+						slip = TransactionStatement.from(player, amount, atm.getTax(player), this, TransactionType.DEPOSIT);
 						deposit(amount.subtract(atm.getTax(player)), world);
 						return atm.take(slip);
 					}
 				}
-				return atm.take(BankSlip.from(player, BigDecimal.ZERO, atm.getTax(player), this, TransactionType.DEPOSIT));
+				return atm.take(TransactionStatement.from(player, BigDecimal.ZERO, atm.getTax(player), this, TransactionType.DEPOSIT));
 			default:
 				throw new IllegalStateException();
 		}

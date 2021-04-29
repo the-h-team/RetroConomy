@@ -29,7 +29,7 @@ public interface Shareable extends RetroAccount{
 
 	RetroConomy.TransactionResult remove();
 
-	BankSlip record(ATM atm, TransactionType type, OfflinePlayer player, BigDecimal amount);
+	TransactionStatement record(ATM atm, TransactionType type, OfflinePlayer player, BigDecimal amount);
 
 	Savable getDebitCard();
 

@@ -41,11 +41,11 @@ public class BuyCommand extends CommandOrientation {
 		return complete.forArgs(args)
 				.level(1)
 				.completeAt(getLabel())
-				.filter(() -> RetroConomy.getInstance().getManager().getShop().map(SellableItem::getItem).map(ItemStack::getType).map(mat -> mat.name().toLowerCase().replace("_", "")).collect(Collectors.toList()))
+				.filter(() -> RetroConomy.getInstance().getManager().getMarket().map(SellableItem::getItem).map(ItemStack::getType).map(mat -> mat.name().toLowerCase().replace("_", "")).collect(Collectors.toList()))
 				.collect()
 				.level(2)
 				.completeAt(getLabel())
-				.filter(() -> RetroConomy.getInstance().getManager().getShop().map(SellableItem::getItem).map(ItemStack::getType).map(mat -> mat.name().toLowerCase().replace("_", "")).collect(Collectors.toList()))
+				.filter(() -> RetroConomy.getInstance().getManager().getMarket().map(SellableItem::getItem).map(ItemStack::getType).map(mat -> mat.name().toLowerCase().replace("_", "")).collect(Collectors.toList()))
 				.collect()
 				.get(args.length);
 

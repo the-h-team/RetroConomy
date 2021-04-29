@@ -18,6 +18,7 @@ import com.github.sanctum.retro.RetroConomy;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -30,15 +31,15 @@ public interface ItemDemand extends Modifiable, SellableItem{
 
 	long getRecentSold();
 
-	long getSold(String user);
+	long getSold(UUID user);
 
-	long getSoldLast(String user);
+	long getSoldLast(UUID user);
 
 	long getSold();
 
-	long getBought(String user);
+	long getBought(UUID user);
 
-	long getBoughtLast(String user);
+	long getBoughtLast(UUID user);
 
 	long getBought();
 
@@ -63,7 +64,7 @@ public interface ItemDemand extends Modifiable, SellableItem{
 				case SHOP:
 					return new PaginatedBuilder(JavaPlugin.getProvidingPlugin(RetroConomy.class))
 							.setTitle(StringUtils.use("The Shop").translate())
-							.collect(new LinkedList<>(RetroConomy.getInstance().getManager().getShop().map(SellableItem::getItem).map(ItemStack::getType).map(Enum::name).collect(Collectors.toList())))
+							.collect(new LinkedList<>(RetroConomy.getInstance().getManager().getMarket().map(SellableItem::getItem).map(ItemStack::getType).map(Enum::name).collect(Collectors.toList())))
 							.setSize(InventoryRows.SIX)
 							.setAlreadyFirst(StringUtils.use("Already first").translate())
 							.setAlreadyLast(StringUtils.use("Already last").translate())

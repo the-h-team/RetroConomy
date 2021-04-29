@@ -27,14 +27,18 @@ public class SystemItem implements ItemDemand {
 	private final Map<String, Long> buyerTimeMap;
 	private final Map<String, Long> sellerTimeMap;
 	private double multiplier;
+	private final double ceiling;
+	private final double floor;
 	private int bought;
 	private int sold;
 	private String lastBuyer = "No-one";
 	private String lastSeller = "No-one";
 
-	public SystemItem(ItemStack item, double price, double multiplier, Map<String, Long> buyerMap, Map<String, Long> sellerMap, Map<String, Long> buyerTimeMap, Map<String, Long> sellerTimeMap) {
+	public SystemItem(ItemStack item, double price, double multiplier, double ceiling, double floor, Map<String, Long> buyerMap, Map<String, Long> sellerMap, Map<String, Long> buyerTimeMap, Map<String, Long> sellerTimeMap) {
 		this.item = item;
 		this.price = price;
+		this.ceiling = ceiling;
+		this.floor = floor;
 		this.multiplier = multiplier;
 		this.buyerMap = new HashMap<>(buyerMap);
 		this.sellerMap = new HashMap<>(sellerMap);
@@ -42,7 +46,7 @@ public class SystemItem implements ItemDemand {
 		this.sellerTimeMap = new HashMap<>(sellerTimeMap);
 		this.bought = 0;
 		this.sold = 0;
-		RetroConomy.getInstance().getManager().getShop().list().add(this);
+		RetroConomy.getInstance().getManager().getMarket().list().add(this);
 	}
 
 	@Override
@@ -53,6 +57,16 @@ public class SystemItem implements ItemDemand {
 	@Override
 	public double getPrice() {
 		return price;
+	}
+
+	@Override
+	public double getCeiling() {
+		return ceiling;
+	}
+
+	@Override
+	public double getFloor() {
+		return floor;
 	}
 
 	@Override
@@ -71,13 +85,13 @@ public class SystemItem implements ItemDemand {
 	}
 
 	@Override
-	public long getSold(String user) {
-		return sellerMap.getOrDefault(user, 0L);
+	public long getSold(UUID user) {
+		return sellerMap.getOrDefault(user.toString(), 0L);
 	}
 
 	@Override
-	public long getSoldLast(String user) {
-		return sellerTimeMap.getOrDefault(user, 0L);
+	public long getSoldLast(UUID user) {
+		return sellerTimeMap.getOrDefault(user.toString(), 0L);
 	}
 
 	@Override
@@ -90,13 +104,13 @@ public class SystemItem implements ItemDemand {
 	}
 
 	@Override
-	public long getBought(String user) {
-		return buyerMap.getOrDefault(user, 0L);
+	public long getBought(UUID user) {
+		return buyerMap.getOrDefault(user.toString(), 0L);
 	}
 
 	@Override
-	public long getBoughtLast(String user) {
-		return buyerTimeMap.getOrDefault(user, 0L);
+	public long getBoughtLast(UUID user) {
+		return buyerTimeMap.getOrDefault(user.toString(), 0L);
 	}
 
 	@Override

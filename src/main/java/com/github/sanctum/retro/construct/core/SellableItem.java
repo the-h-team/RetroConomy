@@ -16,6 +16,10 @@ public interface SellableItem{
 
 	double getPrice();
 
+	double getCeiling();
+
+	double getFloor();
+
 	double getMultiplier();
 
 }

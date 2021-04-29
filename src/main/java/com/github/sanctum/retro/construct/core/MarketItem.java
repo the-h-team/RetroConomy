@@ -16,22 +16,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 
-// To be made.. For possible player market setup. Not super important
+// To be made.. For possible player market setup. Not super important ( Compare to BDO marketplace )
 public class MarketItem implements ItemDemand {
-	@Override
-	public ItemStack getItem() {
-		return null;
-	}
-
-	@Override
-	public double getPrice() {
-		return 0;
-	}
-
-	@Override
-	public double getMultiplier() {
-		return 0;
-	}
 
 	@Override
 	public long getRecentBought() {
@@ -44,12 +30,12 @@ public class MarketItem implements ItemDemand {
 	}
 
 	@Override
-	public long getSold(String user) {
+	public long getSold(UUID user) {
 		return 0;
 	}
 
 	@Override
-	public long getSoldLast(String user) {
+	public long getSoldLast(UUID user) {
 		return 0;
 	}
 
@@ -59,12 +45,12 @@ public class MarketItem implements ItemDemand {
 	}
 
 	@Override
-	public long getBought(String user) {
+	public long getBought(UUID user) {
 		return 0;
 	}
 
 	@Override
-	public long getBoughtLast(String user) {
+	public long getBoughtLast(UUID user) {
 		return 0;
 	}
 
@@ -108,7 +94,6 @@ public class MarketItem implements ItemDemand {
 		return null;
 	}
 
-
 	@Override
 	public RetroConomy.PlayerTransactionResult adjustMultiplier(Player who, double multiplier) {
 		return null;
@@ -132,5 +117,30 @@ public class MarketItem implements ItemDemand {
 	@Override
 	public RetroConomy.PlayerTransactionResult undo(UUID user, TransactionResult result, int count) {
 		return null;
+	}
+
+	@Override
+	public ItemStack getItem() {
+		return null;
+	}
+
+	@Override
+	public double getPrice() {
+		return 0;
+	}
+
+	@Override
+	public double getCeiling() {
+		return 0;
+	}
+
+	@Override
+	public double getFloor() {
+		return 0;
+	}
+
+	@Override
+	public double getMultiplier() {
+		return 0;
 	}
 }

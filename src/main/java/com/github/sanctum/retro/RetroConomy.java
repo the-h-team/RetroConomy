@@ -66,7 +66,7 @@ public class RetroConomy extends JavaPlugin implements RetroAPI {
 
 		FileManager manager = FileType.ACCOUNT.get();
 		FileManager items = FileType.MISC.get("Items");
-		for (ItemDemand item : getManager().getShop().sort()) {
+		for (ItemDemand item : getManager().getMarket().sort()) {
 			for (Map.Entry<String, Long> entry : item.getBuyerMap().entrySet()) {
 				items.getConfig().set("Items." + item.getItem().getType().name() + ".usage-purchase." + entry.getKey() + ".amount", entry.getValue());
 			}

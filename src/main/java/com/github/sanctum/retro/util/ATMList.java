@@ -21,6 +21,8 @@ import java.util.stream.Stream;
 public class ATMList extends UniformedComponents<ATM> {
 
 
+	private static final long serialVersionUID = -7003313369701219244L;
+
 	@Override
 	public List<ATM> list() {
 		return RetroConomy.getInstance().getManager().ATMS;

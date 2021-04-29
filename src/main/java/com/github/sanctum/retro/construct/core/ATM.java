@@ -66,7 +66,7 @@ public class ATM implements Savable {
 	private static final long serialVersionUID = -4263717446113447098L;
 
 	private final OfflinePlayer owner;
-	public final List<BankSlip> record = new ArrayList<>();
+	protected final List<TransactionStatement> record = new ArrayList<>();
 	private Location location = null;
 	private final HUID id;
 	private BigDecimal tax = BigDecimal.valueOf(2.13);
@@ -102,7 +102,7 @@ public class ATM implements Savable {
 		return RetroConomy.getInstance().getManager().getATMs().filter(a -> state.getPersistentDataContainer().get(KEY, PersistentDataType.STRING).equals(a.getOwner().getUniqueId().toString())).findFirst().orElse(null);
 	}
 
-	public BankSlip take(BankSlip slip) {
+	public TransactionStatement take(TransactionStatement slip) {
 		if (!record.contains(slip)) {
 			if (record.size() >= 100) {
 				setLocked(true);
@@ -129,7 +129,7 @@ public class ATM implements Savable {
 		return atm;
 	}
 
-	public BankSlip getTransaction(String id) {
+	public TransactionStatement getTransaction(String id) {
 		return record.stream().filter(b -> b.slipId().toString().equals(id)).findFirst().orElse(null);
 	}
 
@@ -190,7 +190,7 @@ public class ATM implements Savable {
 	public BigDecimal collect() {
 		// get all tax from every transaction and clear after getting.
 		BigDecimal d = BigDecimal.ZERO;
-		for (BankSlip slip : record) {
+		for (TransactionStatement slip : record) {
 			d = d.add(slip.getTax());
 			Schedule.sync(() -> record.remove(slip)).wait(1);
 		}
@@ -496,16 +496,16 @@ public class ATM implements Savable {
 									}
 								}
 								PaginatedMenu menu = browse(atm, type);
-								menu.recollect(new LinkedList<>(atm.record.stream().map(BankSlip::slipId).map(HUID::toString).collect(Collectors.toList())));
+								menu.recollect(new LinkedList<>(atm.record.stream().map(TransactionStatement::slipId).map(HUID::toString).collect(Collectors.toList())));
 								menu.open(click.getPlayer());
 							})
 							.setNavigationLeft(left.get(), 48, PaginatedClick::sync)
 							.setNavigationRight(right.get(), 50, PaginatedClick::sync)
-							.collect(new LinkedList<>(atm.record.stream().map(BankSlip::slipId).map(HUID::toString).collect(Collectors.toList())))
+							.collect(new LinkedList<>(atm.record.stream().map(TransactionStatement::slipId).map(HUID::toString).collect(Collectors.toList())))
 							.setupProcess(process -> {
 									process.buildItem(() -> atm.getTransaction(process.getContext()).toItem());
 									process.action().setClick(click -> {
-										BankSlip slip = atm.getTransaction(process.getContext());
+										TransactionStatement slip = atm.getTransaction(process.getContext());
 										RetroAccount wallet = RetroConomy.getInstance().getManager().getWallet(click.getPlayer()).orElse(null);
 										if (wallet != null) {
 											final BigDecimal amount = slip.getTax();
