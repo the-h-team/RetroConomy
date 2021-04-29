@@ -94,7 +94,12 @@ public class BankCommand extends CommandOrientation {
 					sendMessage(player, "&fYou have &8(&7" + RetroConomy.getInstance().getManager().getAccounts(player.getUniqueId()).size() + "&8) &fopen accounts.");
 					sendMessage(player, "&f&l&m▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
 					for (BankAccount a : RetroConomy.getInstance().getManager().getAccounts(player.getUniqueId())) {
-						sendComponent(player, TextLib.getInstance().textRunnable("&2Account: &f(&6" + a.getId().toString() + "&f) / (&a$" + a.getBalance().doubleValue() + "&f) ", "&f[&6&lSwitch&f]", "Click to make me the primary account.", "bank switch " + a.getId().toString()));
+						if (a.isPrimary(player.getUniqueId())) {
+							sendComponent(player, TextLib.getInstance().textHoverable("&2Account: &f(&6" + a.getId().toString() + "&f) / (&a$" + RetroConomy.getInstance().getManager().format(a.getBalance()) + "&f) ", "&f[&7&mSwitch&f]", "&cYou already have this account selected."));
+						} else {
+							sendComponent(player, TextLib.getInstance().textRunnable("&2Account: &f(&6" + a.getId().toString() + "&f) / (&a$" + RetroConomy.getInstance().getManager().format(a.getBalance()) + "&f) ", "&f[&6&lSwitch&f]", "Click to make me the primary account.", "bank switch " + a.getId().toString()));
+
+						}
 					}
 					sendMessage(player, "&f&l&m▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
 				}

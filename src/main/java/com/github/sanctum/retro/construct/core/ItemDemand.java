@@ -12,6 +12,8 @@ import com.github.sanctum.labyrinth.gui.InventoryRows;
 import com.github.sanctum.labyrinth.gui.builder.PaginatedBuilder;
 import com.github.sanctum.labyrinth.gui.builder.PaginatedClose;
 import com.github.sanctum.labyrinth.gui.builder.PaginatedMenu;
+import com.github.sanctum.labyrinth.gui.menuman.Menu;
+import com.github.sanctum.labyrinth.gui.menuman.MenuBuilder;
 import com.github.sanctum.labyrinth.library.Items;
 import com.github.sanctum.labyrinth.library.StringUtils;
 import com.github.sanctum.retro.RetroConomy;
@@ -59,6 +61,47 @@ public interface ItemDemand extends Modifiable, SellableItem{
 
 	class GUI {
 
+		public static Menu transact(ItemDemand item, Type type) {
+			switch (type) {
+				case BUY:
+					return new MenuBuilder(InventoryRows.THREE, StringUtils.use("Now buying " + item.getItem().getType().name()).translate())
+							.addElement(new ItemStack(item.getItem().getType(), 1))
+							.setAction(click -> {
+
+							})
+							.setLore()
+							.setText(StringUtils.use("Click to buy 1 " + item.getItem().getType().name()).translate())
+							.assignToSlots()
+							.addElement(new ItemStack(item.getItem().getType(), 32))
+							.setAction(click -> {
+
+							})
+							.setLore()
+							.setText(StringUtils.use("Click to buy 32 " + item.getItem().getType().name()).translate())
+							.assignToSlots()
+							.addElement(new ItemStack(item.getItem().getType(), 64))
+							.setAction(click -> {
+
+							})
+							.setLore()
+							.setText(StringUtils.use("Click to buy 64 " + item.getItem().getType().name()).translate())
+							.assignToSlots()
+							.addElement(new ItemStack(item.getItem().getType(), -1))
+							.setAction(click -> {
+
+							})
+							.setLore()
+							.setText(StringUtils.use("Click to buy a specified amount of " + item.getItem().getType().name()).translate())
+							.assignToSlots()
+							.create(JavaPlugin.getProvidingPlugin(RetroConomy.class));
+				case SELL:
+					return new MenuBuilder(InventoryRows.THREE, StringUtils.use("Now selling " + item.getItem().getType().name()).translate())
+							.create(JavaPlugin.getProvidingPlugin(RetroConomy.class));
+				default:
+					throw new IllegalStateException("Invalid menu type present.");
+			}
+		}
+
 		public static PaginatedMenu browse(Type type) {
 			switch (type) {
 				case SHOP:
@@ -94,11 +137,14 @@ public interface ItemDemand extends Modifiable, SellableItem{
 									throw new IllegalStateException("An invalid shop item was presented while generating the GUI.");
 								});
 								e.action().setClick(click -> {
-									if (click.isLeftClick()) {
-										click.getPlayer().sendMessage("Now selling " + e.getContext());
-									}
-									if (click.isRightClick()) {
-										click.getPlayer().sendMessage("Now buying " + e.getContext());
+									ItemDemand demand = RetroConomy.getInstance().getManager().getDemand(Items.getMaterial(e.getContext())).orElse(null);
+									if (demand != null) {
+										if (click.isLeftClick()) {
+											transact(demand, Type.SELL).open(click.getPlayer());
+										}
+										if (click.isRightClick()) {
+											transact(demand, Type.BUY).open(click.getPlayer());
+										}
 									}
 								});
 							})
