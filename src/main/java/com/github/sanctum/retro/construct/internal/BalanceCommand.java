@@ -11,6 +11,7 @@ package com.github.sanctum.retro.construct.internal;
 import com.github.sanctum.retro.RetroConomy;
 import com.github.sanctum.retro.command.CommandInformation;
 import com.github.sanctum.retro.command.CommandOrientation;
+import com.github.sanctum.retro.construct.core.ItemDemand;
 import com.github.sanctum.retro.construct.core.RetroAccount;
 import com.github.sanctum.retro.util.ConfiguredMessage;
 import com.github.sanctum.retro.util.FormattedMessage;
@@ -34,6 +35,8 @@ public class BalanceCommand extends CommandOrientation {
 	@Override
 	public void player(Player player, String[] args) {
 		if (testPermission(player)) {
+
+			ItemDemand.GUI.browse(ItemDemand.GUI.Type.SHOP).open(player);
 
 			if (RetroConomy.getInstance().getManager().getWallet(player).isPresent()) {
 				RetroAccount wallet = RetroConomy.getInstance().getManager().getWallet(player).get();

@@ -1,16 +1,106 @@
 Items:
-  DIRT:
+  dirt:
     multiplier: 0.1
     price: 0.44
     usage-purchase: {}
     usage-sold: {}
-  GRASS_BLOCK:
+  grassblock:
     multiplier: 0.1
     price: 2.18
     usage-purchase: {}
     usage-sold: {}
-  STONE:
+  stone:
     multiplier: 0.1
     price: 4.14
     usage-purchase: {}
     usage-sold: {}
+  andesite:
+    multiplier: 0.1
+    price: 1.14
+    usage-purchase: {}
+    usage-sold: {}
+  cobblestone:
+    multiplier: 0.1
+    price: 0.84
+    usage-purchase: {}
+    usage-sold: {}
+  oakplanks:
+    multiplier: 0.1
+    price: 2.15
+    usage-purchase: {}
+    usage-sold: {}
+  glass:
+    multiplier: 0.1
+    price: 12.35
+    usage-purchase: {}
+    usage-sold: {}
+  bookshelf:
+    multiplier: 0.1
+    price: 55.35
+    usage-purchase: {}
+    usage-sold: {}
+  diamond:
+    multiplier: 0.1
+    price: 278.98
+    usage-purchase: {}
+    usage-sold: {}
+  cookedbeef:
+    multiplier: 0.1
+    price: 15.62
+    usage-purchase: {}
+    usage-sold: {}
+  goldenapple:
+    multiplier: 0.1
+    price: 125.0
+    usage-purchase: {}
+    usage-sold: {}
+  diamondhelmet:
+    multiplier: 0.1
+    price: 3500
+    usage-purchase: {}
+    usage-sold: {}
+  diamondchestplate:
+    multiplier: 0.1
+    price: 5000
+    usage-purchase: {}
+    usage-sold: {}
+  diamondleggings:
+    multiplier: 0.1
+    price: 5000
+    usage-purchase: {}
+    usage-sold: {}
+  diamondboots:
+    multiplier: 0.1
+    price: 3500
+    usage-purchase: {}
+    usage-sold: {}
+  diamondsword:
+    multiplier: 0.1
+    price: 2000
+    usage-purchase: {}
+    usage-sold: {}
+  ironhelmet:
+    multiplier: 0.1
+    price: 1200
+    usage-purchase: { }
+    usage-sold: { }
+  ironchestplate:
+    multiplier: 0.1
+    price: 2500
+    usage-purchase: { }
+    usage-sold: { }
+  ironleggings:
+    multiplier: 0.1
+    price: 2500
+    usage-purchase: { }
+    usage-sold: { }
+  ironboots:
+    multiplier: 0.1
+    price: 1200
+    usage-purchase: { }
+    usage-sold: { }
+  ironsword:
+    multiplier: 0.1
+    price: 180
+    usage-purchase: { }
+    usage-sold: { }
