@@ -62,6 +62,27 @@ Items:
     floor: 139.49
     usage-purchase: {}
     usage-sold: {}
+  ironingot:
+    multiplier: 2.1
+    price: 48.97
+    ceiling: 110.19
+    floor: 22.18
+    usage-purchase: {}
+    usage-sold: {}
+  emerald:
+    multiplier: 3.8
+    price: 38.95
+    ceiling: 94.12
+    floor: 38.95
+    usage-purchase: {}
+    usage-sold: {}
+  netheriteingot:
+    multiplier: 4.2
+    price: 334.18
+    ceiling: 550.38
+    floor: 224.20
+    usage-purchase: {}
+    usage-sold: {}
   cookedbeef:
     multiplier: 1.4
     price: 15.62

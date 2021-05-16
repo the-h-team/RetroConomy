@@ -71,11 +71,21 @@ public class RetroConomy extends JavaPlugin implements RetroAPI, Listener {
 		FileManager manager = FileType.ACCOUNT.get();
 		FileManager items = FileType.MISC.get("Items");
 		for (ItemDemand item : getManager().getMarket().sort()) {
-			for (Map.Entry<String, Long> entry : item.getBuyerMap().entrySet()) {
-				items.getConfig().set("Items." + item.toString() + ".usage-purchase." + entry.getKey() + ".amount", entry.getValue());
+			if (item.getBuyerMap().isEmpty()) {
+				items.getConfig().set("Items." + item.toString() + ".usage-purchase", null);
+				items.getConfig().createSection("Items." + item.toString() + ".usage-purchase");
+			} else {
+				for (Map.Entry<String, Long> entry : item.getBuyerMap().entrySet()) {
+					items.getConfig().set("Items." + item.toString() + ".usage-purchase." + entry.getKey() + ".amount", entry.getValue());
+				}
 			}
-			for (Map.Entry<String, Long> entry : item.getSellerMap().entrySet()) {
-				items.getConfig().set("Items." + item.toString() + ".usage-sold." + entry.getKey() + ".amount", entry.getValue());
+			if (item.getSellerMap().isEmpty()) {
+				items.getConfig().set("Items." + item.toString() + ".usage-sold", null);
+				items.getConfig().createSection("Items." + item.toString() + ".usage-sold");
+			} else {
+				for (Map.Entry<String, Long> entry : item.getSellerMap().entrySet()) {
+					items.getConfig().set("Items." + item.toString() + ".usage-sold." + entry.getKey() + ".amount", entry.getValue());
+				}
 			}
 			for (Map.Entry<String, Long> entry : item.getBuyerTimeMap().entrySet()) {
 				items.getConfig().set("Items." + item.toString() + ".usage-purchase." + entry.getKey() + ".time", entry.getValue());
@@ -83,6 +93,7 @@ public class RetroConomy extends JavaPlugin implements RetroAPI, Listener {
 			for (Map.Entry<String, Long> entry : item.getSellerTimeMap().entrySet()) {
 				items.getConfig().set("Items." + item.toString() + ".usage-sold." + entry.getKey() + ".time", entry.getValue());
 			}
+
 			for (Map.Entry<Long, Long> entry : item.getBuyerAmountMap().entrySet()) {
 				items.getConfig().set("Items." + item.toString() + ".usage-purchase." + entry.getKey() + ".history.amount", entry.getValue());
 				items.getConfig().set("Items." + item.toString() + ".usage-purchase." + entry.getKey() + ".history.date", entry.getKey());

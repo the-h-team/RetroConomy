@@ -29,6 +29,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -100,6 +101,20 @@ public class DefaultCommand extends CommandOrientation {
 						}
 						sendMessage(player, "&e" + Bukkit.getOfflinePlayer(ac.getOwner()).getName() + " &7bank account balance just got reset to &f&l$" + RetroConomy.getInstance().getManager().format(ac.getBalance()));
 					}
+				}
+
+				if (args[0].equalsIgnoreCase("clear")) {
+					ItemStack item = player.getInventory().getItemInMainHand();
+					RetroConomy.getInstance().getManager().getDemand(item).ifPresent(i -> {
+						i.getSellerAmountMap().clear();
+						i.getBuyerAmountMap().clear();
+						i.getBuyerMap().clear();
+						i.getSellerMap().clear();
+						i.getBuyerTimeMap().clear();
+						i.getSellerTimeMap().clear();
+						sendMessage(player, "&aYou cleared all registered history for item " + item.getType().name().toLowerCase().replace("_", " "));
+					});
+					return;
 				}
 			}
 
