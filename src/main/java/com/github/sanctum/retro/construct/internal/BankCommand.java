@@ -8,13 +8,14 @@
  */
 package com.github.sanctum.retro.construct.internal;
 
+import com.github.sanctum.labyrinth.formatting.TabCompletion;
+import com.github.sanctum.labyrinth.formatting.TabCompletionBuilder;
 import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.labyrinth.library.TextLib;
 import com.github.sanctum.retro.RetroConomy;
 import com.github.sanctum.retro.command.CommandInformation;
 import com.github.sanctum.retro.command.CommandOrientation;
 import com.github.sanctum.retro.construct.core.BankAccount;
-import com.github.sanctum.retro.construct.core.RetroAccount;
 import com.github.sanctum.retro.util.ConfiguredMessage;
 import com.github.sanctum.retro.util.FormattedMessage;
 import com.github.sanctum.retro.util.TransactionType;
@@ -36,9 +37,15 @@ public class BankCommand extends CommandOrientation {
 		super(information);
 	}
 
+	private final TabCompletionBuilder builder = TabCompletion.build(getLabel());
+
 	@Override
 	public @Nullable List<String> complete(Player p, String[] args) {
-		return null;
+		return builder.forArgs(args)
+				.level(1)
+				.completeAt(getLabel())
+				.filter(() -> Arrays.asList("balance", "list", "open", "close", "card", "deposit", "withdraw", "add", "remove"))
+				.collect().get(args.length);
 	}
 
 	private int maxAccounts(Player p) {
@@ -150,16 +157,22 @@ public class BankCommand extends CommandOrientation {
 					}
 				}
 				if (args[0].equalsIgnoreCase("deposit")) {
-					sendUsage(player);
+					sendMessage(player, "&cUsage: &r/bank deposit <##.##>");
 				}
 				if (args[0].equalsIgnoreCase("withdraw")) {
-					sendUsage(player);
+					sendMessage(player, "&cUsage: &r/bank withdraw <##.##>");
 				}
 				if (args[0].equalsIgnoreCase("add")) {
-					sendUsage(player);
+					sendMessage(player, "&cUsage: &r/bank add <playerName>");
 				}
 				if (args[0].equalsIgnoreCase("remove")) {
-					sendUsage(player);
+					sendMessage(player, "&cUsage: &r/bank remove <playerName>");
+				}
+				if (args[0].equalsIgnoreCase("joint")) {
+					sendMessage(player, "&cUsage: &r/bank joint <playerName>");
+				}
+				if (args[0].equalsIgnoreCase("switch")) {
+					sendMessage(player, "&cUsage: &r/bank switch <accountId>");
 				}
 				return;
 			}
@@ -269,16 +282,7 @@ public class BankCommand extends CommandOrientation {
 					if (account != null) {
 						try {
 							double amount = Double.parseDouble(args[1]);
-
-							RetroAccount wallet = RetroConomy.getInstance().getManager().getWallet(player).orElse(null);
-
-							if (wallet != null) {
-								if (wallet.has(amount, player.getWorld())) {
-									wallet.withdraw(BigDecimal.valueOf(amount), player.getWorld());
-									player.getWorld().dropItem(player.getLocation(), account.record(TransactionType.DEPOSIT, player, BigDecimal.valueOf(amount), player.getWorld()).toItem());
-								}
-							}
-
+							player.getWorld().dropItem(player.getLocation(), account.record(TransactionType.DEPOSIT, player, BigDecimal.valueOf(amount), player.getWorld()).toItem());
 						} catch (NumberFormatException e) {
 							sendMessage(player, ConfiguredMessage.getMessage("invalid-amount").replace("{AMOUNT_1}", args[1]));
 						}
@@ -290,16 +294,7 @@ public class BankCommand extends CommandOrientation {
 					if (account != null) {
 						try {
 							double amount = Double.parseDouble(args[1]);
-
-							RetroAccount wallet = RetroConomy.getInstance().getManager().getWallet(player).orElse(null);
-
-							if (wallet != null) {
-								if (account.has(amount, player.getWorld())) {
-									player.getWorld().dropItem(player.getLocation(), account.record(TransactionType.WITHDRAW, player, BigDecimal.valueOf(amount), player.getWorld()).toItem());
-									wallet.deposit(BigDecimal.valueOf(amount), player.getWorld());
-								}
-							}
-
+							player.getWorld().dropItem(player.getLocation(), account.record(TransactionType.WITHDRAW, player, BigDecimal.valueOf(amount), player.getWorld()).toItem());
 						} catch (NumberFormatException e) {
 							sendMessage(player, ConfiguredMessage.getMessage("invalid-amount").replace("{AMOUNT_1}", args[1]));
 						}

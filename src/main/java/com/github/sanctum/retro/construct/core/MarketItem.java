@@ -12,12 +12,23 @@ package com.github.sanctum.retro.construct.core;
 import com.github.sanctum.retro.RetroConomy;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 
 // To be made.. For possible player market setup. Not super important ( Compare to BDO marketplace )
 public class MarketItem implements ItemDemand {
+
+	@Override
+	public String toString() {
+		return null;
+	}
+
+	@Override
+	public boolean isBlacklisted() {
+		return false;
+	}
 
 	@Override
 	public long getRecentBought() {
@@ -40,6 +51,11 @@ public class MarketItem implements ItemDemand {
 	}
 
 	@Override
+	public long getSold(TimeUnit unit, int time) {
+		return 0;
+	}
+
+	@Override
 	public long getSold() {
 		return 0;
 	}
@@ -51,6 +67,11 @@ public class MarketItem implements ItemDemand {
 
 	@Override
 	public long getBoughtLast(UUID user) {
+		return 0;
+	}
+
+	@Override
+	public long getBought(TimeUnit unit, int time) {
 		return 0;
 	}
 
@@ -85,6 +106,16 @@ public class MarketItem implements ItemDemand {
 	}
 
 	@Override
+	public Map<Long, Long> getBuyerAmountMap() {
+		return null;
+	}
+
+	@Override
+	public Map<Long, Long> getSellerAmountMap() {
+		return null;
+	}
+
+	@Override
 	public Map<String, Long> getBuyerMap() {
 		return null;
 	}
@@ -95,7 +126,17 @@ public class MarketItem implements ItemDemand {
 	}
 
 	@Override
+	public long getLastModified() {
+		return 0;
+	}
+
+	@Override
 	public RetroConomy.PlayerTransactionResult adjustMultiplier(Player who, double multiplier) {
+		return null;
+	}
+
+	@Override
+	public RetroConomy.PlayerTransactionResult adjustMultiplier(double multiplier) {
 		return null;
 	}
 
@@ -125,7 +166,17 @@ public class MarketItem implements ItemDemand {
 	}
 
 	@Override
-	public double getPrice() {
+	public double getBasePrice() {
+		return 0;
+	}
+
+	@Override
+	public double getBuyPrice(int amount) {
+		return 0;
+	}
+
+	@Override
+	public double getSellPrice(int amount) {
 		return 0;
 	}
 

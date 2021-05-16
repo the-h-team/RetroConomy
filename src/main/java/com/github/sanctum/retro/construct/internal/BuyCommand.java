@@ -66,11 +66,11 @@ public class BuyCommand extends CommandOrientation {
 						ItemDemand item = RetroConomy.getInstance().getManager().getDemand(request).orElse(null);
 						if (item != null) {
 							if (item.invoke(player.getUniqueId(), Modifiable.TransactionResult.Buy).isTransactionSuccess()) {
-								double price = item.getPrice() * item.getMultiplier();
+								double price = item.getBuyPrice(1);
 								String format = FormattedMessage.convert(ConfiguredMessage.getMessage("item-bought")).bought(request.name().toLowerCase(), price, price).replace("{AMOUNT}", "1");
 								sendMessage(player, format);
 							} else {
-								sendMessage(player, "&cNo wallet was found for a funding source.");
+								sendMessage(player, ConfiguredMessage.getMessage("wallet-insufficient"));
 							}
 						} else {
 							// not for sale
@@ -90,13 +90,13 @@ public class BuyCommand extends CommandOrientation {
 							ItemDemand item = RetroConomy.getInstance().getManager().getDemand(request).orElse(null);
 							if (item != null) {
 								if (item.invoke(player.getUniqueId(), Modifiable.TransactionResult.Buy, amount).isTransactionSuccess()) {
-									double price = (item.getPrice() * item.getMultiplier()) * amount;
-									double each = (item.getPrice() * item.getMultiplier());
+									double price = item.getBuyPrice(amount);
+									double each = item.getBuyPrice(1);
 									String format = FormattedMessage.convert(ConfiguredMessage.getMessage("item-bought")).bought(request.name().toLowerCase(), price, each).replace("{AMOUNT}", amount + "");
 
 									sendMessage(player, format);
 								} else {
-									sendMessage(player, "&cNo wallet was found for a funding source.");
+									sendMessage(player, ConfiguredMessage.getMessage("wallet-insufficient"));
 								}
 							} else {
 								// not for sale

@@ -14,7 +14,11 @@ public interface SellableItem{
 
 	ItemStack getItem();
 
-	double getPrice();
+	double getBasePrice();
+
+	double getBuyPrice(int amount);
+
+	double getSellPrice(int amount);
 
 	double getCeiling();
 

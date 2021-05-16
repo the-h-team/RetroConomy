@@ -8,12 +8,16 @@
  */
 package com.github.sanctum.retro.construct.core;
 
+import com.github.sanctum.labyrinth.library.TimeWatch;
 import com.github.sanctum.retro.RetroConomy;
+import com.github.sanctum.retro.util.ItemModificationEvent;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -26,16 +30,21 @@ public class SystemItem implements ItemDemand {
 	private final Map<String, Long> sellerMap;
 	private final Map<String, Long> buyerTimeMap;
 	private final Map<String, Long> sellerTimeMap;
+	private final Map<Long, Long> buyerAmountMap;
+	private final Map<Long, Long> sellerAmountMap;
 	private double multiplier;
 	private final double ceiling;
 	private final double floor;
 	private int bought;
 	private int sold;
+	private final String path;
+	private long lastModified;
 	private String lastBuyer = "No-one";
 	private String lastSeller = "No-one";
 
-	public SystemItem(ItemStack item, double price, double multiplier, double ceiling, double floor, Map<String, Long> buyerMap, Map<String, Long> sellerMap, Map<String, Long> buyerTimeMap, Map<String, Long> sellerTimeMap) {
+	public SystemItem(String path, ItemStack item, double price, double multiplier, double ceiling, double floor, Map<String, Long> buyerMap, Map<String, Long> sellerMap, Map<String, Long> buyerTimeMap, Map<String, Long> sellerTimeMap, Map<Long, Long> sellerAmountMap, Map<Long, Long> buyerAmountMap) {
 		this.item = item;
+		this.path = path;
 		this.price = price;
 		this.ceiling = ceiling;
 		this.floor = floor;
@@ -44,6 +53,8 @@ public class SystemItem implements ItemDemand {
 		this.sellerMap = new HashMap<>(sellerMap);
 		this.buyerTimeMap = new HashMap<>(buyerTimeMap);
 		this.sellerTimeMap = new HashMap<>(sellerTimeMap);
+		this.buyerAmountMap = new HashMap<>(buyerAmountMap);
+		this.sellerAmountMap = new HashMap<>(sellerAmountMap);
 		this.bought = 0;
 		this.sold = 0;
 		RetroConomy.getInstance().getManager().getMarket().list().add(this);
@@ -55,8 +66,32 @@ public class SystemItem implements ItemDemand {
 	}
 
 	@Override
-	public double getPrice() {
+	public double getBasePrice() {
 		return price;
+	}
+
+	@Override
+	public double getBuyPrice(int amount) {
+		double base = getBasePrice() * getMultiplier() * amount;
+		double floor = getFloor() * getMultiplier() * amount;
+		double ceiling = getCeiling() * getMultiplier() * amount;
+		if (base < 0) {
+			return floor;
+		} else {
+			return Math.min(base, ceiling);
+		}
+	}
+
+	@Override
+	public double getSellPrice(int amount) {
+		double base = (getBasePrice() * getMultiplier()) * amount / 2;
+		double floor = (getFloor() * getMultiplier()) * amount / 2;
+		double ceiling = (getCeiling() * getMultiplier()) * amount / 2;
+		if (base < 0) {
+			return floor;
+		} else {
+			return Math.min(base, ceiling);
+		}
 	}
 
 	@Override
@@ -71,7 +106,17 @@ public class SystemItem implements ItemDemand {
 
 	@Override
 	public double getMultiplier() {
-		return multiplier;
+		return Math.max(multiplier, 0.1);
+	}
+
+	@Override
+	public String toString() {
+		return path;
+	}
+
+	@Override
+	public boolean isBlacklisted() {
+		return RetroConomy.getInstance().getManager().getMain().getConfig().getStringList("Options.item-blacklist").contains(getItem().getType().name());
 	}
 
 	@Override
@@ -95,6 +140,37 @@ public class SystemItem implements ItemDemand {
 	}
 
 	@Override
+	public long getSold(TimeUnit unit, int time) {
+		long total = 0L;
+		for (Map.Entry<Long, Long> entry : sellerAmountMap.entrySet()) {
+			TimeWatch watch = TimeWatch.start(entry.getKey());
+			switch (unit) {
+				case DAYS:
+					if (TimeUnit.SECONDS.toDays(watch.interval(Instant.now()).getSeconds()) <= time) {
+						total += entry.getValue();
+					}
+					break;
+				case HOURS:
+					if (TimeUnit.SECONDS.toHours(watch.interval(Instant.now()).getSeconds()) <= time) {
+						total += entry.getValue();
+					}
+					break;
+				case MINUTES:
+					if (TimeUnit.SECONDS.toMinutes(watch.interval(Instant.now()).getSeconds()) <= time) {
+						total += entry.getValue();
+					}
+					break;
+				case SECONDS:
+					if (watch.interval(Instant.now()).getSeconds() <= time) {
+						total += entry.getValue();
+					}
+					break;
+			}
+		}
+		return total;
+	}
+
+	@Override
 	public long getSold() {
 		long sold = 0;
 		for (Map.Entry<String, Long> entry : getSellerMap().entrySet()) {
@@ -114,6 +190,37 @@ public class SystemItem implements ItemDemand {
 	}
 
 	@Override
+	public long getBought(TimeUnit unit, int time) {
+		long total = 0L;
+		for (Map.Entry<Long, Long> entry : buyerAmountMap.entrySet()) {
+			TimeWatch watch = TimeWatch.start(entry.getKey());
+			switch (unit) {
+				case DAYS:
+					if (TimeUnit.SECONDS.toDays(watch.interval(Instant.now()).getSeconds()) <= time) {
+						total += entry.getValue();
+					}
+					break;
+				case HOURS:
+					if (TimeUnit.SECONDS.toHours(watch.interval(Instant.now()).getSeconds()) <= time) {
+						total += entry.getValue();
+					}
+					break;
+				case MINUTES:
+					if (TimeUnit.SECONDS.toMinutes(watch.interval(Instant.now()).getSeconds()) <= time) {
+						total += entry.getValue();
+					}
+					break;
+				case SECONDS:
+					if (watch.interval(Instant.now()).getSeconds() <= time) {
+						total += entry.getValue();
+					}
+					break;
+			}
+		}
+		return total;
+	}
+
+	@Override
 	public long getBought() {
 		long buy = 0;
 		for (Map.Entry<String, Long> entry : getBuyerMap().entrySet()) {
@@ -124,7 +231,7 @@ public class SystemItem implements ItemDemand {
 
 	@Override
 	public double getPopularity() {
-		return (double) getBought() * getSold() / 2;
+		return (double) getBought(TimeUnit.DAYS, 2) * getSold(TimeUnit.DAYS, 2) / 420;
 	}
 
 	@Override
@@ -148,6 +255,16 @@ public class SystemItem implements ItemDemand {
 	}
 
 	@Override
+	public Map<Long, Long> getBuyerAmountMap() {
+		return buyerAmountMap;
+	}
+
+	@Override
+	public Map<Long, Long> getSellerAmountMap() {
+		return sellerAmountMap;
+	}
+
+	@Override
 	public Map<String, Long> getBuyerMap() {
 		return buyerMap;
 	}
@@ -158,34 +275,59 @@ public class SystemItem implements ItemDemand {
 	}
 
 	@Override
+	public long getLastModified() {
+		return lastModified;
+	}
+
+	@Override
 	public RetroConomy.PlayerTransactionResult adjustMultiplier(Player who, double multiplier) {
 		if (who.isOp()) {
 			this.multiplier = multiplier;
+			this.lastModified = System.currentTimeMillis();
+			this.sellerAmountMap.clear();
+			this.buyerAmountMap.clear();
 			return RetroConomy.PlayerTransactionResult.SUCCESS;
 		}
 		return RetroConomy.PlayerTransactionResult.FAILED;
 	}
 
 	@Override
+	public RetroConomy.PlayerTransactionResult adjustMultiplier(double multiplier) {
+		this.multiplier = multiplier;
+		this.lastModified = System.currentTimeMillis();
+		this.sellerAmountMap.clear();
+		this.buyerAmountMap.clear();
+		return RetroConomy.PlayerTransactionResult.SUCCESS;
+	}
+
+	@Override
 	public RetroConomy.PlayerTransactionResult invoke(UUID user, TransactionResult result) {
+		long time = System.currentTimeMillis();
 		switch (result) {
 			case Buy:
-				lastBuyer = user.toString();
-				bought++;
-				buyerMap.put(user.toString(), buyerMap.getOrDefault(user.toString(), 0L) + 1);
-				buyerTimeMap.put(user.toString(), System.currentTimeMillis());
 				// give item if online
-				double price = this.price * getMultiplier();
+				double price = getBuyPrice(1);
 				if (Bukkit.getOfflinePlayer(user).isOnline()) {
 					Player u = Bukkit.getPlayer(user);
-					u.getWorld().dropItem(u.getLocation(), getItem());
+					ItemModificationEvent event = new ItemModificationEvent(u, this, TransactionResult.Buy);
+					Bukkit.getPluginManager().callEvent(event);
 					Optional<WalletAccount> wallet = RetroConomy.getInstance().getManager().getWallet(user);
 					if (wallet.isPresent() && !wallet.get().has(price, u.getWorld())) {
 						return RetroConomy.PlayerTransactionResult.FAILED;
 					}
+					u.getWorld().dropItem(u.getLocation(), getItem());
+					lastBuyer = user.toString();
+					bought++;
+					buyerMap.put(user.toString(), buyerMap.getOrDefault(user.toString(), 0L) + 1);
+					buyerTimeMap.put(user.toString(), time);
+					if (buyerAmountMap.containsKey(time)) {
+						buyerAmountMap.put(time, buyerAmountMap.get(time) + 1L);
+					} else {
+						buyerAmountMap.put(time, 1L);
+					}
 					wallet.ifPresent(w -> {
 						if (w.has(price, u.getWorld())) {
-							w.withdraw(BigDecimal.valueOf(price));
+							w.withdraw(BigDecimal.valueOf(price), u.getWorld());
 						}
 					});
 				} else {
@@ -193,16 +335,23 @@ public class SystemItem implements ItemDemand {
 				}
 				return RetroConomy.PlayerTransactionResult.SUCCESS;
 			case Sell:
-				lastSeller = user.toString();
-				sold++;
-				sellerMap.put(user.toString(), sellerMap.getOrDefault(user.toString(), 0L) + 1);
-				sellerTimeMap.put(user.toString(), System.currentTimeMillis());
 				// take item if online
 				if (Bukkit.getOfflinePlayer(user).isOnline()) {
 					Player u = Bukkit.getPlayer(user);
+					ItemModificationEvent event = new ItemModificationEvent(u, this, TransactionResult.Sell);
+					Bukkit.getPluginManager().callEvent(event);
 					if (RetroConomy.getInstance().itemRemoval(u, getItem(), 1).isTransactionSuccess()) {
-						double amount = (this.price * getMultiplier()) / 2;
-						RetroConomy.getInstance().getManager().getWallet(user).ifPresent(wallet -> wallet.deposit(BigDecimal.valueOf(amount)));
+						double amount = getSellPrice(1);
+						lastSeller = user.toString();
+						sold++;
+						sellerMap.put(user.toString(), sellerMap.getOrDefault(user.toString(), 0L) + 1);
+						sellerTimeMap.put(user.toString(), time);
+						if (sellerAmountMap.containsKey(time)) {
+							sellerAmountMap.put(time, sellerAmountMap.get(time) + 1L);
+						} else {
+							sellerAmountMap.put(time, 1L);
+						}
+						RetroConomy.getInstance().getManager().getWallet(user).ifPresent(wallet -> wallet.deposit(BigDecimal.valueOf(amount), u.getWorld()));
 					} else {
 						return RetroConomy.PlayerTransactionResult.FAILED;
 					}
@@ -217,26 +366,35 @@ public class SystemItem implements ItemDemand {
 
 	@Override
 	public RetroConomy.PlayerTransactionResult invoke(UUID user, TransactionResult result, int count) {
+		long time = System.currentTimeMillis();
 		switch (result) {
 			case Buy:
-				lastBuyer = user.toString();
-				bought += count;
-				buyerMap.put(user.toString(), buyerMap.getOrDefault(user.toString(), 0L) + count);
-				buyerTimeMap.put(user.toString(), System.currentTimeMillis());
+
 				// give items if online
-				double price = (this.price * getMultiplier()) * count;
+				double price = getBuyPrice(count);
 				if (Bukkit.getOfflinePlayer(user).isOnline()) {
 					Player u = Bukkit.getPlayer(user);
-					for (int i = 0; i < count; i++) {
-						u.getWorld().dropItem(u.getLocation(), getItem());
-					}
+					ItemModificationEvent event = new ItemModificationEvent(u, this, TransactionResult.Buy);
+					Bukkit.getPluginManager().callEvent(event);
 					Optional<WalletAccount> wallet = RetroConomy.getInstance().getManager().getWallet(user);
 					if (wallet.isPresent() && !wallet.get().has(price, u.getWorld())) {
 						return RetroConomy.PlayerTransactionResult.FAILED;
 					}
+					for (int i = 0; i < count; i++) {
+						u.getWorld().dropItem(u.getLocation(), getItem());
+					}
+					lastBuyer = user.toString();
+					bought += count;
+					buyerMap.put(user.toString(), buyerMap.getOrDefault(user.toString(), 0L) + count);
+					buyerTimeMap.put(user.toString(), time);
+					if (buyerAmountMap.containsKey(time)) {
+						buyerAmountMap.put(time, buyerAmountMap.get(time) + count);
+					} else {
+						buyerAmountMap.put(time, (long) count);
+					}
 					wallet.ifPresent(w -> {
 						if (w.has(price, u.getWorld())) {
-							w.withdraw(BigDecimal.valueOf(price));
+							w.withdraw(BigDecimal.valueOf(price), u.getWorld());
 						}
 					});
 				} else {
@@ -244,17 +402,23 @@ public class SystemItem implements ItemDemand {
 				}
 				return RetroConomy.PlayerTransactionResult.SUCCESS;
 			case Sell:
-				lastSeller = user.toString();
-				sold += count;
-				sellerMap.put(user.toString(), sellerMap.getOrDefault(user.toString(), 0L) + count);
-				sellerTimeMap.put(user.toString(), System.currentTimeMillis());
-				// take items if online
 
 				if (Bukkit.getOfflinePlayer(user).isOnline()) {
 					Player u = Bukkit.getPlayer(user);
+					ItemModificationEvent event = new ItemModificationEvent(u, this, TransactionResult.Sell);
+					Bukkit.getPluginManager().callEvent(event);
 					if (RetroConomy.getInstance().itemRemoval(u, getItem(), count).isTransactionSuccess()) {
-						double amount = (this.price * getMultiplier()) * count / 2;
-						RetroConomy.getInstance().getManager().getWallet(user).ifPresent(wallet -> wallet.deposit(BigDecimal.valueOf(amount)));
+						double amount = getSellPrice(count);
+						lastSeller = user.toString();
+						sold += count;
+						sellerMap.put(user.toString(), sellerMap.getOrDefault(user.toString(), 0L) + count);
+						sellerTimeMap.put(user.toString(), time);
+						if (sellerAmountMap.containsKey(time)) {
+							sellerAmountMap.put(time, sellerAmountMap.get(time) + count);
+						} else {
+							sellerAmountMap.put(time, (long) count);
+						}
+						RetroConomy.getInstance().getManager().getWallet(user).ifPresent(wallet -> wallet.deposit(BigDecimal.valueOf(amount), u.getWorld()));
 					} else {
 						return RetroConomy.PlayerTransactionResult.FAILED;
 					}

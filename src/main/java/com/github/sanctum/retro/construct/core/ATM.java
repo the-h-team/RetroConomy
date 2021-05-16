@@ -9,6 +9,7 @@
 package com.github.sanctum.retro.construct.core;
 
 import com.github.sanctum.labyrinth.data.container.DataContainer;
+import com.github.sanctum.labyrinth.data.container.PersistentData;
 import com.github.sanctum.labyrinth.gui.InventoryRows;
 import com.github.sanctum.labyrinth.gui.builder.PaginatedBuilder;
 import com.github.sanctum.labyrinth.gui.builder.PaginatedClick;
@@ -48,6 +49,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -217,13 +219,14 @@ public class ATM implements Savable {
 	public synchronized void save() {
 		HUID id = DataContainer.getHuid("Retro-ATM-" + getOwner().getUniqueId().toString());
 		if (id != null) {
-			DataContainer.deleteInstance(id);
-			DataContainer container = new DataContainer("Retro-ATM-" + getOwner().getUniqueId().toString());
-			container.setValue(this);
-			container.storeTemp();
-			container.saveMeta();
+			try {
+				DataContainer container = PersistentData.reload(id, true);
+				container.setValue(this);
+				container.storeTemp();
+				container.saveMeta();
+			} catch (Exception ignored) {}
 		} else {
-			DataContainer container = new DataContainer("Retro-ATM-" + getOwner().getUniqueId().toString());
+			DataContainer container = PersistentData.build("Retro-ATM-" + getOwner().getUniqueId().toString());
 			container.setValue(this);
 			container.storeTemp();
 			container.saveMeta();
@@ -315,7 +318,7 @@ public class ATM implements Savable {
 									}
 								});
 							})
-							.get();
+							.get().applyClosingLogic((player, view, menu) -> HandlerList.unregisterAll(menu.getListener()));
 				case WITHDRAW_ACCOUNT:
 					return AnvilBuilder.from(StringUtils.use("&2Specify a withdrawal").translate())
 							.setLeftItem(builder -> {
@@ -351,7 +354,7 @@ public class ATM implements Savable {
 									}
 								});
 							})
-							.get();
+							.get().applyClosingLogic((player, view, menu) -> HandlerList.unregisterAll(menu.getListener()));
 				case DEPOSIT_WALLET:
 					return AnvilBuilder.from(StringUtils.use("&2Specify a deposit").translate())
 							.setLeftItem(builder -> {
@@ -384,7 +387,7 @@ public class ATM implements Savable {
 									}
 								});
 							})
-							.get();
+							.get().applyClosingLogic((player, view, menu) -> HandlerList.unregisterAll(menu.getListener()));
 				case WITHDRAW_WALLET:
 					return AnvilBuilder.from(StringUtils.use("&2Specify a withdrawal").translate())
 							.setLeftItem(builder -> {
@@ -417,7 +420,7 @@ public class ATM implements Savable {
 									}
 								});
 							})
-							.get();
+							.get().applyClosingLogic((player, view, menu) -> HandlerList.unregisterAll(menu.getListener()));
 				case TAX_EDIT:
 					return AnvilBuilder.from(StringUtils.use("&6Type the new tax amount.").translate())
 							.setLeftItem(builder -> {
@@ -452,7 +455,7 @@ public class ATM implements Savable {
 									}
 								});
 							})
-							.get();
+							.get().applyClosingLogic((player, view, menu) -> HandlerList.unregisterAll(menu.getListener()));
 				case FORGOT_CARD:
 					return AnvilBuilder.from(StringUtils.use("&2Type your account id.").translate())
 							.setLeftItem(builder -> {
@@ -472,7 +475,7 @@ public class ATM implements Savable {
 									}
 								});
 							})
-							.get();
+							.get().applyClosingLogic((player, view, menu) -> HandlerList.unregisterAll(menu.getListener()));
 				default:
 					throw new IllegalStateException("Illegal menu type present.");
 			}
@@ -774,6 +777,7 @@ public class ATM implements Savable {
 							// set the atm location.
 
 							msg.send("&aYou built your own ATM.");
+							e.getItemInHand().setAmount(0);
 						}
 					}).wait(2);
 				}
@@ -783,6 +787,7 @@ public class ATM implements Savable {
 					ATM n = pick(p);
 					if (n.use(e.getBlock())) {
 						// set the atm location.
+						e.getItemInHand().setAmount(0);
 						msg.send("&aYou have updated your ATM location.");
 					}
 				}

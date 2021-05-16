@@ -30,6 +30,7 @@ import com.github.sanctum.retro.construct.internal.DepositCommand;
 import com.github.sanctum.retro.construct.internal.PayCommand;
 import com.github.sanctum.retro.construct.internal.RetroCommand;
 import com.github.sanctum.retro.construct.internal.SellCommand;
+import com.github.sanctum.retro.construct.internal.TopCommand;
 import com.github.sanctum.retro.construct.internal.WithdrawCommand;
 import com.github.sanctum.retro.enterprise.EnterpriseEconomy;
 import com.github.sanctum.retro.util.ConfiguredMessage;
@@ -44,10 +45,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class RetroConomy extends JavaPlugin implements RetroAPI {
+public class RetroConomy extends JavaPlugin implements RetroAPI, Listener {
 
 	private static RetroConomy instance;
 	private RetroManager manager;
@@ -68,17 +72,26 @@ public class RetroConomy extends JavaPlugin implements RetroAPI {
 		FileManager items = FileType.MISC.get("Items");
 		for (ItemDemand item : getManager().getMarket().sort()) {
 			for (Map.Entry<String, Long> entry : item.getBuyerMap().entrySet()) {
-				items.getConfig().set("Items." + item.getItem().getType().name() + ".usage-purchase." + entry.getKey() + ".amount", entry.getValue());
+				items.getConfig().set("Items." + item.toString() + ".usage-purchase." + entry.getKey() + ".amount", entry.getValue());
 			}
 			for (Map.Entry<String, Long> entry : item.getSellerMap().entrySet()) {
-				items.getConfig().set("Items." + item.getItem().getType().name() + ".usage-sold." + entry.getKey() + ".amount", entry.getValue());
+				items.getConfig().set("Items." + item.toString() + ".usage-sold." + entry.getKey() + ".amount", entry.getValue());
 			}
 			for (Map.Entry<String, Long> entry : item.getBuyerTimeMap().entrySet()) {
-				items.getConfig().set("Items." + item.getItem().getType().name() + ".usage-purchase." + entry.getKey() + ".time", entry.getValue());
+				items.getConfig().set("Items." + item.toString() + ".usage-purchase." + entry.getKey() + ".time", entry.getValue());
 			}
 			for (Map.Entry<String, Long> entry : item.getSellerTimeMap().entrySet()) {
-				items.getConfig().set("Items." + item.getItem().getType().name() + ".usage-sold." + entry.getKey() + ".time", entry.getValue());
+				items.getConfig().set("Items." + item.toString() + ".usage-sold." + entry.getKey() + ".time", entry.getValue());
 			}
+			for (Map.Entry<Long, Long> entry : item.getBuyerAmountMap().entrySet()) {
+				items.getConfig().set("Items." + item.toString() + ".usage-purchase." + entry.getKey() + ".history.amount", entry.getValue());
+				items.getConfig().set("Items." + item.toString() + ".usage-purchase." + entry.getKey() + ".history.date", entry.getKey());
+			}
+			for (Map.Entry<Long, Long> entry : item.getSellerAmountMap().entrySet()) {
+				items.getConfig().set("Items." + item.toString() + ".usage-sold." + entry.getKey() + ".history.amount", entry.getValue());
+				items.getConfig().set("Items." + item.toString() + ".usage-sold." + entry.getKey() + ".history.date", entry.getKey());
+			}
+			items.getConfig().set("Items." + item.toString() + ".multiplier", item.getMultiplier());
 			items.saveConfig();
 		}
 		for (BankAccount account : getManager().ACCOUNTS) {
@@ -98,6 +111,9 @@ public class RetroConomy extends JavaPlugin implements RetroAPI {
 	public void onEnable() {
 		this.manager = new RetroManager();
 		FileManager manager = FileType.ACCOUNT.get();
+
+
+		Bukkit.getPluginManager().registerEvents(this, this);
 
 		if (!manager.exists()) {
 			try {
@@ -155,6 +171,7 @@ public class RetroConomy extends JavaPlugin implements RetroAPI {
 		}).wait(1);
 
 		getServer().getPluginManager().registerEvents(ATM.CONTROLLER, this);
+		getServer().getPluginManager().registerEvents(ItemDemand.CONTROLLER, this);
 
 		registerCommands();
 
@@ -253,11 +270,24 @@ public class RetroConomy extends JavaPlugin implements RetroAPI {
 		new BankCommand(RetroCommand.BANK);
 		new BuyCommand(RetroCommand.BUY);
 		new SellCommand(RetroCommand.SELL);
+		new TopCommand(RetroCommand.TOP);
 		new BalanceCommand(RetroCommand.BALANCE);
 		new DefaultCommand(RetroCommand.RETRO);
 		new PayCommand(RetroCommand.PAY);
 		new WithdrawCommand(RetroCommand.WITHDRAW);
 		new DepositCommand(RetroCommand.DEPOSIT);
+	}
+
+	@EventHandler
+	public void onJoin(PlayerJoinEvent e) {
+		FileManager manager = FileType.ACCOUNT.get();
+		Player p = e.getPlayer();
+		if (!manager.getConfig().isConfigurationSection("wallets." + p.getUniqueId().toString())) {
+			for (World w : Bukkit.getWorlds()) {
+				manager.getConfig().set("wallets." + p.getUniqueId().toString() + ".balance." + w.getName(), getManager().getMain().getConfig().getDouble("Options.wallets.starting-balance"));
+			}
+			manager.saveConfig();
+		}
 	}
 
 	public enum PlayerTransactionResult {

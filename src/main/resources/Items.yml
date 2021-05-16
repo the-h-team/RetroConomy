@@ -10,139 +10,139 @@ Items:
     multiplier: 0.1
     price: 2.18
     ceiling: 100.0
-    floor: 0.22
+    floor: 1.09
     usage-purchase: {}
     usage-sold: {}
   stone:
-    multiplier: 0.1
+    multiplier: 1.2
     price: 4.14
     ceiling: 100.0
-    floor: 0.22
+    floor: 2.07
     usage-purchase: {}
     usage-sold: {}
   andesite:
-    multiplier: 0.1
+    multiplier: 1.3
     price: 1.14
     ceiling: 100.0
-    floor: 0.22
+    floor: 0.57
     usage-purchase: {}
     usage-sold: {}
   cobblestone:
-    multiplier: 0.1
+    multiplier: 0.5
     price: 0.84
     ceiling: 100.0
-    floor: 0.22
+    floor: 0.42
     usage-purchase: {}
     usage-sold: {}
   oakplanks:
-    multiplier: 0.1
+    multiplier: 0.3
     price: 2.15
     ceiling: 100.0
-    floor: 0.22
+    floor: 1.07
     usage-purchase: {}
     usage-sold: {}
   glass:
-    multiplier: 0.1
+    multiplier: 2.2
     price: 12.35
     ceiling: 100.0
-    floor: 0.22
+    floor: 6.17
     usage-purchase: {}
     usage-sold: {}
   bookshelf:
-    multiplier: 0.1
+    multiplier: 1.2
     price: 55.35
     ceiling: 100.0
-    floor: 0.22
+    floor: 27.67
     usage-purchase: {}
     usage-sold: {}
   diamond:
-    multiplier: 0.1
+    multiplier: 4.1
     price: 278.98
     ceiling: 350.0
-    floor: 122.50
+    floor: 139.49
     usage-purchase: {}
     usage-sold: {}
   cookedbeef:
-    multiplier: 0.1
+    multiplier: 1.4
     price: 15.62
     ceiling: 100.0
-    floor: 0.22
+    floor: 7.81
     usage-purchase: {}
     usage-sold: {}
   goldenapple:
-    multiplier: 0.1
+    multiplier: 2.8
     price: 125.0
     ceiling: 250.0
-    floor: 0.22
+    floor: 62.50
     usage-purchase: {}
     usage-sold: {}
   diamondhelmet:
-    multiplier: 0.1
+    multiplier: 4.1
     price: 3500
     ceiling: 8500.0
-    floor: 1000.0
+    floor: 1750.0
     usage-purchase: {}
     usage-sold: {}
   diamondchestplate:
-    multiplier: 0.1
+    multiplier: 4.1
     price: 5000
     ceiling: 8500.0
-    floor: 1000.0
+    floor: 2500.0
     usage-purchase: {}
     usage-sold: {}
   diamondleggings:
-    multiplier: 0.1
+    multiplier: 4.1
     price: 5000
     ceiling: 8500.0
-    floor: 1000.0
+    floor: 2500.0
     usage-purchase: {}
     usage-sold: {}
   diamondboots:
-    multiplier: 0.1
+    multiplier: 4.1
     price: 3500
     ceiling: 8500.0
-    floor: 1000.0
+    floor: 1750.0
     usage-purchase: {}
     usage-sold: {}
   diamondsword:
-    multiplier: 0.1
+    multiplier: 4.1
     price: 2000
     ceiling: 8500.0
     floor: 1000.0
     usage-purchase: {}
     usage-sold: {}
   ironhelmet:
-    multiplier: 0.1
+    multiplier: 2.1
     price: 1200
     ceiling: 6500.0
-    floor: 450.0
-    usage-purchase: { }
-    usage-sold: { }
+    floor: 600.0
+    usage-purchase: {}
+    usage-sold: {}
   ironchestplate:
-    multiplier: 0.1
+    multiplier: 2.1
     price: 2500
     ceiling: 6500.0
-    floor: 450.0
-    usage-purchase: { }
-    usage-sold: { }
+    floor: 1250.0
+    usage-purchase: {}
+    usage-sold: {}
   ironleggings:
-    multiplier: 0.1
+    multiplier: 2.1
     price: 2500
     ceiling: 6500.0
-    floor: 450.0
-    usage-purchase: { }
-    usage-sold: { }
+    floor: 1250.0
+    usage-purchase: {}
+    usage-sold: {}
   ironboots:
-    multiplier: 0.1
+    multiplier: 2.1
     price: 1200
     ceiling: 6500.0
-    floor: 450.0
-    usage-purchase: { }
-    usage-sold: { }
+    floor: 600.0
+    usage-purchase: {}
+    usage-sold: {}
   ironsword:
-    multiplier: 0.1
+    multiplier: 2.1
     price: 180
-    ceiling: 6500.0
-    floor: 450.0
-    usage-purchase: { }
-    usage-sold: { }
+    ceiling: 350.0
+    floor: 960.0
+    usage-purchase: {}
+    usage-sold: {}

@@ -14,7 +14,11 @@ import org.bukkit.entity.Player;
 
 public interface Modifiable {
 
+	long getLastModified();
+
 	RetroConomy.PlayerTransactionResult adjustMultiplier(Player who, double multiplier);
+
+	RetroConomy.PlayerTransactionResult adjustMultiplier(double multiplier);
 
 	RetroConomy.PlayerTransactionResult invoke(UUID user, TransactionResult result);
 

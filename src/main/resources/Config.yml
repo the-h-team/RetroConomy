@@ -34,3 +34,5 @@ Options:
     enabled: true
     # When multi-world is disabled falsify is used as the sole balance support.
     falsify: 'world'
+  item-blacklist:
+    - DRAGON_EGG

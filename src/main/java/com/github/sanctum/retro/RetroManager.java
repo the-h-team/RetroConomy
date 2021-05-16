@@ -12,6 +12,7 @@ import com.github.sanctum.labyrinth.data.FileManager;
 import com.github.sanctum.labyrinth.formatting.UniformedComponents;
 import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.labyrinth.library.Items;
+import com.github.sanctum.labyrinth.library.MathUtils;
 import com.github.sanctum.labyrinth.library.StringUtils;
 import com.github.sanctum.retro.construct.core.ATM;
 import com.github.sanctum.retro.construct.core.BankAccount;
@@ -26,9 +27,7 @@ import com.github.sanctum.retro.util.CurrencyType;
 import com.github.sanctum.retro.util.FileType;
 import com.github.sanctum.retro.util.Marketplace;
 import com.github.sanctum.retro.util.WalletList;
-import java.io.InputStream;
 import java.math.BigDecimal;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -36,6 +35,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -64,8 +64,7 @@ public class RetroManager {
 
 		FileManager config = FileType.MISC.get("Config");
 		if (!config.exists()) {
-			InputStream is = JavaPlugin.getProvidingPlugin(getClass()).getResource("Config.yml");
-			FileManager.copy(is, config.getFile());
+			FileManager.copy(Objects.requireNonNull(JavaPlugin.getProvidingPlugin(getClass()).getResource("Config.yml")), config);
 			config.reload();
 		}
 		return config;
@@ -89,6 +88,7 @@ public class RetroManager {
 
 	public Locale getLocale() {
 		Locale loc = Locale.US;
+
 		switch (getMain().getConfig().getString("Options.format")) {
 			case "fr":
 				loc = Locale.FRANCE;
@@ -110,15 +110,15 @@ public class RetroManager {
 	}
 
 	public String format(double amount) {
-		return NumberFormat.getNumberInstance(getLocale()).format(amount);
+		return MathUtils.use(amount).format(getLocale());
 	}
 
 	public String format(BigDecimal amount) {
-		return NumberFormat.getNumberInstance(getLocale()).format(amount.doubleValue());
+		return MathUtils.use(amount).format(getLocale());
 	}
 
 	public String format(BigDecimal amount, Locale locale) {
-		return NumberFormat.getNumberInstance(locale).format(amount.doubleValue());
+		return MathUtils.use(amount).format(locale);
 	}
 
 	public void deleteAccount(BankAccount account) {
@@ -137,8 +137,7 @@ public class RetroManager {
 		FileManager items = FileType.MISC.get("Items");
 		Plugin plugin = JavaPlugin.getProvidingPlugin(getClass());
 		if (!items.exists()) {
-			InputStream is = plugin.getResource("Items.yml");
-			FileManager.copy(is, items.getFile());
+			FileManager.copy(plugin.getResource("Items.yml"), items);
 		}
 		items.reload();
 
@@ -149,19 +148,24 @@ public class RetroManager {
 				Map<String, Long> sellMap = new HashMap<>();
 				Map<String, Long> buyMapDate = new HashMap<>();
 				Map<String, Long> sellMapDate = new HashMap<>();
+				Map<Long, Long> sellAmountMap = new HashMap<>();
+				Map<Long, Long> buyAmountMap = new HashMap<>();
 				for (String user : items.getConfig().getConfigurationSection("Items." + item + ".usage-purchase").getKeys(false)) {
 					buyMap.put(user, items.getConfig().getLong("Items." + item + ".usage-purchase" + "." + user + ".amount"));
+					buyMapDate.put(user, items.getConfig().getLong("Items." + item + ".usage-purchase" + "." + user + ".date"));
+					if (items.getConfig().isConfigurationSection("Items." + item + ".usage-purchase" + "." + user + ".history")) {
+						buyAmountMap.put(items.getConfig().getLong("Items." + item + ".usage-purchase" + "." + user + ".history.date"), items.getConfig().getLong("Items." + item + ".usage-purchase" + "." + user + ".history.amount"));
+					}
 				}
 				for (String user : items.getConfig().getConfigurationSection("Items." + item + ".usage-sold").getKeys(false)) {
 					sellMap.put(user, items.getConfig().getLong("Items." + item + ".usage-sold" + "." + user + ".amount"));
-				}
-				for (String user : items.getConfig().getConfigurationSection("Items." + item + ".usage-purchase").getKeys(false)) {
-					buyMapDate.put(user, items.getConfig().getLong("Items." + item + ".usage-purchase" + "." + user + ".date"));
-				}
-				for (String user : items.getConfig().getConfigurationSection("Items." + item + ".usage-sold").getKeys(false)) {
 					sellMapDate.put(user, items.getConfig().getLong("Items." + item + ".usage-sold" + "." + user + ".date"));
+					if (items.getConfig().isConfigurationSection("Items." + item + ".usage-purchase" + "." + user + ".history")) {
+						sellAmountMap.put(items.getConfig().getLong("Items." + item + ".usage-purchase" + "." + user + ".history.date"), items.getConfig().getLong("Items." + item + ".usage-sold" + "." + user + ".history.amount"));
+					}
 				}
-				new SystemItem(new ItemStack(mat), items.getConfig().getDouble("Items." + item + ".price"), items.getConfig().getDouble("Items." + item + ".multiplier"), items.getConfig().getDouble("Items." + item + ".ceiling"), items.getConfig().getDouble("Items." + item + ".floor"), buyMap, sellMap, buyMapDate, sellMapDate);
+
+				new SystemItem(item, new ItemStack(mat), items.getConfig().getDouble("Items." + item + ".price"), items.getConfig().getDouble("Items." + item + ".multiplier"), items.getConfig().getDouble("Items." + item + ".ceiling"), items.getConfig().getDouble("Items." + item + ".floor"), buyMap, sellMap, buyMapDate, sellMapDate, buyAmountMap, sellAmountMap);
 			} else {
 				plugin.getLogger().severe("- An invalid item description was found within the items configuration, section '" + item + "'");
 				plugin.getServer().getPluginManager().disablePlugin(plugin);

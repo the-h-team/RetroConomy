@@ -39,6 +39,7 @@ public class AtmCommand extends CommandOrientation {
 
 			if (args.length == 0) {
 
+				sendMessage(player, "&cUsages: &r/atm buy,locate");
 
 			}
 
@@ -52,11 +53,24 @@ public class AtmCommand extends CommandOrientation {
 								player.getWorld().dropItem(player.getLocation(), atm.toItem());
 								sendMessage(player, "Place down your ATM to begin using it!");
 							} else {
+								if (player.isOp()) {
+									ATM atm = ATM.pick(player);
+									player.getWorld().dropItem(player.getLocation(), atm.toItem());
+									return;
+								}
 								sendMessage(player, "&cYou already have an atm!");
 							}
 						} else {
-							sendMessage(player, "&cYou don't have enough money.");
+							sendMessage(player, "&cYou don't have enough money, needed: " + wallet.getBalance().subtract(BigDecimal.valueOf(1428.98)));
 						}
+					}
+				}
+				if (args[0].equalsIgnoreCase("locate")) {
+					if (ATM.has(player)) {
+						ATM atm = ATM.pick(player);
+						player.teleport(atm.getLocation());
+					} else {
+						sendMessage(player, "&cYou don't have an atm!");
 					}
 				}
 				return;

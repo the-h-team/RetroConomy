@@ -26,7 +26,7 @@ public class TransactionStatement implements Savable {
 	private static final long serialVersionUID = -6982006703415280538L;
 	private final OfflinePlayer holder;
 	private final BigDecimal amount;
-	private BigDecimal tax;
+	private BigDecimal tax = BigDecimal.ZERO;
 	private final TransactionType type;
 	private final HUID slipId;
 	private final HUID id;
@@ -37,7 +37,6 @@ public class TransactionStatement implements Savable {
 		this.type = type;
 		this.id = account.getId();
 		this.slipId = HUID.randomID();
-
 	}
 
 	public static TransactionStatement from(OfflinePlayer holder, BigDecimal amount, BankAccount account, TransactionType type) {
@@ -73,7 +72,7 @@ public class TransactionStatement implements Savable {
 	public ItemStack toItem() {
 		ItemStack make = new ItemStack(Material.PAPER);
 		ItemMeta meta = make.getItemMeta();
-		meta.setDisplayName(StringUtils.use("&6&l◄▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬‡ &b[NOTE] &6&l‡▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬►").translate());
+		meta.setDisplayName(StringUtils.use("&6&l&m◄▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬‡&b [Receipt] &6&l&m‡▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬►").translate());
 		if (getAmount().doubleValue() == 0) {
 			meta.setLore(Arrays.asList(StringUtils.use("&bHolder &8&m»&r &7" + holder.getName()).translate(),
 					StringUtils.use("&b# &8&m»&r &7" + id.toString()).translate(),
@@ -82,7 +81,7 @@ public class TransactionStatement implements Savable {
 					StringUtils.use("&bDate &8&m»&r &7" + new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString()).translate(),
 					StringUtils.use("&c&oTransaction failed.").translate()));
 		} else {
-			meta.setLore(Arrays.asList(StringUtils.use("&bHolder: &7" + holder.getName()).translate(),
+			meta.setLore(Arrays.asList(StringUtils.use("&bHolder &8&m»&r &7" + holder.getName()).translate(),
 					this.type == TransactionType.DEPOSIT ? StringUtils.use("&bAmount &8&m»&r &a+&7" + RetroConomy.getInstance().getManager().format(amount.doubleValue())).translate() : StringUtils.use("&bAmount &8&m»&r &4-&7" + RetroConomy.getInstance().getManager().format(amount.doubleValue())).translate(),
 					StringUtils.use("&bTax &8&m»&r &c" + RetroConomy.getInstance().getManager().format(tax.doubleValue())).translate(),
 					StringUtils.use("&b# &8&m»&r &7" + id.toString()).translate(),

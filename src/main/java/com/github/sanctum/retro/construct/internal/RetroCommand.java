@@ -136,6 +136,7 @@ public enum RetroCommand implements CommandInformation {
 			case ATM:
 			case SELL:
 			case BUY:
+			case TOP:
 				return Collections.emptyList();
 			case DEPOSIT:
 				return Arrays.asList("d", "dp");
@@ -145,10 +146,8 @@ public enum RetroCommand implements CommandInformation {
 				return Collections.singletonList("p");
 			case BALANCE:
 				return Collections.singletonList("bal");
-			case TOP:
-				return Collections.emptyList();
 			case RETRO:
-				return Collections.singletonList("retroconomy");
+				return Arrays.asList("retroconomy", "eco", "economy");
 			case BANK:
 				return Collections.singletonList("b");
 			default:

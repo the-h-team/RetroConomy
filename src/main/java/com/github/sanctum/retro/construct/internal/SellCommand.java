@@ -50,8 +50,8 @@ public class SellCommand extends CommandOrientation {
 							RetroConomy.getInstance().getManager().getDemand(item).ifPresent(i -> {
 								final int amount = item.getAmount();
 								if (i.invoke(player.getUniqueId(), Modifiable.TransactionResult.Sell, item.getAmount()).isTransactionSuccess()) {
-									double each = (i.getPrice() * i.getMultiplier()) * 1 / 2;
-									double total = (i.getPrice() * i.getMultiplier()) * amount / 2;
+									double each = i.getSellPrice(1);
+									double total = i.getSellPrice(amount);
 									String format = FormattedMessage.convert(ConfiguredMessage.getMessage("item-sold")).bought(i.getItem().getType().name().toLowerCase(), total, each).replace("{AMOUNT}", amount + "");
 									sendMessage(player, format);
 								} else {
@@ -66,8 +66,8 @@ public class SellCommand extends CommandOrientation {
 						RetroConomy.getInstance().getManager().getDemand(item).ifPresent(i -> {
 							final int amount = item.getAmount();
 							if (i.invoke(player.getUniqueId(), Modifiable.TransactionResult.Sell, item.getAmount()).isTransactionSuccess()) {
-								double each = (i.getPrice() * i.getMultiplier()) * 1 / 2;
-								double total = (i.getPrice() * i.getMultiplier()) * amount / 2;
+								double each = i.getSellPrice(1);
+								double total = i.getSellPrice(amount);
 								String format = FormattedMessage.convert(ConfiguredMessage.getMessage("item-sold")).bought(i.getItem().getType().name().toLowerCase(), total, each).replace("{AMOUNT}", amount + "");
 								sendMessage(player, format);
 							} else {
@@ -82,8 +82,8 @@ public class SellCommand extends CommandOrientation {
 						if (it != null) {
 							RetroConomy.getInstance().getManager().getDemand(it).ifPresent(i -> {
 								if (i.invoke(player.getUniqueId(), Modifiable.TransactionResult.Sell, amount).isTransactionSuccess()) {
-									double each = (i.getPrice() * i.getMultiplier()) * 1 / 2;
-									double total = (i.getPrice() * i.getMultiplier()) * amount / 2;
+									double each = i.getSellPrice(1);
+									double total = i.getSellPrice(amount);
 									String format = FormattedMessage.convert(ConfiguredMessage.getMessage("item-sold")).bought(i.getItem().getType().name().toLowerCase(), total, each).replace("{AMOUNT}", amount + "");
 									sendMessage(player, format);
 								} else {
@@ -104,8 +104,8 @@ public class SellCommand extends CommandOrientation {
 							ItemStack item = player.getInventory().getItemInMainHand();
 							RetroConomy.getInstance().getManager().getDemand(item).ifPresent(i -> {
 								if (i.invoke(player.getUniqueId(), Modifiable.TransactionResult.Sell, item.getAmount()).isTransactionSuccess()) {
-									double each = (i.getPrice() * i.getMultiplier()) * 1 / 2;
-									double total = (i.getPrice() * i.getMultiplier()) * amount / 2;
+									double each = i.getSellPrice(1);
+									double total = i.getSellPrice(amount);
 									String format = FormattedMessage.convert(ConfiguredMessage.getMessage("item-sold")).bought(i.getItem().getType().name().toLowerCase(), total, each).replace("{AMOUNT}", amount + "");
 									sendMessage(player, format);
 								} else {
@@ -123,8 +123,8 @@ public class SellCommand extends CommandOrientation {
 						if (request != null) {
 							RetroConomy.getInstance().getManager().getDemand(request).ifPresent(i -> {
 								if (i.invoke(player.getUniqueId(), Modifiable.TransactionResult.Sell, amount).isTransactionSuccess()) {
-									double each = (i.getPrice() * i.getMultiplier()) * 1 / 2;
-									double total = (i.getPrice() * i.getMultiplier()) * amount / 2;
+									double each = i.getSellPrice(1);
+									double total = i.getSellPrice(amount);
 									String format = FormattedMessage.convert(ConfiguredMessage.getMessage("item-sold")).bought(i.getItem().getType().name().toLowerCase(), total, each).replace("{AMOUNT}", amount + "");
 									sendMessage(player, format);
 								} else {
