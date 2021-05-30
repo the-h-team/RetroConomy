@@ -10,6 +10,7 @@ package com.github.sanctum.retro.construct.internal;
 
 import com.github.sanctum.labyrinth.formatting.TabCompletion;
 import com.github.sanctum.labyrinth.formatting.TabCompletionBuilder;
+import com.github.sanctum.labyrinth.formatting.string.PaginatedAssortment;
 import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.labyrinth.library.TextLib;
 import com.github.sanctum.retro.RetroConomy;
@@ -70,8 +71,14 @@ public class BankCommand extends CommandOrientation {
 
 			if (args.length == 0) {
 				// open either GUI? or paginated assortment
-
-
+				PaginatedAssortment menu = new PaginatedAssortment(player, Arrays.asList("/&6bank" + " open &f- Open a new primary account.", "/&6bank" + " close &f- Close your current primary account.", "/&6bank" + " list &f- View all of your open accounts.", "/&6bank" + " switch <accountId#> &f- Switch your primary bank account", "/&6bank" + " card &f- Obtain a copy of your debit card."))
+						.setLinesPerPage(5)
+						.setListTitle(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix") + " &r- Chat management commands. &r(&7/chat #page&r)")
+						.setListBorder("&r▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬")
+						.setBordersPerPage(2)
+						.setNavigateCommand("bank");
+				menu.export(1);
+				return;
 			}
 
 			if (args.length == 1) {
@@ -89,7 +96,7 @@ public class BankCommand extends CommandOrientation {
 					if (RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.format").equals("en")) {
 						balance = bal.split("\\.");
 					} else {
-						balance =bal.split(",");
+						balance = bal.split(",");
 					}
 
 					String format = FormattedMessage.convert(ConfiguredMessage.getMessage("account-balance")).next(balance[0], balance.length == 2 ? balance[1] : 0 + "");

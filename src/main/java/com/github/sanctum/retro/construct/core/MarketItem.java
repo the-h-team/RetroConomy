@@ -18,7 +18,7 @@ import org.bukkit.inventory.ItemStack;
 
 
 // To be made.. For possible player market setup. Not super important ( Compare to BDO marketplace )
-public class MarketItem implements ItemDemand {
+public class MarketItem implements Ownable {
 
 	@Override
 	public String toString() {
@@ -193,5 +193,10 @@ public class MarketItem implements ItemDemand {
 	@Override
 	public double getMultiplier() {
 		return 0;
+	}
+
+	@Override
+	public UUID getOwner() {
+		return null;
 	}
 }

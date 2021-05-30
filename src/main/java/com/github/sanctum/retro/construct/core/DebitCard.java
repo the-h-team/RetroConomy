@@ -4,6 +4,7 @@ import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.labyrinth.library.SkullItem;
 import com.github.sanctum.labyrinth.library.StringUtils;
 import com.github.sanctum.retro.RetroConomy;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -26,7 +27,11 @@ public class DebitCard implements Savable {
 
 	@Override
 	public ItemStack toItem() {
-		ItemStack item = new ItemStack(SkullItem.Head.find(account.getOwner()));
+		ItemStack copy = SkullItem.Head.search(account.getOwner());
+		if (copy == null) {
+			copy = new ItemStack(Material.PLAYER_HEAD);
+		}
+		ItemStack item = new ItemStack(copy);
 		ItemMeta meta = item.getItemMeta();
 		meta.setDisplayName(StringUtils.use("&7[&6Debit&7] &6" + account.getId().toString()).translate());
 		meta.getPersistentDataContainer().set(KEY, PersistentDataType.STRING, id().toString());

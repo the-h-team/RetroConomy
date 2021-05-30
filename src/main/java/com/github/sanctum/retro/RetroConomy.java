@@ -34,19 +34,28 @@ import com.github.sanctum.retro.construct.internal.TopCommand;
 import com.github.sanctum.retro.construct.internal.WithdrawCommand;
 import com.github.sanctum.retro.enterprise.EnterpriseEconomy;
 import com.github.sanctum.retro.util.ConfiguredMessage;
+import com.github.sanctum.retro.util.CurrencyType;
 import com.github.sanctum.retro.util.FileType;
 import com.github.sanctum.retro.util.FormattedMessage;
 import com.github.sanctum.retro.vault.VaultEconomy;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
+import org.bukkit.entity.Flying;
+import org.bukkit.entity.Mob;
+import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -123,7 +132,6 @@ public class RetroConomy extends JavaPlugin implements RetroAPI, Listener {
 		this.manager = new RetroManager();
 		FileManager manager = FileType.ACCOUNT.get();
 
-
 		Bukkit.getPluginManager().registerEvents(this, this);
 
 		if (!manager.exists()) {
@@ -186,6 +194,78 @@ public class RetroConomy extends JavaPlugin implements RetroAPI, Listener {
 
 		registerCommands();
 
+		getServer().getPluginManager().registerEvents(new Listener() {
+
+			@EventHandler(ignoreCancelled = true)
+			public void onJoin(PlayerJoinEvent e) {
+				Player p = e.getPlayer();
+				if (!p.hasPlayedBefore()) {
+					if (!manager.getConfig().isConfigurationSection("wallets." + p.getUniqueId().toString())) {
+						for (World w : Bukkit.getWorlds()) {
+							manager.getConfig().set("wallets." + p.getUniqueId().toString() + ".balance." + w.getName(), getManager().getMain().getConfig().getDouble("Options.wallets.starting-balance"));
+						}
+						manager.saveConfig();
+						manager.reload();
+						getManager().WALLETS.add(new WalletAccount(p.getUniqueId(), HUID.randomID()));
+					}
+				}
+			}
+
+			@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+			public void onMobDeath(EntityDeathEvent e) {
+				Random rand = new Random();
+				Currency cu = getManager().CURRENCIES.get(rand.nextInt(getManager().CURRENCIES.size()));
+				if (cu.getType() == CurrencyType.ALT)
+					return;
+
+				if (FileType.MISC.get("Config").getConfig().getBoolean("Options.mob-reward.enabled")) {
+					List<String> mobtypes = new ArrayList<>(FileType.MISC.get("Config").getConfig().getStringList("Options.mob-reward.ignored-mobs"));
+					List<String> monstertypes = new ArrayList<>(FileType.MISC.get("Config").getConfig().getStringList("Options.mob-reward.ignored-monsters"));
+					final int i = Integer.parseInt(String.valueOf(Math.round(1.2)));
+					if (e.getEntity() instanceof Monster && e.getEntity().getKiller() != null) {
+						Player p = e.getEntity().getKiller();
+						Random r = new Random();
+
+						int ran = r.nextInt(4) + 1;
+						int nug = i * ran;
+						if (!monstertypes.contains(e.getEntityType().name())) {
+							for (int j = 0; j < nug; j++) {
+								p.getWorld().dropItem(e.getEntity().getLocation(), cu.toItem());
+							}
+						}
+					}
+
+					if (e.getEntity() instanceof Mob && e.getEntity().getKiller() != null) {
+						Player p = e.getEntity().getKiller();
+						Random r = new Random();
+
+						int ran = r.nextInt(4) + 1;
+						int nug = i * ran;
+
+						if (!mobtypes.contains(e.getEntityType().name())) {
+							for (int j = 0; j < nug; j++) {
+								p.getWorld().dropItem(e.getEntity().getLocation(), cu.toItem());
+							}
+						}
+					}
+
+					if (e.getEntity() instanceof Flying && e.getEntity().getKiller() != null) {
+						Player p = e.getEntity().getKiller();
+						Random r = new Random();
+
+						int ran = r.nextInt(4) + 1;
+						int nug = i * ran;
+						if (!monstertypes.contains(e.getEntityType().name())) {
+							for (int j = 0; j < nug; j++) {
+								p.getWorld().dropItem(e.getEntity().getLocation(), cu.toItem());
+							}
+						}
+					}
+				}
+			}
+
+
+		}, this);
 	}
 
 	@Override

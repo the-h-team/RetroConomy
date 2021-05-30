@@ -6,3 +6,6 @@ depend: [ Labyrinth ]
 softdepend: [ Vault, Enterprise ]
 authors: [ Hempfest, ms5984 ]
 description: An advanced spigot vault & enterprise economy provider.
+loadbefore:
+  - EnchantGui
+  - EnchantGUI

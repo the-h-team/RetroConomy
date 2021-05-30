@@ -20,6 +20,8 @@ import java.util.stream.Stream;
 
 public class AcceptableCurrencies extends UniformedComponents<Currency> {
 
+	private static final long serialVersionUID = 1351446222428131126L;
+
 	@Override
 	public List<Currency> list() {
 		return RetroConomy.getInstance().getManager().CURRENCIES;

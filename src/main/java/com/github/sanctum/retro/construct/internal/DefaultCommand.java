@@ -72,10 +72,11 @@ public class DefaultCommand extends CommandOrientation {
 
 	@Override
 	public void player(Player player, String[] args) {
+		if (args.length == 0) {
+			// send help menu
+			ItemDemand.GUI.browse().open(player);
+		}
 		if (player.hasPermission(getInformation().getPermission() + ".admin")) {
-			if (args.length == 0) {
-				// send help menu
-			}
 			if (args.length == 1) {
 				if (args[0].equalsIgnoreCase("reload")) {
 					RetroConomy.getInstance().getManager().getMain().reload();
@@ -84,9 +85,6 @@ public class DefaultCommand extends CommandOrientation {
 					RetroConomy.getInstance().getManager().loadShop();
 					sendMessage(player, "&aAll configuration reloaded.");
 					return;
-				}
-				if (args[0].equalsIgnoreCase("shop")) {
-					ItemDemand.GUI.browse(ItemDemand.GUI.Type.SHOP).open(player);
 				}
 				if (args[0].equalsIgnoreCase("reset")) {
 					for (WalletAccount ac : RetroConomy.getInstance().getManager().getWallets().list()) {
@@ -119,6 +117,24 @@ public class DefaultCommand extends CommandOrientation {
 			}
 
 			if (args.length == 2) {
+				if (args[0].equalsIgnoreCase("reset")) {
+					if (args[1].equalsIgnoreCase("wallets")) {
+						for (WalletAccount ac : RetroConomy.getInstance().getManager().getWallets().list()) {
+							for (World w : Bukkit.getWorlds()) {
+								ac.setBalance(RetroConomy.getInstance().getManager().getMain().getConfig().getDouble("Options.wallets.starting-balance"), w);
+							}
+							sendMessage(player, "&e" + ac.getOwner().getName() + " &7wallet balance just got reset to &f&l$" + RetroConomy.getInstance().getManager().format(ac.getBalance()));
+						}
+					}
+					if (args[1].equalsIgnoreCase("banks")) {
+						for (BankAccount ac : RetroConomy.getInstance().getManager().getAccounts().list()) {
+							for (World w : Bukkit.getWorlds()) {
+								ac.setBalance(RetroConomy.getInstance().getManager().getMain().getConfig().getDouble("Options.accounts.starting-balance"), w);
+							}
+							sendMessage(player, "&e" + Bukkit.getOfflinePlayer(ac.getOwner()).getName() + " &7bank account balance just got reset to &f&l$" + RetroConomy.getInstance().getManager().format(ac.getBalance()));
+						}
+					}
+				}
 				if (args[0].equalsIgnoreCase("set")) {
 					sendMessage(player, "&cUsage: &f/" + getLabel() + " set <playerName> ##.##");
 				}

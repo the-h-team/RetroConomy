@@ -11,13 +11,12 @@ package com.github.sanctum.retro.construct.core;
 import com.github.sanctum.labyrinth.data.container.DataContainer;
 import com.github.sanctum.labyrinth.data.container.PersistentData;
 import com.github.sanctum.labyrinth.gui.InventoryRows;
-import com.github.sanctum.labyrinth.gui.builder.PaginatedBuilder;
-import com.github.sanctum.labyrinth.gui.builder.PaginatedClick;
-import com.github.sanctum.labyrinth.gui.builder.PaginatedClose;
-import com.github.sanctum.labyrinth.gui.builder.PaginatedMenu;
 import com.github.sanctum.labyrinth.gui.menuman.Menu;
 import com.github.sanctum.labyrinth.gui.menuman.MenuBuilder;
 import com.github.sanctum.labyrinth.gui.menuman.MenuClick;
+import com.github.sanctum.labyrinth.gui.menuman.PaginatedBuilder;
+import com.github.sanctum.labyrinth.gui.menuman.PaginatedClickAction;
+import com.github.sanctum.labyrinth.gui.menuman.PaginatedCloseAction;
 import com.github.sanctum.labyrinth.gui.printer.AnvilBuilder;
 import com.github.sanctum.labyrinth.gui.printer.AnvilMenu;
 import com.github.sanctum.labyrinth.library.HUID;
@@ -29,10 +28,8 @@ import com.github.sanctum.retro.util.TransactionType;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
@@ -101,7 +98,15 @@ public class ATM implements Savable {
 		if (!state.getPersistentDataContainer().has(KEY, PersistentDataType.STRING)) {
 			return null;
 		}
-		return RetroConomy.getInstance().getManager().getATMs().filter(a -> state.getPersistentDataContainer().get(KEY, PersistentDataType.STRING).equals(a.getOwner().getUniqueId().toString())).findFirst().orElse(null);
+		return RetroConomy.getInstance().getManager().getATMs().filter(a -> {
+			if (state.getPersistentDataContainer().get(KEY, PersistentDataType.STRING).equals(a.getOwner().getUniqueId().toString())) {
+				if (a.getLocation() == null) {
+					a.use(b);
+				}
+				return true;
+			}
+			return false;
+		}).findFirst().orElse(null);
 	}
 
 	public TransactionStatement take(TransactionStatement slip) {
@@ -481,63 +486,55 @@ public class ATM implements Savable {
 			}
 		}
 
-		public static PaginatedMenu browse(ATM atm, Type type) {
-			switch (type) {
-				case LOG:
-					return new PaginatedBuilder(JavaPlugin.getProvidingPlugin(RetroConomy.class))
-							.setTitle(StringUtils.use("").translate())
-							.setSize(InventoryRows.SIX)
-							.setCloseAction(PaginatedClose::clear)
-							.setAlreadyFirst(StringUtils.use("").translate())
-							.setAlreadyLast(StringUtils.use("").translate())
-							.setNavigationBack(back.get(), 49, click -> {
-								RetroAccount wallet = RetroConomy.getInstance().getManager().getWallet(click.getPlayer()).orElse(null);
-								if (wallet != null) {
-									final BigDecimal amount = atm.collect();
-									if (wallet.deposit(amount, click.getPlayer().getWorld()).success()) {
-										Message.form(click.getPlayer()).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix")).send("&aYou received " + RetroConomy.getInstance().getManager().format(amount) + " of tax.");
-									}
+		public static Menu.Paginated<TransactionStatement> browse(ATM atm) {
+			return new PaginatedBuilder<>(atm.record)
+					.forPlugin(JavaPlugin.getProvidingPlugin(RetroConomy.class))
+					.setTitle(StringUtils.use("").translate())
+					.setSize(InventoryRows.SIX)
+					.setCloseAction(PaginatedCloseAction::clear)
+					.setAlreadyFirst(StringUtils.use("").translate())
+					.setAlreadyLast(StringUtils.use("").translate())
+					.setNavigationBack(back.get(), 49, click -> {
+						RetroAccount wallet = RetroConomy.getInstance().getManager().getWallet(click.getPlayer()).orElse(null);
+						if (wallet != null) {
+							final BigDecimal amount = atm.collect();
+							if (wallet.deposit(amount, click.getPlayer().getWorld()).success()) {
+								Message.form(click.getPlayer()).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix")).send("&aYou received " + RetroConomy.getInstance().getManager().format(amount) + " of tax.");
+							}
+						}
+						ATM.GUI.browse(atm).open(click.getPlayer());
+					})
+					.setNavigationLeft(left.get(), 48, PaginatedClickAction::sync)
+					.setNavigationRight(right.get(), 50, PaginatedClickAction::sync)
+					.setupProcess(process -> {
+						process.setItem(() -> process.getContext().toItem()).setClick(click -> {
+							TransactionStatement slip = process.getContext();
+							RetroAccount wallet = RetroConomy.getInstance().getManager().getWallet(click.getPlayer()).orElse(null);
+							if (wallet != null) {
+								final BigDecimal amount = slip.getTax();
+								if (wallet.deposit(amount, click.getPlayer().getWorld()).success()) {
+									Message.form(click.getPlayer()).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix")).send("&aYou received " + RetroConomy.getInstance().getManager().format(amount) + " of tax.");
 								}
-								PaginatedMenu menu = browse(atm, type);
-								menu.recollect(new LinkedList<>(atm.record.stream().map(TransactionStatement::slipId).map(HUID::toString).collect(Collectors.toList())));
-								menu.open(click.getPlayer());
-							})
-							.setNavigationLeft(left.get(), 48, PaginatedClick::sync)
-							.setNavigationRight(right.get(), 50, PaginatedClick::sync)
-							.collect(new LinkedList<>(atm.record.stream().map(TransactionStatement::slipId).map(HUID::toString).collect(Collectors.toList())))
-							.setupProcess(process -> {
-									process.buildItem(() -> atm.getTransaction(process.getContext()).toItem());
-									process.action().setClick(click -> {
-										TransactionStatement slip = atm.getTransaction(process.getContext());
-										RetroAccount wallet = RetroConomy.getInstance().getManager().getWallet(click.getPlayer()).orElse(null);
-										if (wallet != null) {
-											final BigDecimal amount = slip.getTax();
-											if (wallet.deposit(amount, click.getPlayer().getWorld()).success()) {
-												Message.form(click.getPlayer()).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix")).send("&aYou received " + RetroConomy.getInstance().getManager().format(amount) + " of tax.");
-											}
-											atm.record.remove(slip);
-											browse(atm, type).open(click.getPlayer());
-										}
-									});
-							})
-							.addBorder()
-							.setFillType(Material.GREEN_STAINED_GLASS_PANE)
-							.setBorderType(Material.GRAY_STAINED_GLASS_PANE)
-							.fill()
-							.addElements()
-							.invoke(() -> {
-								ItemStack i = new ItemStack(Material.TOTEM_OF_UNDYING);
-								ItemMeta meta = i.getItemMeta();
-								meta.setDisplayName(StringUtils.use("&8(&fMain Menu&8)").translate());
-								i.setItemMeta(meta);
-								return i;
-							}, 45, click -> select(atm, null, Type.ADMIN_PANEL).open(click.getPlayer()))
-							.add()
-							.limit(28)
-							.build();
-				default:
-					throw new IllegalStateException("Illegal menu type present.");
-			}
+								atm.record.remove(slip);
+								ATM.GUI.browse(atm).open(click.getPlayer());
+							}
+						});
+					})
+					.setupBorder()
+					.setFillType(Material.GREEN_STAINED_GLASS_PANE)
+					.setBorderType(Material.GRAY_STAINED_GLASS_PANE)
+					.build()
+					.extraElements()
+					.invoke(() -> {
+						ItemStack i = new ItemStack(Material.TOTEM_OF_UNDYING);
+						ItemMeta meta = i.getItemMeta();
+						meta.setDisplayName(StringUtils.use("&8(&fMain Menu&8)").translate());
+						i.setItemMeta(meta);
+						return i;
+					}, 45, click -> select(atm, null, Type.ADMIN_PANEL).open(click.getPlayer()))
+					.add()
+					.limit(28)
+					.build();
 		}
 
 		public static Menu select(ATM atm, HUID account, Type type) {
@@ -547,7 +544,7 @@ public class ATM implements Savable {
 							.addElement(new ItemStack(Material.PAPER))
 							.setText(StringUtils.use("&eLog").translate())
 							.setLore(StringUtils.use("&7View the list of transactions to collect.").translate())
-							.setAction(click -> browse(atm, Type.LOG).open(click.getPlayer()))
+							.setAction(click -> browse(atm).open(click.getPlayer()))
 							.assignToSlots(10)
 							.addElement(new ItemStack(Material.GOLDEN_HELMET))
 							.setText(StringUtils.use("&6Wallet").translate())

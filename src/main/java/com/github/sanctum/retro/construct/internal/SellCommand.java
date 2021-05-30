@@ -8,20 +8,24 @@
  */
 package com.github.sanctum.retro.construct.internal;
 
+import com.github.sanctum.labyrinth.formatting.TabCompletion;
+import com.github.sanctum.labyrinth.formatting.TabCompletionBuilder;
 import com.github.sanctum.labyrinth.library.Items;
 import com.github.sanctum.retro.RetroConomy;
 import com.github.sanctum.retro.command.CommandInformation;
 import com.github.sanctum.retro.command.CommandOrientation;
+import com.github.sanctum.retro.construct.core.ItemDemand;
 import com.github.sanctum.retro.construct.core.Modifiable;
+import com.github.sanctum.retro.construct.core.SellableItem;
 import com.github.sanctum.retro.util.ConfiguredMessage;
 import com.github.sanctum.retro.util.FormattedMessage;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class SellCommand extends CommandOrientation {
 
@@ -29,9 +33,20 @@ public class SellCommand extends CommandOrientation {
 		super(information);
 	}
 
+	private final TabCompletionBuilder builder = TabCompletion.build(getLabel());
+
 	@Override
-	public @Nullable List<String> complete(Player p, String[] args) {
-		return null;
+	public @NotNull List<String> complete(Player p, String[] args) {
+		return builder.forArgs(args)
+				.level(1)
+				.completeAt(getLabel())
+				.filter(() -> RetroConomy.getInstance().getManager().getMarket().map(SellableItem::getItem).map(ItemStack::getType).map(mat -> mat.name().toLowerCase().replace("_", "")).collect(Collectors.toList()))
+				.collect()
+				.level(2)
+				.completeAt(getLabel())
+				.filter(() -> RetroConomy.getInstance().getManager().getMarket().map(SellableItem::getItem).map(ItemStack::getType).map(mat -> mat.name().toLowerCase().replace("_", "")).collect(Collectors.toList()))
+				.collect()
+				.get(args.length);
 	}
 
 	@Override
@@ -79,20 +94,35 @@ public class SellCommand extends CommandOrientation {
 					try {
 						int amount = Integer.parseInt(args[0]);
 						ItemStack it = player.getInventory().getItemInMainHand();
-						if (it != null) {
-							RetroConomy.getInstance().getManager().getDemand(it).ifPresent(i -> {
-								if (i.invoke(player.getUniqueId(), Modifiable.TransactionResult.Sell, amount).isTransactionSuccess()) {
-									double each = i.getSellPrice(1);
-									double total = i.getSellPrice(amount);
-									String format = FormattedMessage.convert(ConfiguredMessage.getMessage("item-sold")).bought(i.getItem().getType().name().toLowerCase(), total, each).replace("{AMOUNT}", amount + "");
+						RetroConomy.getInstance().getManager().getDemand(it).ifPresent(i -> {
+							if (i.invoke(player.getUniqueId(), Modifiable.TransactionResult.Sell, amount).isTransactionSuccess()) {
+								double each = i.getSellPrice(1);
+								double total = i.getSellPrice(amount);
+								String format = FormattedMessage.convert(ConfiguredMessage.getMessage("item-sold")).bought(i.getItem().getType().name().toLowerCase(), total, each).replace("{AMOUNT}", amount + "");
+								sendMessage(player, format);
+							} else {
+								sendMessage(player, "&cInvalid request received. Is it possible you tried selling to much?");
+							}
+						});
+					} catch (NumberFormatException e) {
+						Material request = Items.getMaterial(args[0]);
+						if (request != null) {
+							ItemDemand item = RetroConomy.getInstance().getManager().getDemand(request).orElse(null);
+							if (item != null) {
+								if (item.invoke(player.getUniqueId(), Modifiable.TransactionResult.Sell).isTransactionSuccess()) {
+									double price = item.getBuyPrice(1);
+									String format = FormattedMessage.convert(ConfiguredMessage.getMessage("item-sold")).bought(request.name().toLowerCase(), price, price).replace("{AMOUNT}", "1");
 									sendMessage(player, format);
 								} else {
-									sendMessage(player, "&cInvalid request received. Is it possible you tried selling to much?");
+									sendMessage(player, ConfiguredMessage.getMessage("wallet-insufficient"));
 								}
-							});
+							} else {
+								// not for sale
+								sendMessage(player, "&cThis item is not for sale.");
+							}
+						} else {
+							sendMessage(player, ConfiguredMessage.getMessage("invalid-amount").replace("{AMOUNT_1}", args[0]));
 						}
-					} catch (NumberFormatException e) {
-						sendMessage(player, ConfiguredMessage.getMessage("invalid-amount").replace("{AMOUNT_1}", args[0]));
 					}
 					return;
 				}

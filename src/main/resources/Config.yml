@@ -1,4 +1,6 @@
 Currency:
+  # If false currency items will not have currency naming.
+  custom: true
   major:
     color: '&6&l'
     singular: '&6gold'
@@ -6,33 +8,53 @@ Currency:
   minor:
     singular: '&eshilling'
     plural: '&eshillings'
-
-  # If false currency items will not have currency naming.
-  custom: true
   # Add as many items as you want for currency.
   items:
     dollar:
       GOLD_INGOT: 1
+      #GOLDEN_SWORD: 12.5
     change:
       GOLD_NUGGET: 0.11
+      #IRON_NUGGET: 0.22
     alt:
       GOLD_BLOCK: 9
+      #IRON_BLOCK: 14
 
 
 Options:
   prefix: '&7[<#ebd721>Retro</#eb7f21>&7] &8&m»&r'
   # Choose the number formatting for the plugin [ en = US, it = Italy, nl = Netherlands, jp = Japan, de = Germany ]
   format: en
+  # Allow the plugin to adjust item pricing on the fly based upon demand?
+  price-adjustment:
+    automatic: true
+    config:
+      # The amount of items bought/sold to trigger the price change.
+      trigger-amount: 1000
+      # The required time span in which the items were bought/sold
+      time-span: 1
+      # The time unit threshold to use for conversions, valid types: [ SECONDS, MINUTES, HOURS, DAYS ]
+      threshold: MINUTES
+      # The amount to adjust the aggressiveness +/-
+      adjustment: 0.14
   wallets:
-    starting-balance: 500.00
+    # The starting balance for automatically created wallets.
+    starting-balance: 1000.00
+    # The max balance a wallet can have.
     max-balance: 5000000.00
   accounts:
+    # If set to false players can only have one account period.
     multiple-allowed: true
+    # The starting balance for newly created bank accounts.
     starting-balance: 0.0
+    # The max balance a bank account can have.
     max-balance: 500000000.00
   multi-world:
+    # Allow balances per world?
     enabled: true
     # When multi-world is disabled falsify is used as the sole balance support.
     falsify: 'world'
-  item-blacklist:
-    - DRAGON_EGG
+  mob-reward:
+    enabled: true
+    ignored-mobs: []
+    ignored-monsters: []

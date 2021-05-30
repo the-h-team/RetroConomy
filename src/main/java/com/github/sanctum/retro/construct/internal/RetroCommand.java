@@ -147,7 +147,7 @@ public enum RetroCommand implements CommandInformation {
 			case BALANCE:
 				return Collections.singletonList("bal");
 			case RETRO:
-				return Arrays.asList("retroconomy", "eco", "economy");
+				return Arrays.asList("retroconomy", "eco", "economy", "shop");
 			case BANK:
 				return Collections.singletonList("b");
 			default:

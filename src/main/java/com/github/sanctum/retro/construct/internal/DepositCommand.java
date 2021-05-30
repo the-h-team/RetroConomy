@@ -18,6 +18,7 @@ import com.github.sanctum.retro.util.ConfiguredMessage;
 import com.github.sanctum.retro.util.CurrencyType;
 import com.github.sanctum.retro.util.FormattedMessage;
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.bukkit.command.CommandSender;
@@ -44,17 +45,31 @@ public class DepositCommand extends CommandOrientation {
 			if (walletOptional.isPresent()) {
 				RetroAccount wallet = walletOptional.get();
 
-				ItemStack hand = player.getInventory().getItemInMainHand();
-
 				if (args.length == 0) {
+					BigDecimal dep = BigDecimal.valueOf(0.0);
+					for (ItemStack item : player.getInventory().getContents()) {
 
-					if (CurrencyType.match(hand).isPresent()) {
-						Currency c = CurrencyType.match(hand).get();
-						int count = hand.getAmount();
-						double amount = c.getWorth() * count;
-						wallet.deposit(BigDecimal.valueOf(amount), player.getWorld());
+						if (CurrencyType.match(item).isPresent()) {
+							Currency c = CurrencyType.match(item).get();
+							int count = item.getAmount();
+							if (RetroConomy.getInstance().currencyRemoval(player, c, count).isTransactionSuccess()) {
+								double amount = c.getWorth() * count;
+								dep = dep.add(BigDecimal.valueOf(amount));
+							}
+						}
+					}
+					if (dep.doubleValue() > 0) {
+						wallet.deposit(dep, player.getWorld());
+						String[] balance;
+						if (RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.format").equals("en")) {
+							balance = String.valueOf(dep.doubleValue()).split("\\.");
+						} else {
+							balance = String.valueOf(dep.doubleValue()).split(",");
+						}
+						String format = FormattedMessage.convert(ConfiguredMessage.getMessage("wallet-deposit")).next(Double.parseDouble(balance[0]), Double.parseDouble(balance.length == 2 ? balance[1] : 0 + ""));
+						sendMessage(player, format);
 					} else {
-						sendMessage(player, "&cYou have no money to deposit. Valid types: " + RetroConomy.getInstance().getManager().getCurrencyNames().toString());
+						sendMessage(player, "&cYou have no money to deposit. Valid types: " + Arrays.toString(RetroConomy.getInstance().getManager().getCurrencyNames()));
 					}
 					return;
 				}
