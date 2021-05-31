@@ -145,8 +145,17 @@ public class MarketItem implements Ownable {
 			if (util.containsIgnoreCase("leather")) {
 				return Category.Clothing;
 			}
+			if (util.containsIgnoreCase("shovel") || util.containsIgnoreCase("pick") || util.containsIgnoreCase("axe") || util.containsIgnoreCase("hoe")) {
+				return Category.Tools;
+			}
+			if (util.containsIgnoreCase("breath") || util.containsIgnoreCase("potion")) {
+				return Category.Potions;
+			}
 			if (util.containsIgnoreCase("sword") || util.containsIgnoreCase("bow") || util.containsIgnoreCase("charge") || util.containsIgnoreCase("tnt") || util.containsIgnoreCase("trident")) {
 				return Category.Weapons;
+			}
+			if (util.containsIgnoreCase("book")) {
+				return Category.Books;
 			}
 			if (util.containsIgnoreCase("head")) {
 				return Category.Head;
@@ -597,7 +606,7 @@ public class MarketItem implements Ownable {
 	}
 
 	public enum Category {
-		Building, Agriculture, Food, Weapons, Armor, Head, Clothing, Package, Misc
+		Building, Agriculture, Food, Weapons, Tools, Books, Potions, Armor, Head, Clothing, Package, Misc
 	}
 
 }

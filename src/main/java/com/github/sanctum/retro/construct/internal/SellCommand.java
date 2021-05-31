@@ -11,6 +11,7 @@ package com.github.sanctum.retro.construct.internal;
 import com.github.sanctum.labyrinth.formatting.TabCompletion;
 import com.github.sanctum.labyrinth.formatting.TabCompletionBuilder;
 import com.github.sanctum.labyrinth.library.Items;
+import com.github.sanctum.labyrinth.library.StringUtils;
 import com.github.sanctum.retro.RetroConomy;
 import com.github.sanctum.retro.command.CommandInformation;
 import com.github.sanctum.retro.command.CommandOrientation;
@@ -24,7 +25,9 @@ import com.github.sanctum.retro.util.FormattedMessage;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -87,7 +90,12 @@ public class SellCommand extends CommandOrientation {
 							MarketItem m = (MarketItem) demand.get();
 							m.setAmount(m.getAmount() + item.getAmount());
 							item.setAmount(0);
-							ItemDemand.GUI.bid(player, MarketItem.getCategory(m.getItem().getType()));
+							ItemDemand.GUI.bid(player, MarketItem.getCategory(m.getItem().getType())).open(player);
+							Sound s = Sound.ENTITY_GHAST_AMBIENT;
+							for (Player p : Bukkit.getOnlinePlayers()) {
+								p.playSound(p.getEyeLocation(), s, 10, 1);
+								p.sendTitle(StringUtils.use("&b[&f&m⚔&b] &r[&6Market&r] &b[&f&m⚔&b]").translate(), StringUtils.use("&2" + player.getName() + " &6restocked &7an item.").translate(), 10, 120, 10);
+							}
 						}
 						return;
 					}
@@ -154,14 +162,24 @@ public class SellCommand extends CommandOrientation {
 								m.setAmount(m.getAmount() + item.getAmount());
 								item.setAmount(0);
 								m.setPrice(amount);
-								sendMessage(player, "&aPrice adjusted to &f" + amount);
-								ItemDemand.GUI.bid(player, MarketItem.getCategory(m.getItem().getType()));
+								sendMessage(player, "&aPrice adjusted to &f" + m.getBuyPrice(1));
+								ItemDemand.GUI.bid(player, MarketItem.getCategory(m.getItem().getType())).open(player);
+								Sound s = Sound.ENTITY_GHAST_AMBIENT;
+								for (Player p : Bukkit.getOnlinePlayers()) {
+									p.playSound(p.getEyeLocation(), s, 10, 1);
+									p.sendTitle(StringUtils.use("&b[&f&m⚔&b] &r[&6Market&r] &b[&f&m⚔&b]").translate(), StringUtils.use("&2" + player.getName() + " &7adjusted an item price listing in the &e" + MarketItem.getCategory(m.getItem().getType()).name() + " &7category.").translate(), 10, 120, 10);
+								}
 							} else {
 								if (!item.getType().isAir()) {
 									MarketItem it = new MarketItem(new ItemStack(item), player.getUniqueId(), amount);
 									it.setAmount(it.getAmount() + item.getAmount());
 									item.setAmount(0);
-									ItemDemand.GUI.bid(player, MarketItem.getCategory(it.getItem().getType()));
+									ItemDemand.GUI.bid(player, MarketItem.getCategory(it.getItem().getType())).open(player);
+									Sound s = Sound.ENTITY_GHAST_AMBIENT;
+									for (Player p : Bukkit.getOnlinePlayers()) {
+										p.playSound(p.getEyeLocation(), s, 10, 1);
+										p.sendTitle(StringUtils.use("&b[&f&m⚔&b] &r[&6Market&r] &b[&f&m⚔&b]").translate(), StringUtils.use("&2" + player.getName() + " &7put an item up for sale in the &e" + MarketItem.getCategory(it.getItem().getType()).name() + " &7category.").translate(), 10, 120, 10);
+									}
 								}
 							}
 						} catch (NumberFormatException e) {

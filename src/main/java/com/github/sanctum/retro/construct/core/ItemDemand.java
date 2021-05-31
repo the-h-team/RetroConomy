@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -343,7 +344,13 @@ public interface ItemDemand extends Modifiable, SellableItem {
 
 													if (i.invoke(player.getUniqueId(), TransactionResult.Buy, amount).isTransactionSuccess()) {
 
-														RetroConomy.getInstance().getManager().getWallet(i.getOwner()).ifPresent(w -> w.deposit(BigDecimal.valueOf(i.getBuyPrice(amount))));
+														RetroConomy.getInstance().getManager().getWallet(i.getOwner()).ifPresent(w -> {
+															w.deposit(BigDecimal.valueOf(i.getBuyPrice(amount)));
+															OfflinePlayer op = w.getOwner();
+															if (op.isOnline()) {
+																Message.form(op.getPlayer()).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix")).send("&7[&b✉&7] &6Market &r&l&m→&r &3&ome &7[&a" + i.getBuyPrice(amount) + "&7]");
+															}
+														});
 
 														ATM atm = ATM.pick(Bukkit.getOfflinePlayer(i.getOwner()));
 
@@ -351,6 +358,11 @@ public interface ItemDemand extends Modifiable, SellableItem {
 															player.getWorld().dropItem(player.getLocation(), atm.take(TransactionStatement.from(player, BigDecimal.valueOf(i.getBuyPrice(amount)), wallet, TransactionType.WITHDRAW)).toItem());
 														}
 														if (i.getAmount() == 0) {
+															Sound s = Sound.ENTITY_GHAST_AMBIENT;
+															for (Player p : Bukkit.getOnlinePlayers()) {
+																p.playSound(p.getEyeLocation(), s, 10, 1);
+																p.sendTitle(StringUtils.use("&b[&f&m⚔&b] &r[&6Market&r] &b[&f&m⚔&b]").translate(), StringUtils.use("&2" + title + " &7out of stock in &e" + MarketItem.getCategory(i.getItem().getType())).translate(), 10, 120, 10);
+															}
 															RetroConomy.getInstance().getManager().deleteItem(i);
 														}
 														bid(player, MarketItem.getCategory(i.getItem().getType())).open(player);
@@ -386,7 +398,13 @@ public interface ItemDemand extends Modifiable, SellableItem {
 
 														if (i.invoke(player.getUniqueId(), TransactionResult.Buy, amount).isTransactionSuccess()) {
 
-															RetroConomy.getInstance().getManager().getWallet(i.getOwner()).ifPresent(w -> w.deposit(BigDecimal.valueOf(i.getBuyPrice(amount))));
+															RetroConomy.getInstance().getManager().getWallet(i.getOwner()).ifPresent(w -> {
+																w.deposit(BigDecimal.valueOf(i.getBuyPrice(amount)));
+																OfflinePlayer op = w.getOwner();
+																if (op.isOnline()) {
+																	Message.form(op.getPlayer()).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix")).send("&7[&b✉&7] &6Market &r&l&m→&r &3&ome &7[&a" + i.getBuyPrice(amount) + "&7]");
+																}
+															});
 
 															ATM atm = ATM.pick(Bukkit.getOfflinePlayer(i.getOwner()));
 
@@ -394,6 +412,11 @@ public interface ItemDemand extends Modifiable, SellableItem {
 																player.getWorld().dropItem(player.getLocation(), atm.take(TransactionStatement.from(player, BigDecimal.valueOf(i.getBuyPrice(amount)), wallet, TransactionType.WITHDRAW)).toItem());
 															}
 															if (i.getAmount() == 0) {
+																Sound s = Sound.ENTITY_GHAST_AMBIENT;
+																for (Player p : Bukkit.getOnlinePlayers()) {
+																	p.playSound(p.getEyeLocation(), s, 10, 1);
+																	p.sendTitle(StringUtils.use("&b[&f&m⚔&b] &r[&6Market&r] &b[&f&m⚔&b]").translate(), StringUtils.use("&2" + title + " &7out of stock in &e" + MarketItem.getCategory(i.getItem().getType())).translate(), 10, 120, 10);
+																}
 																RetroConomy.getInstance().getManager().deleteItem(i);
 															}
 															bid(player, MarketItem.getCategory(i.getItem().getType())).open(player);
@@ -439,26 +462,43 @@ public interface ItemDemand extends Modifiable, SellableItem {
 						bid(click.getPlayer(), MarketItem.Category.Weapons).open(click.getPlayer());
 					})
 					.assignToSlots(13)
+					.addElement(new Item.Edit(Material.IRON_PICKAXE).setTitle(StringUtils.use("&b&oTool").translate()).setLore("").build())
+					.setAction(click -> {
+						bid(click.getPlayer(), MarketItem.Category.Tools).open(click.getPlayer());
+					})
+					.assignToSlots(14)
 					.addElement(new Item.Edit(Material.GOLDEN_CHESTPLATE).setTitle(StringUtils.use("&3Armor").translate()).addEnchantment(Enchantment.LOYALTY, 1).setFlags(ItemFlag.HIDE_ENCHANTS).setLore("").build())
 					.setAction(click -> {
 						bid(click.getPlayer(), MarketItem.Category.Armor).open(click.getPlayer());
 					})
-					.assignToSlots(14)
+					.assignToSlots(15)
 					.addElement(new Item.Edit(SkullItem.Head.provide(SkullItem.COMMAND_BLOCK)).setTitle(StringUtils.use("&dHead").translate()).setLore("").build())
 					.setAction(click -> {
 						bid(click.getPlayer(), MarketItem.Category.Head).open(click.getPlayer());
 					})
-					.assignToSlots(15)
+					.assignToSlots(16)
+					.addElement(new Item.Edit(Material.ENCHANTED_BOOK).setTitle(StringUtils.use("&9Book").translate()).setLore("").build())
+					.setAction(click -> {
+						bid(click.getPlayer(), MarketItem.Category.Books).open(click.getPlayer());
+					})
+					.assignToSlots(17)
+					.addElement(new Item.Edit(Material.POTION).setTitle(StringUtils.use("&5Potion").translate()).setLore("").build())
+					.setAction(click -> {
+						bid(click.getPlayer(), MarketItem.Category.Potions).open(click.getPlayer());
+					})
+					.assignToSlots(21)
 					.addElement(new Item.Edit(Material.SHULKER_BOX).setTitle(StringUtils.use("&cPackage").translate()).setLore("").build())
 					.setAction(click -> {
 						bid(click.getPlayer(), MarketItem.Category.Package).open(click.getPlayer());
 					})
-					.assignToSlots(16)
+					.assignToSlots(22)
 					.addElement(new Item.Edit(Material.ANVIL).setTitle(StringUtils.use("&fMisc").translate()).setLore("").build())
 					.setAction(click -> {
 						bid(click.getPlayer(), MarketItem.Category.Misc).open(click.getPlayer());
 					})
-					.assignToSlots(17)
+					.assignToSlots(23)
+					.setFiller(new Item.Edit(Material.GRAY_STAINED_GLASS_PANE).setTitle(" ").build())
+					.set()
 					.create(JavaPlugin.getProvidingPlugin(RetroConomy.class));
 		}
 
