@@ -31,7 +31,7 @@ public class TransactionStatement implements Savable {
 	private final HUID slipId;
 	private final HUID id;
 
-	protected TransactionStatement(OfflinePlayer holder, BigDecimal amount, BankAccount account, TransactionType type) {
+	protected TransactionStatement(OfflinePlayer holder, BigDecimal amount, RetroAccount account, TransactionType type) {
 		this.holder = holder;
 		this.amount = amount;
 		this.type = type;
@@ -39,11 +39,11 @@ public class TransactionStatement implements Savable {
 		this.slipId = HUID.randomID();
 	}
 
-	public static TransactionStatement from(OfflinePlayer holder, BigDecimal amount, BankAccount account, TransactionType type) {
+	public static TransactionStatement from(OfflinePlayer holder, BigDecimal amount, RetroAccount account, TransactionType type) {
 		return new TransactionStatement(holder, amount, account, type);
 	}
 
-	public static TransactionStatement from(OfflinePlayer holder, BigDecimal amount, BigDecimal tax, BankAccount account, TransactionType type) {
+	public static TransactionStatement from(OfflinePlayer holder, BigDecimal amount, BigDecimal tax, RetroAccount account, TransactionType type) {
 		return new TransactionStatement(holder, amount, account, type).setTax(tax);
 	}
 

@@ -20,6 +20,9 @@ import com.github.sanctum.retro.construct.core.ATM;
 import com.github.sanctum.retro.construct.core.BankAccount;
 import com.github.sanctum.retro.construct.core.Currency;
 import com.github.sanctum.retro.construct.core.ItemDemand;
+import com.github.sanctum.retro.construct.core.MarketItem;
+import com.github.sanctum.retro.construct.core.SpecialItem;
+import com.github.sanctum.retro.construct.core.SystemItem;
 import com.github.sanctum.retro.construct.core.WalletAccount;
 import com.github.sanctum.retro.construct.internal.AtmCommand;
 import com.github.sanctum.retro.construct.internal.BalanceCommand;
@@ -80,39 +83,123 @@ public class RetroConomy extends JavaPlugin implements RetroAPI, Listener {
 		FileManager manager = FileType.ACCOUNT.get();
 		FileManager items = FileType.MISC.get("Items");
 		for (ItemDemand item : getManager().getMarket().sort()) {
-			if (item.getBuyerMap().isEmpty()) {
-				items.getConfig().set("Items." + item.toString() + ".usage-purchase", null);
-				items.getConfig().createSection("Items." + item.toString() + ".usage-purchase");
-			} else {
-				for (Map.Entry<String, Long> entry : item.getBuyerMap().entrySet()) {
-					items.getConfig().set("Items." + item.toString() + ".usage-purchase." + entry.getKey() + ".amount", entry.getValue());
+			if (item instanceof SystemItem) {
+				if (item.getBuyerMap().isEmpty()) {
+					items.getConfig().set("Items." + item.toString() + ".usage-purchase", null);
+					items.getConfig().createSection("Items." + item.toString() + ".usage-purchase");
+				} else {
+					for (Map.Entry<String, Long> entry : item.getBuyerMap().entrySet()) {
+						items.getConfig().set("Items." + item.toString() + ".usage-purchase." + entry.getKey() + ".amount", entry.getValue());
+					}
 				}
-			}
-			if (item.getSellerMap().isEmpty()) {
-				items.getConfig().set("Items." + item.toString() + ".usage-sold", null);
-				items.getConfig().createSection("Items." + item.toString() + ".usage-sold");
-			} else {
-				for (Map.Entry<String, Long> entry : item.getSellerMap().entrySet()) {
-					items.getConfig().set("Items." + item.toString() + ".usage-sold." + entry.getKey() + ".amount", entry.getValue());
+				if (item.getSellerMap().isEmpty()) {
+					items.getConfig().set("Items." + item.toString() + ".usage-sold", null);
+					items.getConfig().createSection("Items." + item.toString() + ".usage-sold");
+				} else {
+					for (Map.Entry<String, Long> entry : item.getSellerMap().entrySet()) {
+						items.getConfig().set("Items." + item.toString() + ".usage-sold." + entry.getKey() + ".amount", entry.getValue());
+					}
 				}
-			}
-			for (Map.Entry<String, Long> entry : item.getBuyerTimeMap().entrySet()) {
-				items.getConfig().set("Items." + item.toString() + ".usage-purchase." + entry.getKey() + ".time", entry.getValue());
-			}
-			for (Map.Entry<String, Long> entry : item.getSellerTimeMap().entrySet()) {
-				items.getConfig().set("Items." + item.toString() + ".usage-sold." + entry.getKey() + ".time", entry.getValue());
-			}
+				for (Map.Entry<String, Long> entry : item.getBuyerTimeMap().entrySet()) {
+					items.getConfig().set("Items." + item.toString() + ".usage-purchase." + entry.getKey() + ".time", entry.getValue());
+				}
+				for (Map.Entry<String, Long> entry : item.getSellerTimeMap().entrySet()) {
+					items.getConfig().set("Items." + item.toString() + ".usage-sold." + entry.getKey() + ".time", entry.getValue());
+				}
 
-			for (Map.Entry<Long, Long> entry : item.getBuyerAmountMap().entrySet()) {
-				items.getConfig().set("Items." + item.toString() + ".usage-purchase." + entry.getKey() + ".history.amount", entry.getValue());
-				items.getConfig().set("Items." + item.toString() + ".usage-purchase." + entry.getKey() + ".history.date", entry.getKey());
+				for (Map.Entry<Long, Long> entry : item.getBuyerAmountMap().entrySet()) {
+					items.getConfig().set("Items." + item.toString() + ".usage-purchase." + entry.getKey() + ".history.amount", entry.getValue());
+					items.getConfig().set("Items." + item.toString() + ".usage-purchase." + entry.getKey() + ".history.date", entry.getKey());
+				}
+				for (Map.Entry<Long, Long> entry : item.getSellerAmountMap().entrySet()) {
+					items.getConfig().set("Items." + item.toString() + ".usage-sold." + entry.getKey() + ".history.amount", entry.getValue());
+					items.getConfig().set("Items." + item.toString() + ".usage-sold." + entry.getKey() + ".history.date", entry.getKey());
+				}
+				items.getConfig().set("Items." + item.toString() + ".multiplier", item.getMultiplier());
+				items.saveConfig();
 			}
-			for (Map.Entry<Long, Long> entry : item.getSellerAmountMap().entrySet()) {
-				items.getConfig().set("Items." + item.toString() + ".usage-sold." + entry.getKey() + ".history.amount", entry.getValue());
-				items.getConfig().set("Items." + item.toString() + ".usage-sold." + entry.getKey() + ".history.date", entry.getKey());
+			if (item instanceof SpecialItem) {
+				SpecialItem i = (SpecialItem) item;
+				items.getConfig().set("Special." + item.toString() + ".owner", i.getOwner().toString());
+				items.getConfig().set("Special." + item.toString() + ".amount", i.getAmount());
+				if (i.getBuyerMap().isEmpty()) {
+					items.getConfig().set("Special." + item.toString() + ".usage-purchase", null);
+					items.getConfig().createSection("Special." + item.toString() + ".usage-purchase");
+				} else {
+					for (Map.Entry<String, Long> entry : item.getBuyerMap().entrySet()) {
+						items.getConfig().set("Special." + item.toString() + ".usage-purchase." + entry.getKey() + ".amount", entry.getValue());
+					}
+				}
+				if (item.getSellerMap().isEmpty()) {
+					items.getConfig().set("Special." + item.toString() + ".usage-sold", null);
+					items.getConfig().createSection("Special." + item.toString() + ".usage-sold");
+				} else {
+					for (Map.Entry<String, Long> entry : item.getSellerMap().entrySet()) {
+						items.getConfig().set("Special." + item.toString() + ".usage-sold." + entry.getKey() + ".amount", entry.getValue());
+					}
+				}
+				for (Map.Entry<String, Long> entry : item.getBuyerTimeMap().entrySet()) {
+					items.getConfig().set("Special." + item.toString() + ".usage-purchase." + entry.getKey() + ".time", entry.getValue());
+				}
+				for (Map.Entry<String, Long> entry : item.getSellerTimeMap().entrySet()) {
+					items.getConfig().set("Special." + item.toString() + ".usage-sold." + entry.getKey() + ".time", entry.getValue());
+				}
+
+				for (Map.Entry<Long, Long> entry : item.getBuyerAmountMap().entrySet()) {
+					items.getConfig().set("Special." + item.toString() + ".usage-purchase." + entry.getKey() + ".history.amount", entry.getValue());
+					items.getConfig().set("Special." + item.toString() + ".usage-purchase." + entry.getKey() + ".history.date", entry.getKey());
+				}
+				for (Map.Entry<Long, Long> entry : item.getSellerAmountMap().entrySet()) {
+					items.getConfig().set("Special." + item.toString() + ".usage-sold." + entry.getKey() + ".history.amount", entry.getValue());
+					items.getConfig().set("Special." + item.toString() + ".usage-sold." + entry.getKey() + ".history.date", entry.getKey());
+				}
+				items.getConfig().set("Special." + item.toString() + ".price", item.getBasePrice());
+				items.getConfig().set("Special." + item.toString() + ".floor", item.getFloor());
+				items.getConfig().set("Special." + item.toString() + ".ceiling", item.getCeiling());
+				items.getConfig().set("Special." + item.toString() + ".multiplier", item.getMultiplier());
+				items.saveConfig();
 			}
-			items.getConfig().set("Items." + item.toString() + ".multiplier", item.getMultiplier());
-			items.saveConfig();
+			if (item instanceof MarketItem) {
+				MarketItem i = (MarketItem) item;
+				items.getConfig().set("Market." + item.toString() + ".owner", i.getOwner().toString());
+				items.getConfig().set("Market." + item.toString() + ".amount", i.getAmount());
+				if (i.getBuyerMap().isEmpty()) {
+					items.getConfig().set("Market." + item.toString() + ".usage-purchase", null);
+					items.getConfig().createSection("Market." + item.toString() + ".usage-purchase");
+				} else {
+					for (Map.Entry<String, Long> entry : item.getBuyerMap().entrySet()) {
+						items.getConfig().set("Market." + item.toString() + ".usage-purchase." + entry.getKey() + ".amount", entry.getValue());
+					}
+				}
+				if (item.getSellerMap().isEmpty()) {
+					items.getConfig().set("Market." + item.toString() + ".usage-sold", null);
+					items.getConfig().createSection("Market." + item.toString() + ".usage-sold");
+				} else {
+					for (Map.Entry<String, Long> entry : item.getSellerMap().entrySet()) {
+						items.getConfig().set("Market." + item.toString() + ".usage-sold." + entry.getKey() + ".amount", entry.getValue());
+					}
+				}
+				for (Map.Entry<String, Long> entry : item.getBuyerTimeMap().entrySet()) {
+					items.getConfig().set("Market." + item.toString() + ".usage-purchase." + entry.getKey() + ".time", entry.getValue());
+				}
+				for (Map.Entry<String, Long> entry : item.getSellerTimeMap().entrySet()) {
+					items.getConfig().set("Market." + item.toString() + ".usage-sold." + entry.getKey() + ".time", entry.getValue());
+				}
+
+				for (Map.Entry<Long, Long> entry : item.getBuyerAmountMap().entrySet()) {
+					items.getConfig().set("Market." + item.toString() + ".usage-purchase." + entry.getKey() + ".history.amount", entry.getValue());
+					items.getConfig().set("Market." + item.toString() + ".usage-purchase." + entry.getKey() + ".history.date", entry.getKey());
+				}
+				for (Map.Entry<Long, Long> entry : item.getSellerAmountMap().entrySet()) {
+					items.getConfig().set("Market." + item.toString() + ".usage-sold." + entry.getKey() + ".history.amount", entry.getValue());
+					items.getConfig().set("Market." + item.toString() + ".usage-sold." + entry.getKey() + ".history.date", entry.getKey());
+				}
+				items.getConfig().set("Market." + item.toString() + ".price", item.getBasePrice());
+				items.getConfig().set("Market." + item.toString() + ".floor", item.getFloor());
+				items.getConfig().set("Market." + item.toString() + ".ceiling", item.getCeiling());
+				items.getConfig().set("Market." + item.toString() + ".multiplier", item.getMultiplier());
+				items.saveConfig();
+			}
 		}
 		for (BankAccount account : getManager().ACCOUNTS) {
 			manager.getConfig().set("accounts." + account.getId().toString() + ".owner", account.getOwner().toString());

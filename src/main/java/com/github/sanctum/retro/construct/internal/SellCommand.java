@@ -15,11 +15,14 @@ import com.github.sanctum.retro.RetroConomy;
 import com.github.sanctum.retro.command.CommandInformation;
 import com.github.sanctum.retro.command.CommandOrientation;
 import com.github.sanctum.retro.construct.core.ItemDemand;
+import com.github.sanctum.retro.construct.core.MarketItem;
 import com.github.sanctum.retro.construct.core.Modifiable;
 import com.github.sanctum.retro.construct.core.SellableItem;
+import com.github.sanctum.retro.construct.core.SystemItem;
 import com.github.sanctum.retro.util.ConfiguredMessage;
 import com.github.sanctum.retro.util.FormattedMessage;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
@@ -62,7 +65,7 @@ public class SellCommand extends CommandOrientation {
 				if (args.length == 1) {
 					if (args[0].equalsIgnoreCase("all")) {
 						for (ItemStack item : player.getInventory().getContents()) {
-							RetroConomy.getInstance().getManager().getDemand(item).ifPresent(i -> {
+							RetroConomy.getInstance().getManager().getDemand(item).filter(i -> i instanceof SystemItem).ifPresent(i -> {
 								final int amount = item.getAmount();
 								if (i.invoke(player.getUniqueId(), Modifiable.TransactionResult.Sell, item.getAmount()).isTransactionSuccess()) {
 									double each = i.getSellPrice(1);
@@ -76,9 +79,21 @@ public class SellCommand extends CommandOrientation {
 						}
 						return;
 					}
+					if (args[0].equalsIgnoreCase("market")) {
+						ItemStack item = player.getInventory().getItemInMainHand();
+						Optional<ItemDemand> demand = RetroConomy.getInstance().getManager().getDemand(item).filter(i -> i instanceof MarketItem);
+
+						if (demand.isPresent()) {
+							MarketItem m = (MarketItem) demand.get();
+							m.setAmount(m.getAmount() + item.getAmount());
+							item.setAmount(0);
+							ItemDemand.GUI.bid(player, MarketItem.getCategory(m.getItem().getType()));
+						}
+						return;
+					}
 					if (args[0].equalsIgnoreCase("hand")) {
 						ItemStack item = player.getInventory().getItemInMainHand();
-						RetroConomy.getInstance().getManager().getDemand(item).ifPresent(i -> {
+						RetroConomy.getInstance().getManager().getDemand(item).filter(i -> i instanceof SystemItem).ifPresent(i -> {
 							final int amount = item.getAmount();
 							if (i.invoke(player.getUniqueId(), Modifiable.TransactionResult.Sell, item.getAmount()).isTransactionSuccess()) {
 								double each = i.getSellPrice(1);
@@ -94,7 +109,7 @@ public class SellCommand extends CommandOrientation {
 					try {
 						int amount = Integer.parseInt(args[0]);
 						ItemStack it = player.getInventory().getItemInMainHand();
-						RetroConomy.getInstance().getManager().getDemand(it).ifPresent(i -> {
+						RetroConomy.getInstance().getManager().getDemand(it).filter(i -> i instanceof SystemItem).ifPresent(i -> {
 							if (i.invoke(player.getUniqueId(), Modifiable.TransactionResult.Sell, amount).isTransactionSuccess()) {
 								double each = i.getSellPrice(1);
 								double total = i.getSellPrice(amount);
@@ -107,7 +122,7 @@ public class SellCommand extends CommandOrientation {
 					} catch (NumberFormatException e) {
 						Material request = Items.getMaterial(args[0]);
 						if (request != null) {
-							ItemDemand item = RetroConomy.getInstance().getManager().getDemand(request).orElse(null);
+							ItemDemand item = RetroConomy.getInstance().getManager().getDemand(request).filter(i -> i instanceof SystemItem).orElse(null);
 							if (item != null) {
 								if (item.invoke(player.getUniqueId(), Modifiable.TransactionResult.Sell).isTransactionSuccess()) {
 									double price = item.getBuyPrice(1);
@@ -128,11 +143,37 @@ public class SellCommand extends CommandOrientation {
 				}
 
 				if (args.length == 2) {
+					if (args[0].equalsIgnoreCase("market")) {
+						try {
+							double amount = Double.parseDouble(args[1]);
+							ItemStack item = player.getInventory().getItemInMainHand();
+							Optional<ItemDemand> demand = RetroConomy.getInstance().getManager().getDemand(item).filter(i -> i instanceof MarketItem);
+
+							if (demand.isPresent()) {
+								MarketItem m = (MarketItem) demand.get();
+								m.setAmount(m.getAmount() + item.getAmount());
+								item.setAmount(0);
+								m.setPrice(amount);
+								sendMessage(player, "&aPrice adjusted to &f" + amount);
+								ItemDemand.GUI.bid(player, MarketItem.getCategory(m.getItem().getType()));
+							} else {
+								if (!item.getType().isAir()) {
+									MarketItem it = new MarketItem(new ItemStack(item), player.getUniqueId(), amount);
+									it.setAmount(it.getAmount() + item.getAmount());
+									item.setAmount(0);
+									ItemDemand.GUI.bid(player, MarketItem.getCategory(it.getItem().getType()));
+								}
+							}
+						} catch (NumberFormatException e) {
+							sendMessage(player, ConfiguredMessage.getMessage("invalid-amount").replace("{AMOUNT_1}", args[1]));
+						}
+						return;
+					}
 					if (args[0].equalsIgnoreCase("hand")) {
 						try {
 							int amount = Integer.parseInt(args[1]);
 							ItemStack item = player.getInventory().getItemInMainHand();
-							RetroConomy.getInstance().getManager().getDemand(item).ifPresent(i -> {
+							RetroConomy.getInstance().getManager().getDemand(item).filter(i -> i instanceof SystemItem).ifPresent(i -> {
 								if (i.invoke(player.getUniqueId(), Modifiable.TransactionResult.Sell, item.getAmount()).isTransactionSuccess()) {
 									double each = i.getSellPrice(1);
 									double total = i.getSellPrice(amount);
@@ -151,7 +192,7 @@ public class SellCommand extends CommandOrientation {
 						int amount = Integer.parseInt(args[0]);
 						Material request = Items.getMaterial(args[1]);
 						if (request != null) {
-							RetroConomy.getInstance().getManager().getDemand(request).ifPresent(i -> {
+							RetroConomy.getInstance().getManager().getDemand(request).filter(i -> i instanceof SystemItem).ifPresent(i -> {
 								if (i.invoke(player.getUniqueId(), Modifiable.TransactionResult.Sell, amount).isTransactionSuccess()) {
 									double each = i.getSellPrice(1);
 									double total = i.getSellPrice(amount);

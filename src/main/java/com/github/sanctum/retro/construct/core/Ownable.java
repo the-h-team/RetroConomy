@@ -6,4 +6,6 @@ public interface Ownable extends ItemDemand {
 
 	UUID getOwner();
 
+	int getAmount();
+
 }

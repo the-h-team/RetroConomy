@@ -17,6 +17,7 @@ import com.github.sanctum.retro.command.CommandOrientation;
 import com.github.sanctum.retro.construct.core.ItemDemand;
 import com.github.sanctum.retro.construct.core.Modifiable;
 import com.github.sanctum.retro.construct.core.SellableItem;
+import com.github.sanctum.retro.construct.core.SystemItem;
 import com.github.sanctum.retro.util.ConfiguredMessage;
 import com.github.sanctum.retro.util.FormattedMessage;
 import java.util.List;
@@ -63,7 +64,7 @@ public class BuyCommand extends CommandOrientation {
 				if (args.length == 1) {
 					Material request = Items.getMaterial(args[0]);
 					if (request != null) {
-						ItemDemand item = RetroConomy.getInstance().getManager().getDemand(request).orElse(null);
+						ItemDemand item = RetroConomy.getInstance().getManager().getDemand(request).filter(i -> i instanceof SystemItem).orElse(null);
 						if (item != null) {
 							if (item.invoke(player.getUniqueId(), Modifiable.TransactionResult.Buy).isTransactionSuccess()) {
 								double price = item.getBuyPrice(1);
@@ -87,7 +88,7 @@ public class BuyCommand extends CommandOrientation {
 						int amount = Integer.parseInt(args[0]);
 						Material request = Items.getMaterial(args[1]);
 						if (request != null) {
-							ItemDemand item = RetroConomy.getInstance().getManager().getDemand(request).orElse(null);
+							ItemDemand item = RetroConomy.getInstance().getManager().getDemand(request).filter(i -> i instanceof SystemItem).orElse(null);
 							if (item != null) {
 								if (item.invoke(player.getUniqueId(), Modifiable.TransactionResult.Buy, amount).isTransactionSuccess()) {
 									double price = item.getBuyPrice(amount);

@@ -10,6 +10,7 @@ package com.github.sanctum.retro;
 
 import com.github.sanctum.labyrinth.data.FileManager;
 import com.github.sanctum.labyrinth.formatting.UniformedComponents;
+import com.github.sanctum.labyrinth.library.HFEncoded;
 import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.labyrinth.library.Items;
 import com.github.sanctum.labyrinth.library.MathUtils;
@@ -18,6 +19,8 @@ import com.github.sanctum.retro.construct.core.ATM;
 import com.github.sanctum.retro.construct.core.BankAccount;
 import com.github.sanctum.retro.construct.core.Currency;
 import com.github.sanctum.retro.construct.core.ItemDemand;
+import com.github.sanctum.retro.construct.core.MarketItem;
+import com.github.sanctum.retro.construct.core.SpecialItem;
 import com.github.sanctum.retro.construct.core.SystemItem;
 import com.github.sanctum.retro.construct.core.WalletAccount;
 import com.github.sanctum.retro.util.ATMList;
@@ -27,6 +30,7 @@ import com.github.sanctum.retro.util.CurrencyType;
 import com.github.sanctum.retro.util.FileType;
 import com.github.sanctum.retro.util.Marketplace;
 import com.github.sanctum.retro.util.WalletList;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -128,6 +132,25 @@ public class RetroManager {
 		}
 	}
 
+	public void deleteItem(ItemDemand demand) {
+		FileManager items = FileType.MISC.get("Items");
+		if (demand instanceof SystemItem) {
+			if (demand instanceof SpecialItem) {
+				items.getConfig().set("Special." + demand.toString(), null);
+			} else {
+				items.getConfig().set("Items." + demand.toString(), null);
+			}
+
+		}
+
+		if (demand instanceof MarketItem) {
+			items.getConfig().set("Market." + demand.toString(), null);
+		}
+
+		SHOP.remove(demand);
+
+	}
+
 	public void loadAccount(BankAccount account) {
 		ACCOUNTS.add(account);
 	}
@@ -169,6 +192,79 @@ public class RetroManager {
 			} else {
 				plugin.getLogger().severe("- An invalid item description was found within the items configuration, section '" + item + "'");
 				plugin.getServer().getPluginManager().disablePlugin(plugin);
+			}
+		}
+		if (items.getConfig().isConfigurationSection("Special")) {
+			for (String item : items.getConfig().getConfigurationSection("Special").getKeys(false)) {
+				ItemStack mat = items.getConfig().getItemStack(item);
+				String id = items.getConfig().getString("Special." + item + ".owner");
+				int amount = items.getConfig().getInt("Special." + item + ".amount");
+				if (mat != null) {
+					Map<String, Long> buyMap = new HashMap<>();
+					Map<String, Long> sellMap = new HashMap<>();
+					Map<String, Long> buyMapDate = new HashMap<>();
+					Map<String, Long> sellMapDate = new HashMap<>();
+					Map<Long, Long> sellAmountMap = new HashMap<>();
+					Map<Long, Long> buyAmountMap = new HashMap<>();
+					for (String user : items.getConfig().getConfigurationSection("Special." + item + ".usage-purchase").getKeys(false)) {
+						buyMap.put(user, items.getConfig().getLong("Special." + item + ".usage-purchase" + "." + user + ".amount"));
+						buyMapDate.put(user, items.getConfig().getLong("Special." + item + ".usage-purchase" + "." + user + ".date"));
+						if (items.getConfig().isConfigurationSection("Special." + item + ".usage-purchase" + "." + user + ".history")) {
+							buyAmountMap.put(items.getConfig().getLong("Special." + item + ".usage-purchase" + "." + user + ".history.date"), items.getConfig().getLong("Special." + item + ".usage-purchase" + "." + user + ".history.amount"));
+						}
+					}
+					for (String user : items.getConfig().getConfigurationSection("Special." + item + ".usage-sold").getKeys(false)) {
+						sellMap.put(user, items.getConfig().getLong("Special." + item + ".usage-sold" + "." + user + ".amount"));
+						sellMapDate.put(user, items.getConfig().getLong("Special." + item + ".usage-sold" + "." + user + ".date"));
+						if (items.getConfig().isConfigurationSection("Special." + item + ".usage-purchase" + "." + user + ".history")) {
+							sellAmountMap.put(items.getConfig().getLong("Special." + item + ".usage-purchase" + "." + user + ".history.date"), items.getConfig().getLong("Special." + item + ".usage-sold" + "." + user + ".history.amount"));
+						}
+					}
+
+					new SpecialItem(item, id, amount, mat, items.getConfig().getDouble("Special." + item + ".price"), items.getConfig().getDouble("Special." + item + ".multiplier"), items.getConfig().getDouble("Special." + item + ".ceiling"), items.getConfig().getDouble("Special." + item + ".floor"), buyMap, sellMap, buyMapDate, sellMapDate, buyAmountMap, sellAmountMap);
+				} else {
+					plugin.getLogger().severe("- An invalid item description was found within the items configuration, section '" + item + "'");
+					plugin.getServer().getPluginManager().disablePlugin(plugin);
+				}
+			}
+		}
+		if (items.getConfig().isConfigurationSection("Market")) {
+			for (String item : items.getConfig().getConfigurationSection("Market").getKeys(false)) {
+				ItemStack mat = null;
+				try {
+					mat = (ItemStack) new HFEncoded(item).deserialized();
+				} catch (IOException | ClassNotFoundException e) {
+					e.printStackTrace();
+				}
+				String id = items.getConfig().getString("Market." + item + ".owner");
+				int amount = items.getConfig().getInt("Market." + item + ".amount");
+				if (mat != null) {
+					Map<String, Long> buyMap = new HashMap<>();
+					Map<String, Long> sellMap = new HashMap<>();
+					Map<String, Long> buyMapDate = new HashMap<>();
+					Map<String, Long> sellMapDate = new HashMap<>();
+					Map<Long, Long> sellAmountMap = new HashMap<>();
+					Map<Long, Long> buyAmountMap = new HashMap<>();
+					for (String user : items.getConfig().getConfigurationSection("Market." + item + ".usage-purchase").getKeys(false)) {
+						buyMap.put(user, items.getConfig().getLong("Market." + item + ".usage-purchase" + "." + user + ".amount"));
+						buyMapDate.put(user, items.getConfig().getLong("Market." + item + ".usage-purchase" + "." + user + ".date"));
+						if (items.getConfig().isConfigurationSection("Market." + item + ".usage-purchase" + "." + user + ".history")) {
+							buyAmountMap.put(items.getConfig().getLong("Market." + item + ".usage-purchase" + "." + user + ".history.date"), items.getConfig().getLong("Market." + item + ".usage-purchase" + "." + user + ".history.amount"));
+						}
+					}
+					for (String user : items.getConfig().getConfigurationSection("Market." + item + ".usage-sold").getKeys(false)) {
+						sellMap.put(user, items.getConfig().getLong("Market." + item + ".usage-sold" + "." + user + ".amount"));
+						sellMapDate.put(user, items.getConfig().getLong("Market." + item + ".usage-sold" + "." + user + ".date"));
+						if (items.getConfig().isConfigurationSection("Market." + item + ".usage-purchase" + "." + user + ".history")) {
+							sellAmountMap.put(items.getConfig().getLong("Market." + item + ".usage-purchase" + "." + user + ".history.date"), items.getConfig().getLong("Market." + item + ".usage-sold" + "." + user + ".history.amount"));
+						}
+					}
+
+					new MarketItem(item, id, amount, mat, items.getConfig().getDouble("Market." + item + ".price"), items.getConfig().getDouble("Market." + item + ".multiplier"), items.getConfig().getDouble("Market." + item + ".ceiling"), items.getConfig().getDouble("Market." + item + ".floor"), buyMap, sellMap, buyMapDate, sellMapDate, buyAmountMap, sellAmountMap);
+				} else {
+					plugin.getLogger().severe("- An invalid item description was found within the items configuration, section '" + item + "'");
+					plugin.getServer().getPluginManager().disablePlugin(plugin);
+				}
 			}
 		}
 	}
