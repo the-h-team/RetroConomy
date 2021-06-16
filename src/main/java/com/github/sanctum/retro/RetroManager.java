@@ -15,11 +15,11 @@ import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.labyrinth.library.Items;
 import com.github.sanctum.labyrinth.library.MathUtils;
 import com.github.sanctum.labyrinth.library.StringUtils;
-import com.github.sanctum.retro.construct.core.ATM;
 import com.github.sanctum.retro.construct.core.BankAccount;
 import com.github.sanctum.retro.construct.core.Currency;
 import com.github.sanctum.retro.construct.core.ItemDemand;
 import com.github.sanctum.retro.construct.core.MarketItem;
+import com.github.sanctum.retro.construct.core.Shop;
 import com.github.sanctum.retro.construct.core.SpecialItem;
 import com.github.sanctum.retro.construct.core.SystemItem;
 import com.github.sanctum.retro.construct.core.WalletAccount;
@@ -60,7 +60,7 @@ public class RetroManager {
 
 	public final LinkedList<Currency> CURRENCIES = new LinkedList<>();
 
-	public final LinkedList<ATM> ATMS = new LinkedList<>();
+	public final LinkedList<Shop> SHOPS = new LinkedList<>();
 
 	public final LinkedList<ItemDemand> SHOP = new LinkedList<>();
 
@@ -348,7 +348,7 @@ public class RetroManager {
 		return new Marketplace();
 	}
 
-	public UniformedComponents<ATM> getATMs() {
+	public UniformedComponents<Shop> getATMs() {
 		return new ATMList();
 	}
 

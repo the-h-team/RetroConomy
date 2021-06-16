@@ -276,7 +276,7 @@ public class BankAccount implements RetroAccount, Shareable {
 	}
 
 	@Override
-	public TransactionStatement record(ATM atm, TransactionType type, OfflinePlayer player, BigDecimal amount) {
+	public TransactionStatement record(Shop atm, TransactionType type, OfflinePlayer player, BigDecimal amount) {
 		TransactionStatement slip;
 		World world = atm.getLocation().getWorld();
 		if (!multiWorld)

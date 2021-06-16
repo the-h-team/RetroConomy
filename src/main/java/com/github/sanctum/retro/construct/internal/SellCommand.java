@@ -22,6 +22,7 @@ import com.github.sanctum.retro.construct.core.SellableItem;
 import com.github.sanctum.retro.construct.core.SystemItem;
 import com.github.sanctum.retro.util.ConfiguredMessage;
 import com.github.sanctum.retro.util.FormattedMessage;
+import com.github.sanctum.retro.util.NotifiableEntity;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -88,13 +89,18 @@ public class SellCommand extends CommandOrientation {
 
 						if (demand.isPresent()) {
 							MarketItem m = (MarketItem) demand.get();
-							m.setAmount(m.getAmount() + item.getAmount());
-							item.setAmount(0);
-							ItemDemand.GUI.bid(player, MarketItem.getCategory(m.getItem().getType())).open(player);
-							Sound s = Sound.ENTITY_GHAST_AMBIENT;
-							for (Player p : Bukkit.getOnlinePlayers()) {
-								p.playSound(p.getEyeLocation(), s, 10, 1);
-								p.sendTitle(StringUtils.use("&b[&f&m⚔&b] &r[&6Market&r] &b[&f&m⚔&b]").translate(), StringUtils.use("&2" + player.getName() + " &6restocked &7an item.").translate(), 10, 120, 10);
+							if (m.getOwner().equals(player.getUniqueId())) {
+								m.setAmount(m.getAmount() + item.getAmount());
+								item.setAmount(0);
+								ItemDemand.GUI.bid(player, MarketItem.getCategory(m.getItem().getType())).open(player);
+								Sound s = Sound.ENTITY_GHAST_AMBIENT;
+								for (Player p : Bukkit.getOnlinePlayers()) {
+									NotifiableEntity entity = NotifiableEntity.pick(p);
+									if (entity.has(NotifiableEntity.Notifications.MARKET_RE_STOCKED)) {
+										p.playSound(p.getEyeLocation(), s, 10, 1);
+										p.sendTitle(StringUtils.use("&b[&f&m⚔&b] &r[&6Market&r] &b[&f&m⚔&b]").translate(), StringUtils.use("&2" + player.getName() + " &6restocked &7an item.").translate(), 10, 120, 10);
+									}
+								}
 							}
 						}
 						return;
@@ -159,6 +165,23 @@ public class SellCommand extends CommandOrientation {
 
 							if (demand.isPresent()) {
 								MarketItem m = (MarketItem) demand.get();
+								if (!m.getOwner().equals(player.getUniqueId())) {
+									if (!item.getType().isAir()) {
+										MarketItem it = new MarketItem(new ItemStack(item), player.getUniqueId(), amount);
+										it.setAmount(it.getAmount() + item.getAmount());
+										item.setAmount(0);
+										ItemDemand.GUI.bid(player, MarketItem.getCategory(it.getItem().getType())).open(player);
+										Sound s = Sound.ENTITY_GHAST_AMBIENT;
+										for (Player p : Bukkit.getOnlinePlayers()) {
+											NotifiableEntity entity = NotifiableEntity.pick(p);
+											if (entity.has(NotifiableEntity.Notifications.MARKET_ITEM_ADDED)) {
+												p.playSound(p.getEyeLocation(), s, 10, 1);
+												p.sendTitle(StringUtils.use("&b[&f&m⚔&b] &r[&6Market&r] &b[&f&m⚔&b]").translate(), StringUtils.use("&2" + player.getName() + " &7put an item up for sale in the &e" + MarketItem.getCategory(it.getItem().getType()).name() + " &7category.").translate(), 10, 120, 10);
+											}
+										}
+									}
+									return;
+								}
 								m.setAmount(m.getAmount() + item.getAmount());
 								item.setAmount(0);
 								m.setPrice(amount);
@@ -166,8 +189,11 @@ public class SellCommand extends CommandOrientation {
 								ItemDemand.GUI.bid(player, MarketItem.getCategory(m.getItem().getType())).open(player);
 								Sound s = Sound.ENTITY_GHAST_AMBIENT;
 								for (Player p : Bukkit.getOnlinePlayers()) {
-									p.playSound(p.getEyeLocation(), s, 10, 1);
-									p.sendTitle(StringUtils.use("&b[&f&m⚔&b] &r[&6Market&r] &b[&f&m⚔&b]").translate(), StringUtils.use("&2" + player.getName() + " &7adjusted an item price listing in the &e" + MarketItem.getCategory(m.getItem().getType()).name() + " &7category.").translate(), 10, 120, 10);
+									NotifiableEntity entity = NotifiableEntity.pick(p);
+									if (entity.has(NotifiableEntity.Notifications.MARKET_PRICE_CHANGE)) {
+										p.playSound(p.getEyeLocation(), s, 10, 1);
+										p.sendTitle(StringUtils.use("&b[&f&m⚔&b] &r[&6Market&r] &b[&f&m⚔&b]").translate(), StringUtils.use("&2" + player.getName() + " &7adjusted an item price listing in the &e" + MarketItem.getCategory(m.getItem().getType()).name() + " &7category.").translate(), 10, 120, 10);
+									}
 								}
 							} else {
 								if (!item.getType().isAir()) {
@@ -177,8 +203,11 @@ public class SellCommand extends CommandOrientation {
 									ItemDemand.GUI.bid(player, MarketItem.getCategory(it.getItem().getType())).open(player);
 									Sound s = Sound.ENTITY_GHAST_AMBIENT;
 									for (Player p : Bukkit.getOnlinePlayers()) {
-										p.playSound(p.getEyeLocation(), s, 10, 1);
-										p.sendTitle(StringUtils.use("&b[&f&m⚔&b] &r[&6Market&r] &b[&f&m⚔&b]").translate(), StringUtils.use("&2" + player.getName() + " &7put an item up for sale in the &e" + MarketItem.getCategory(it.getItem().getType()).name() + " &7category.").translate(), 10, 120, 10);
+										NotifiableEntity entity = NotifiableEntity.pick(p);
+										if (entity.has(NotifiableEntity.Notifications.MARKET_ITEM_ADDED)) {
+											p.playSound(p.getEyeLocation(), s, 10, 1);
+											p.sendTitle(StringUtils.use("&b[&f&m⚔&b] &r[&6Market&r] &b[&f&m⚔&b]").translate(), StringUtils.use("&2" + player.getName() + " &7put an item up for sale in the &e" + MarketItem.getCategory(it.getItem().getType()).name() + " &7category.").translate(), 10, 120, 10);
+										}
 									}
 								}
 							}

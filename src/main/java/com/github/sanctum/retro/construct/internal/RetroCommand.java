@@ -15,7 +15,7 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public enum RetroCommand implements CommandInformation {
-	DEPOSIT, WITHDRAW, PAY, BALANCE, TOP, BUY, SELL, RETRO, ATM, BANK;
+	DEPOSIT, WITHDRAW, PAY, BALANCE, TOP, BUY, SELL, RETRO, SHOP, BANK;
 
 
 	@Override
@@ -37,8 +37,8 @@ public enum RetroCommand implements CommandInformation {
 				return "top";
 			case BALANCE:
 				return "balance";
-			case ATM:
-				return "atm";
+			case SHOP:
+				return "shop";
 			case BANK:
 				return "bank";
 			default:
@@ -49,7 +49,7 @@ public enum RetroCommand implements CommandInformation {
 	@Override
 	public @NotNull String getDescription() {
 		switch (this) {
-			case ATM:
+			case SHOP:
 				return "Buy an atm for passive income generation.";
 			case BUY:
 				return "Buy a specified amount of an item";
@@ -77,8 +77,8 @@ public enum RetroCommand implements CommandInformation {
 	@Override
 	public @NotNull String getUsage() {
 		switch (this) {
-			case ATM:
-				return "/atm buy";
+			case SHOP:
+				return "/shop <buy, locate>";
 			case BUY:
 				return "/buy <itemName> <amount>";
 			case SELL:
@@ -105,8 +105,8 @@ public enum RetroCommand implements CommandInformation {
 	@Override
 	public @NotNull String getPermission() {
 		switch (this) {
-			case ATM:
-				return "retro.atm";
+			case SHOP:
+				return "retro.shop";
 			case SELL:
 				return "retro.sell";
 			case BUY:
@@ -133,7 +133,7 @@ public enum RetroCommand implements CommandInformation {
 	@Override
 	public @NotNull List<String> getAliases() {
 		switch (this) {
-			case ATM:
+			case SHOP:
 			case SELL:
 			case BUY:
 			case TOP:
@@ -147,7 +147,7 @@ public enum RetroCommand implements CommandInformation {
 			case BALANCE:
 				return Collections.singletonList("bal");
 			case RETRO:
-				return Arrays.asList("retroconomy", "eco", "economy", "shop");
+				return Arrays.asList("retroconomy", "eco", "economy");
 			case BANK:
 				return Collections.singletonList("b");
 			default:

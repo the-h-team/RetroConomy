@@ -14,7 +14,6 @@ import com.github.sanctum.retro.RetroConomy;
 import com.github.sanctum.retro.command.CommandInformation;
 import com.github.sanctum.retro.command.CommandOrientation;
 import com.github.sanctum.retro.construct.core.BankAccount;
-import com.github.sanctum.retro.construct.core.ItemDemand;
 import com.github.sanctum.retro.construct.core.WalletAccount;
 import com.github.sanctum.retro.util.ConfiguredMessage;
 import com.github.sanctum.retro.util.FileType;
@@ -74,7 +73,7 @@ public class DefaultCommand extends CommandOrientation {
 	public void player(Player player, String[] args) {
 		if (args.length == 0) {
 			// send help menu
-			ItemDemand.GUI.browse().open(player);
+
 		}
 		if (player.hasPermission(getInformation().getPermission() + ".admin")) {
 			if (args.length == 1) {

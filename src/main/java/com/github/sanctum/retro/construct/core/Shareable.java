@@ -37,7 +37,7 @@ public interface Shareable extends RetroAccount{
 
 	RetroConomy.TransactionResult remove();
 
-	TransactionStatement record(ATM atm, TransactionType type, OfflinePlayer player, BigDecimal amount);
+	TransactionStatement record(Shop atm, TransactionType type, OfflinePlayer player, BigDecimal amount);
 
 	Savable getDebitCard();
 

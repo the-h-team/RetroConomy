@@ -8,7 +8,7 @@
  */
 package com.github.sanctum.retro.command;
 
-import com.github.sanctum.labyrinth.command.CommandBuilder;
+import com.github.sanctum.labyrinth.command.CommandRegistration;
 import com.github.sanctum.labyrinth.library.Message;
 import com.github.sanctum.labyrinth.library.StringUtils;
 import com.github.sanctum.retro.RetroConomy;
@@ -38,7 +38,7 @@ public abstract class CommandOrientation extends Command {
 		setDescription(information.getDescription());
 		setPermissionMessage(color("&cYou don't have permission: &f'<permission>'"));
 		setUsage(information.getUsage());
-		CommandBuilder.register(this);
+		CommandRegistration.use(this);
 	}
 
 	protected final CommandInformation getInformation() {

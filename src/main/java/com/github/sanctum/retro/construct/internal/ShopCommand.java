@@ -11,8 +11,9 @@ package com.github.sanctum.retro.construct.internal;
 import com.github.sanctum.retro.RetroConomy;
 import com.github.sanctum.retro.command.CommandInformation;
 import com.github.sanctum.retro.command.CommandOrientation;
-import com.github.sanctum.retro.construct.core.ATM;
+import com.github.sanctum.retro.construct.core.ItemDemand;
 import com.github.sanctum.retro.construct.core.RetroAccount;
+import com.github.sanctum.retro.construct.core.Shop;
 import java.math.BigDecimal;
 import java.util.List;
 import org.bukkit.command.CommandSender;
@@ -20,9 +21,9 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AtmCommand extends CommandOrientation {
+public class ShopCommand extends CommandOrientation {
 
-	public AtmCommand(@NotNull CommandInformation information) {
+	public ShopCommand(@NotNull CommandInformation information) {
 		super(information);
 	}
 
@@ -39,7 +40,9 @@ public class AtmCommand extends CommandOrientation {
 
 			if (args.length == 0) {
 
-				sendMessage(player, "&cUsages: &r/atm buy,locate");
+				sendMessage(player, "&cUsages: &r/shop buy,locate");
+
+				ItemDemand.GUI.browse().open(player);
 
 			}
 
@@ -47,14 +50,14 @@ public class AtmCommand extends CommandOrientation {
 				if (args[0].equalsIgnoreCase("buy")) {
 					if (wallet != null) {
 						if (wallet.has(1428.98, player.getWorld())) {
-							if (!ATM.has(player)) {
+							if (!Shop.has(player)) {
 								wallet.withdraw(BigDecimal.valueOf(1428.98), player.getWorld());
-								ATM atm = ATM.pick(player);
+								Shop atm = Shop.pick(player);
 								player.getWorld().dropItem(player.getLocation(), atm.toItem());
-								sendMessage(player, "Place down your ATM to begin using it!");
+								sendMessage(player, "Place down your shop to begin using it!");
 							} else {
 								if (player.isOp()) {
-									ATM atm = ATM.pick(player);
+									Shop atm = Shop.pick(player);
 									player.getWorld().dropItem(player.getLocation(), atm.toItem());
 									return;
 								}
@@ -66,8 +69,8 @@ public class AtmCommand extends CommandOrientation {
 					}
 				}
 				if (args[0].equalsIgnoreCase("locate")) {
-					if (ATM.has(player)) {
-						ATM atm = ATM.pick(player);
+					if (Shop.has(player)) {
+						Shop atm = Shop.pick(player);
 						player.teleport(atm.getLocation());
 					} else {
 						sendMessage(player, "&cYou don't have an atm!");

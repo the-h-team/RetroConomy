@@ -8,23 +8,22 @@
  */
 package com.github.sanctum.retro;
 
+import com.github.sanctum.labyrinth.Labyrinth;
 import com.github.sanctum.labyrinth.data.FileList;
 import com.github.sanctum.labyrinth.data.FileManager;
-import com.github.sanctum.labyrinth.data.container.DataContainer;
-import com.github.sanctum.labyrinth.library.HFEncoded;
+import com.github.sanctum.labyrinth.data.container.PersistentContainer;
 import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.labyrinth.library.Message;
 import com.github.sanctum.labyrinth.task.Schedule;
 import com.github.sanctum.retro.api.RetroAPI;
-import com.github.sanctum.retro.construct.core.ATM;
 import com.github.sanctum.retro.construct.core.BankAccount;
 import com.github.sanctum.retro.construct.core.Currency;
 import com.github.sanctum.retro.construct.core.ItemDemand;
 import com.github.sanctum.retro.construct.core.MarketItem;
+import com.github.sanctum.retro.construct.core.Shop;
 import com.github.sanctum.retro.construct.core.SpecialItem;
 import com.github.sanctum.retro.construct.core.SystemItem;
 import com.github.sanctum.retro.construct.core.WalletAccount;
-import com.github.sanctum.retro.construct.internal.AtmCommand;
 import com.github.sanctum.retro.construct.internal.BalanceCommand;
 import com.github.sanctum.retro.construct.internal.BankCommand;
 import com.github.sanctum.retro.construct.internal.BuyCommand;
@@ -33,6 +32,7 @@ import com.github.sanctum.retro.construct.internal.DepositCommand;
 import com.github.sanctum.retro.construct.internal.PayCommand;
 import com.github.sanctum.retro.construct.internal.RetroCommand;
 import com.github.sanctum.retro.construct.internal.SellCommand;
+import com.github.sanctum.retro.construct.internal.ShopCommand;
 import com.github.sanctum.retro.construct.internal.TopCommand;
 import com.github.sanctum.retro.construct.internal.WithdrawCommand;
 import com.github.sanctum.retro.enterprise.EnterpriseEconomy;
@@ -49,6 +49,7 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.entity.Flying;
@@ -209,7 +210,7 @@ public class RetroConomy extends JavaPlugin implements RetroAPI, Listener {
 			manager.getConfig().set("accounts." + account.getId().toString() + ".members", account.getMembers().stream().map(UUID::toString).collect(Collectors.toList()));
 			manager.saveConfig();
 		}
-		for (ATM atm : getManager().ATMS) {
+		for (Shop atm : getManager().SHOPS) {
 			atm.save();
 		}
 	}
@@ -243,14 +244,10 @@ public class RetroConomy extends JavaPlugin implements RetroAPI, Listener {
 				}
 				manager.saveConfig();
 			}
-			HUID id = DataContainer.getHuid("Retro-ATM-" + p.getUniqueId().toString());
-			if (id != null) {
-				try {
-					ATM atm = (ATM) new HFEncoded(DataContainer.loadInstance(id, true).value()).deserialized();
-					getManager().ATMS.add(atm);
-				} catch (IOException | ClassNotFoundException e) {
-					e.printStackTrace();
-				}
+			PersistentContainer container = Labyrinth.getContainer(new NamespacedKey(this, "Shops"));
+			Shop shop = container.get(Shop.class, p.getUniqueId().toString());
+			if (shop != null) {
+				getManager().SHOPS.add(shop);
 			}
 		}
 
@@ -276,7 +273,7 @@ public class RetroConomy extends JavaPlugin implements RetroAPI, Listener {
 			}
 		}).wait(1);
 
-		getServer().getPluginManager().registerEvents(ATM.CONTROLLER, this);
+		getServer().getPluginManager().registerEvents(Shop.CONTROLLER, this);
 		getServer().getPluginManager().registerEvents(ItemDemand.CONTROLLER, this);
 
 		registerCommands();
@@ -444,7 +441,7 @@ public class RetroConomy extends JavaPlugin implements RetroAPI, Listener {
 	}
 
 	private void registerCommands() {
-		new AtmCommand(RetroCommand.ATM);
+		new ShopCommand(RetroCommand.SHOP);
 		new BankCommand(RetroCommand.BANK);
 		new BuyCommand(RetroCommand.BUY);
 		new SellCommand(RetroCommand.SELL);

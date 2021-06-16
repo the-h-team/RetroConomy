@@ -27,6 +27,7 @@ public class TransactionStatement implements Savable {
 	private final OfflinePlayer holder;
 	private final BigDecimal amount;
 	private BigDecimal tax = BigDecimal.ZERO;
+	private String item;
 	private final TransactionType type;
 	private final HUID slipId;
 	private final HUID id;
@@ -39,8 +40,17 @@ public class TransactionStatement implements Savable {
 		this.slipId = HUID.randomID();
 	}
 
+	protected TransactionStatement(String item, OfflinePlayer holder, BigDecimal amount, RetroAccount account, TransactionType type) {
+		this(holder, amount, account, type);
+		this.item = item;
+	}
+
 	public static TransactionStatement from(OfflinePlayer holder, BigDecimal amount, RetroAccount account, TransactionType type) {
 		return new TransactionStatement(holder, amount, account, type);
+	}
+
+	public static TransactionStatement from(String item, OfflinePlayer holder, BigDecimal amount, RetroAccount account, TransactionType type) {
+		return new TransactionStatement(item, holder, amount, account, type);
 	}
 
 	public static TransactionStatement from(OfflinePlayer holder, BigDecimal amount, BigDecimal tax, RetroAccount account, TransactionType type) {
@@ -74,18 +84,37 @@ public class TransactionStatement implements Savable {
 		ItemMeta meta = make.getItemMeta();
 		meta.setDisplayName(StringUtils.use("&6&l&m◄▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬‡&b [Receipt] &6&l&m‡▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬►").translate());
 		if (getAmount().doubleValue() == 0) {
-			meta.setLore(Arrays.asList(StringUtils.use("&bHolder &8&m»&r &7" + holder.getName()).translate(),
-					StringUtils.use("&b# &8&m»&r &7" + id.toString()).translate(),
-					StringUtils.use("&bAmount &8&m»&r &c" + RetroConomy.getInstance().getManager().format(amount.doubleValue())).translate(),
-					StringUtils.use("&bTax &8&m»&r &c" + RetroConomy.getInstance().getManager().format(tax.doubleValue())).translate(),
-					StringUtils.use("&bDate &8&m»&r &7" + new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString()).translate(),
-					StringUtils.use("&c&oTransaction failed.").translate()));
+			if (item != null) {
+				meta.setLore(Arrays.asList(StringUtils.use("&bHolder &8&m»&r &7" + holder.getName()).translate(),
+						StringUtils.use("&b# &8&m»&r &7" + id.toString()).translate(),
+						StringUtils.use("&bItem &8&m»&r &7" + item).translate(),
+						StringUtils.use("&bAmount &8&m»&r &c" + RetroConomy.getInstance().getManager().format(amount.doubleValue())).translate(),
+						StringUtils.use("&bTax &8&m»&r &c" + RetroConomy.getInstance().getManager().format(tax.doubleValue())).translate(),
+						StringUtils.use("&bDate &8&m»&r &7" + new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString()).translate(),
+						StringUtils.use("&c&oTransaction failed.").translate()));
+			} else {
+				meta.setLore(Arrays.asList(StringUtils.use("&bHolder &8&m»&r &7" + holder.getName()).translate(),
+						StringUtils.use("&b# &8&m»&r &7" + id.toString()).translate(),
+						StringUtils.use("&bAmount &8&m»&r &c" + RetroConomy.getInstance().getManager().format(amount.doubleValue())).translate(),
+						StringUtils.use("&bTax &8&m»&r &c" + RetroConomy.getInstance().getManager().format(tax.doubleValue())).translate(),
+						StringUtils.use("&bDate &8&m»&r &7" + new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString()).translate(),
+						StringUtils.use("&c&oTransaction failed.").translate()));
+			}
 		} else {
-			meta.setLore(Arrays.asList(StringUtils.use("&bHolder &8&m»&r &7" + holder.getName()).translate(),
-					this.type == TransactionType.DEPOSIT ? StringUtils.use("&bAmount &8&m»&r &a+&7" + RetroConomy.getInstance().getManager().format(amount.doubleValue())).translate() : StringUtils.use("&bAmount &8&m»&r &4-&7" + RetroConomy.getInstance().getManager().format(amount.doubleValue())).translate(),
-					StringUtils.use("&bTax &8&m»&r &c" + RetroConomy.getInstance().getManager().format(tax.doubleValue())).translate(),
-					StringUtils.use("&b# &8&m»&r &7" + id.toString()).translate(),
-					StringUtils.use("&bDate &8&m»&r &7" + new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString()).translate()));
+			if (item != null) {
+				meta.setLore(Arrays.asList(StringUtils.use("&bHolder &8&m»&r &7" + holder.getName()).translate(),
+						StringUtils.use("&bItem &8&m»&r &7" + item).translate(),
+						this.type == TransactionType.DEPOSIT ? StringUtils.use("&bAmount &8&m»&r &a+&7" + RetroConomy.getInstance().getManager().format(amount.doubleValue())).translate() : StringUtils.use("&bAmount &8&m»&r &4-&7" + RetroConomy.getInstance().getManager().format(amount.doubleValue())).translate(),
+						StringUtils.use("&bTax &8&m»&r &c" + RetroConomy.getInstance().getManager().format(tax.doubleValue())).translate(),
+						StringUtils.use("&b# &8&m»&r &7" + id.toString()).translate(),
+						StringUtils.use("&bDate &8&m»&r &7" + new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString()).translate()));
+			} else {
+				meta.setLore(Arrays.asList(StringUtils.use("&bHolder &8&m»&r &7" + holder.getName()).translate(),
+						this.type == TransactionType.DEPOSIT ? StringUtils.use("&bAmount &8&m»&r &a+&7" + RetroConomy.getInstance().getManager().format(amount.doubleValue())).translate() : StringUtils.use("&bAmount &8&m»&r &4-&7" + RetroConomy.getInstance().getManager().format(amount.doubleValue())).translate(),
+						StringUtils.use("&bTax &8&m»&r &c" + RetroConomy.getInstance().getManager().format(tax.doubleValue())).translate(),
+						StringUtils.use("&b# &8&m»&r &7" + id.toString()).translate(),
+						StringUtils.use("&bDate &8&m»&r &7" + new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString()).translate()));
+			}
 		}
 		make.setItemMeta(meta);
 		return make;

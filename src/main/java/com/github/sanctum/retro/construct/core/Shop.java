@@ -8,8 +8,8 @@
  */
 package com.github.sanctum.retro.construct.core;
 
-import com.github.sanctum.labyrinth.data.container.DataContainer;
-import com.github.sanctum.labyrinth.data.container.PersistentData;
+import com.github.sanctum.labyrinth.Labyrinth;
+import com.github.sanctum.labyrinth.data.container.PersistentContainer;
 import com.github.sanctum.labyrinth.gui.InventoryRows;
 import com.github.sanctum.labyrinth.gui.menuman.Menu;
 import com.github.sanctum.labyrinth.gui.menuman.MenuBuilder;
@@ -20,6 +20,7 @@ import com.github.sanctum.labyrinth.gui.menuman.PaginatedCloseAction;
 import com.github.sanctum.labyrinth.gui.printer.AnvilBuilder;
 import com.github.sanctum.labyrinth.gui.printer.AnvilMenu;
 import com.github.sanctum.labyrinth.library.HUID;
+import com.github.sanctum.labyrinth.library.Item;
 import com.github.sanctum.labyrinth.library.Message;
 import com.github.sanctum.labyrinth.library.StringUtils;
 import com.github.sanctum.labyrinth.task.Schedule;
@@ -41,6 +42,7 @@ import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.TileState;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -52,45 +54,46 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Nullable;
 
-public class ATM implements Savable {
+public class Shop implements Savable {
 
-	private static final NamespacedKey KEY = new NamespacedKey(JavaPlugin.getProvidingPlugin(RetroConomy.class), "retro_atm_block");
 	public static final Controller CONTROLLER = new Controller();
 	private static final long serialVersionUID = -4263717446113447098L;
 
 	private final OfflinePlayer owner;
 	protected final List<TransactionStatement> record = new ArrayList<>();
 	private Location location = null;
-	private final HUID id;
+	private final transient HUID id;
 	private BigDecimal tax = BigDecimal.valueOf(2.13);
 
 	private boolean locked;
 
-	protected ATM(OfflinePlayer owner) {
+	protected Shop(OfflinePlayer owner) {
 		this.owner = owner;
 		this.id = HUID.randomID();
-		RetroConomy.getInstance().getManager().ATMS.add(this);
+		RetroConomy.getInstance().getManager().SHOPS.add(this);
 	}
 
 	public static boolean has(OfflinePlayer target) {
 		if (RetroConomy.getInstance().getManager().getATMs().list().stream().noneMatch(a -> a.getOwner().getUniqueId().equals(target.getUniqueId()))) {
 			return false;
 		}
-		ATM atm = pick(target);
+		Shop atm = pick(target);
 		return atm.getLocation() != null;
 	}
 
-	public static ATM pick(OfflinePlayer target) {
-		return !RetroConomy.getInstance().getManager().getATMs().filter(atm -> atm.owner.getUniqueId().equals(target.getUniqueId())).findFirst().isPresent() ? new ATM(target) : RetroConomy.getInstance().getManager().getATMs().filter(atm -> atm.getOwner().getUniqueId().equals(target.getUniqueId())).findFirst().orElse(null);
+	public static Shop pick(OfflinePlayer target) {
+		return !RetroConomy.getInstance().getManager().getATMs().filter(atm -> atm.owner.getUniqueId().equals(target.getUniqueId())).findFirst().isPresent() ? new Shop(target) : RetroConomy.getInstance().getManager().getATMs().filter(atm -> atm.getOwner().getUniqueId().equals(target.getUniqueId())).findFirst().orElse(null);
 	}
 
-	public static ATM pick(Block b) {
+	public static Shop pick(Block b) {
+		NamespacedKey KEY = new NamespacedKey(JavaPlugin.getProvidingPlugin(RetroConomy.class), "retro_atm_block");
 		if (!(b.getState() instanceof TileState)) {
 			return null;
 		}
@@ -128,12 +131,11 @@ public class ATM implements Savable {
 
 	@Override
 	public ItemStack toItem() {
-		ItemStack atm = new ItemStack(Material.CHEST);
-		ItemMeta meta = atm.getItemMeta();
-		meta.setDisplayName(StringUtils.use("&6[ATM] &e" + getOwner().getName()).translate());
-		meta.setLore(Collections.singletonList(StringUtils.use("").translate()));
-		atm.setItemMeta(meta);
-		return atm;
+		return new Item.Edit(Material.CHEST)
+				.setTitle("&6[&3Shop&6] &e" + getOwner().getName())
+				.setFlags(ItemFlag.HIDE_ENCHANTS)
+				.addEnchantment(Enchantment.VANISHING_CURSE, 1)
+				.build();
 	}
 
 	public TransactionStatement getTransaction(String id) {
@@ -160,7 +162,7 @@ public class ATM implements Savable {
 				if (e instanceof ArmorStand) {
 					ArmorStand a = (ArmorStand) e;
 					if (a.isCustomNameVisible()) {
-						if (a.getCustomName().equals(StringUtils.use("&6[ATM] &e" + getOwner().getName()).translate())) {
+						if (a.getCustomName().equals(StringUtils.use(getOwner().getName() + "'s &2Shop").translate()) || a.getCustomName().equals(StringUtils.use("&eRight click to use me.").translate())) {
 							a.remove();
 							count++;
 						}
@@ -173,7 +175,7 @@ public class ATM implements Savable {
 				if (e instanceof ArmorStand) {
 					ArmorStand a = (ArmorStand) e;
 					if (a.isCustomNameVisible()) {
-						if (a.getCustomName().equals(StringUtils.use("&6[ATM] &e" + getOwner().getName()).translate())) {
+						if (a.getCustomName().equals(StringUtils.use(getOwner().getName() + "'s &2Shop").translate()) || a.getCustomName().equals(StringUtils.use("&eRight click to use me.").translate())) {
 							a.remove();
 							count++;
 						}
@@ -187,11 +189,9 @@ public class ATM implements Savable {
 
 	public void remove() {
 		despawn();
-		HUID id = DataContainer.getHuid("Retro-ATM-" + getOwner().getUniqueId().toString());
-		if (id != null) {
-			DataContainer.deleteInstance(id);
-		}
-		RetroConomy.getInstance().getManager().ATMS.remove(this);
+		PersistentContainer container = Labyrinth.getContainer(new NamespacedKey(JavaPlugin.getProvidingPlugin(RetroConomy.class), "Shops"));
+		container.delete(getOwner().getUniqueId().toString());
+		RetroConomy.getInstance().getManager().SHOPS.remove(this);
 	}
 
 	public BigDecimal collect() {
@@ -222,20 +222,8 @@ public class ATM implements Savable {
 	}
 
 	public synchronized void save() {
-		HUID id = DataContainer.getHuid("Retro-ATM-" + getOwner().getUniqueId().toString());
-		if (id != null) {
-			try {
-				DataContainer container = PersistentData.reload(id, true);
-				container.setValue(this);
-				container.storeTemp();
-				container.saveMeta();
-			} catch (Exception ignored) {}
-		} else {
-			DataContainer container = PersistentData.build("Retro-ATM-" + getOwner().getUniqueId().toString());
-			container.setValue(this);
-			container.storeTemp();
-			container.saveMeta();
-		}
+		PersistentContainer container = Labyrinth.getContainer(new NamespacedKey(JavaPlugin.getProvidingPlugin(RetroConomy.class), "Shops"));
+		container.attach(getOwner().getUniqueId().toString(), this);
 	}
 
 	public synchronized boolean use(Block b) {
@@ -243,7 +231,7 @@ public class ATM implements Savable {
 			return false;
 		this.location = b.getLocation().add(0.5, 1, 0.5);
 		TileState state = (TileState) b.getState();
-		state.getPersistentDataContainer().set(KEY, PersistentDataType.STRING, getOwner().getUniqueId().toString());
+		state.getPersistentDataContainer().set(new NamespacedKey(JavaPlugin.getProvidingPlugin(RetroConomy.class), "retro_atm_block"), PersistentDataType.STRING, getOwner().getUniqueId().toString());
 		int amount = despawn();
 		if (getOwner().isOnline()) {
 			Message.form(getOwner().getPlayer()).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix")).send("&8(&7" + amount + "&8) &aold marks were found and removed.");
@@ -254,7 +242,14 @@ public class ATM implements Savable {
 			stand.setSmall(true);
 			stand.setMarker(true);
 			stand.setCustomNameVisible(true);
-			stand.setCustomName(StringUtils.use("&6[ATM] &e" + getOwner().getName()).translate());
+			stand.setCustomName(StringUtils.use(getOwner().getName() + "'s &2Shop").translate());
+			Location loc = new Location(location.getWorld(), location.getX(), location.getY(), location.getZ()).subtract(0, 0.2, 0);
+			ArmorStand stand2 = b.getWorld().spawn(loc, ArmorStand.class);
+			stand2.setVisible(false);
+			stand2.setSmall(true);
+			stand2.setMarker(true);
+			stand2.setCustomNameVisible(true);
+			stand2.setCustomName(StringUtils.use("&eRight click to use me.").translate());
 			save();
 			return true;
 		}
@@ -285,7 +280,7 @@ public class ATM implements Savable {
 			return s;
 		};
 
-		public static AnvilMenu write(ATM atm, @Nullable HUID accountId, Type type) {
+		public static AnvilMenu write(Shop atm, @Nullable HUID accountId, Type type) {
 			switch (type) {
 				case DEPOSIT_ACCOUNT:
 					return AnvilBuilder.from(StringUtils.use("&2Specify a deposit").translate())
@@ -486,7 +481,7 @@ public class ATM implements Savable {
 			}
 		}
 
-		public static Menu.Paginated<TransactionStatement> browse(ATM atm) {
+		public static Menu.Paginated<TransactionStatement> browse(Shop atm) {
 			return new PaginatedBuilder<>(atm.record)
 					.forPlugin(JavaPlugin.getProvidingPlugin(RetroConomy.class))
 					.setTitle(StringUtils.use("").translate())
@@ -502,7 +497,7 @@ public class ATM implements Savable {
 								Message.form(click.getPlayer()).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix")).send("&aYou received " + RetroConomy.getInstance().getManager().format(amount) + " of tax.");
 							}
 						}
-						ATM.GUI.browse(atm).open(click.getPlayer());
+						Shop.GUI.browse(atm).open(click.getPlayer());
 					})
 					.setNavigationLeft(left.get(), 48, PaginatedClickAction::sync)
 					.setNavigationRight(right.get(), 50, PaginatedClickAction::sync)
@@ -516,7 +511,7 @@ public class ATM implements Savable {
 									Message.form(click.getPlayer()).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix")).send("&aYou received " + RetroConomy.getInstance().getManager().format(amount) + " of tax.");
 								}
 								atm.record.remove(slip);
-								ATM.GUI.browse(atm).open(click.getPlayer());
+								Shop.GUI.browse(atm).open(click.getPlayer());
 							}
 						});
 					})
@@ -537,7 +532,7 @@ public class ATM implements Savable {
 					.build();
 		}
 
-		public static Menu select(ATM atm, HUID account, Type type) {
+		public static Menu select(Shop atm, HUID account, Type type) {
 			switch (type) {
 				case ADMIN_PANEL:
 					return new MenuBuilder(InventoryRows.THREE, "")
@@ -568,6 +563,9 @@ public class ATM implements Savable {
 							.setLore(StringUtils.use("&7Adjust the transaction tax for account usage.").translate())
 							.setAction(click -> write(atm, null, Type.TAX_EDIT).setViewer(click.getPlayer()).open())
 							.assignToSlots(16)
+							.addElement(new Item.Edit(Material.BOOKSHELF).setTitle("&3[&bShop&3]").setLore("&7Click to browse.").build())
+							.setAction(click -> ItemDemand.GUI.playerSelect(atm.getOwner().getUniqueId()).open(click.getPlayer()))
+							.assignToSlots(22)
 							.setFiller(new ItemStack(Material.GRAY_STAINED_GLASS_PANE))
 							.setText(" ")
 							.set()
@@ -591,6 +589,9 @@ public class ATM implements Savable {
 							.setLore(StringUtils.use("&7Click to deposit/withdraw bank money.").translate())
 							.setAction(click -> select(atm, null, Type.ACCOUNT_LOGIN).open(click.getPlayer()))
 							.assignToSlots(14)
+							.addElement(new Item.Edit(Material.BOOKSHELF).setTitle("&3[&bShop&3]").setLore("&7Click to browse.").build())
+							.setAction(click -> ItemDemand.GUI.playerSelect(atm.getOwner().getUniqueId()).open(click.getPlayer()))
+							.assignToSlots(22)
 							.setFiller(new ItemStack(Material.GRAY_STAINED_GLASS_PANE))
 							.setText(" ")
 							.set()
@@ -713,7 +714,7 @@ public class ATM implements Savable {
 			if (e.isCancelled())
 				return;
 
-			ATM atm = pick(b);
+			Shop atm = pick(b);
 
 			Message msg = Message.form(p).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix"));
 
@@ -724,7 +725,7 @@ public class ATM implements Savable {
 					p.getWorld().dropItem(b.getLocation(), atm.toItem());
 					atm.remove();
 				} else {
-					msg.send("&cYou don't own this ATM you can't do this!");
+					msg.send("&cYou don't own this shop you can't do this!");
 					p.getWorld().playSound(p.getLocation(), Sound.ENTITY_VILLAGER_AMBIENT, 10, 1);
 					e.setCancelled(true);
 				}
@@ -741,7 +742,7 @@ public class ATM implements Savable {
 				if (b == null)
 					return;
 
-				ATM atm = pick(b);
+				Shop atm = pick(b);
 
 				if (atm != null) {
 					e.setCancelled(true);
@@ -764,32 +765,36 @@ public class ATM implements Savable {
 			if (!(e.getBlock().getState() instanceof TileState))
 				return;
 
-			Message msg = Message.form(p).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix"));
-			ATM atm = pick(p);
-			if (!has(p)) {
-				if (i.isSimilar(atm.toItem())) {
-					Block b = e.getBlock();
-					Schedule.sync(() -> {
-						if (atm.use(b)) {
-							// set the atm location.
+			if (i.hasItemMeta() && StringUtils.use(i.getItemMeta().getDisplayName()).containsIgnoreCase("Shop")) {
 
-							msg.send("&aYou built your own ATM.");
+				Message msg = Message.form(p).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix"));
+				Shop atm = pick(p);
+				if (!has(p)) {
+					if (i.isSimilar(atm.toItem())) {
+						Block b = e.getBlock();
+						Schedule.sync(() -> {
+							if (atm.use(b)) {
+								// set the atm location.
+
+								msg.send("&aYou built a market access point.");
+								e.getItemInHand().setAmount(0);
+							}
+						}).wait(2);
+					}
+				} else {
+					if (!atm.getLocation().getChunk().equals(e.getBlock().getChunk())) {
+
+						atm.remove();
+						Shop n = pick(p);
+						if (n.use(e.getBlock())) {
+							// set the atm location.
 							e.getItemInHand().setAmount(0);
+							msg.send("&aYou have updated your market access point location.");
 						}
-					}).wait(2);
-				}
-			} else {
-				if (!atm.getLocation().getChunk().equals(e.getBlock().getChunk())) {
-					atm.remove();
-					ATM n = pick(p);
-					if (n.use(e.getBlock())) {
-						// set the atm location.
-						e.getItemInHand().setAmount(0);
-						msg.send("&aYou have updated your ATM location.");
 					}
 				}
-			}
 
+			}
 		}
 
 	}
