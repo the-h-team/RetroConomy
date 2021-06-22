@@ -11,6 +11,13 @@ import java.math.BigDecimal;
 public interface MoneyTrader extends Trader {
     void giveMoney(@NotNull BigDecimal amount) throws TraderMoneyException;
     void takeMoney(@NotNull BigDecimal amount) throws TraderMoneyException;
-    void giveMoneyTo(Trader to, @NotNull BigDecimal amount) throws TraderMoneyException;
-    void takeMoneyFrom(Trader from, @NotNull BigDecimal amount) throws TraderMoneyException;
+
+    default void giveMoneyTo(MoneyTrader to, @NotNull BigDecimal amount) throws TraderMoneyException {
+        takeMoney(amount);
+        to.giveMoney(amount);
+    }
+    default void takeMoneyFrom(MoneyTrader from, @NotNull BigDecimal amount) throws TraderMoneyException {
+        from.takeMoney(amount);
+        giveMoney(amount);
+    }
 }
