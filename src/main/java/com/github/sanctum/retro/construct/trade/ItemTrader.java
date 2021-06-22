@@ -10,6 +10,6 @@ import org.jetbrains.annotations.NotNull;
 public interface ItemTrader extends Trader {
     void giveItem(@NotNull ItemStack item) throws TraderItemException;
     void takeItem(@NotNull ItemStack item) throws TraderItemException;
-    void giveItems(@NotNull Iterable<ItemStack> item) throws TraderItemException;
-    void takeItems(@NotNull Iterable<ItemStack> item) throws TraderItemException;
+    void giveItems(@NotNull Iterable<ItemStack> items) throws TraderItemException;
+    void takeItems(@NotNull Iterable<ItemStack> items) throws TraderItemException;
 }

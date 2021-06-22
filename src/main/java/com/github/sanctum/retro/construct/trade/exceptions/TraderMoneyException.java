@@ -8,10 +8,12 @@ import java.util.Optional;
 public class TraderMoneyException extends TraderException {
     private final BigDecimal amount;
 
-    public TraderMoneyException() {
+    public TraderMoneyException(String detail) {
+        super(detail);
         this.amount = null;
     }
-    public TraderMoneyException(@NotNull BigDecimal amount) {
+    public TraderMoneyException(@NotNull BigDecimal amount, String details) {
+        super(details);
         this.amount = amount;
     }
 
