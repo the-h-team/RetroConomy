@@ -22,6 +22,7 @@ import com.github.sanctum.labyrinth.gui.printer.AnvilMenu;
 import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.labyrinth.library.Item;
 import com.github.sanctum.labyrinth.library.Message;
+import com.github.sanctum.labyrinth.library.NamespacedKey;
 import com.github.sanctum.labyrinth.library.StringUtils;
 import com.github.sanctum.labyrinth.task.Schedule;
 import com.github.sanctum.retro.RetroConomy;
@@ -36,7 +37,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
@@ -93,7 +93,7 @@ public class Shop implements Savable {
 	}
 
 	public static Shop pick(Block b) {
-		NamespacedKey KEY = new NamespacedKey(JavaPlugin.getProvidingPlugin(RetroConomy.class), "retro_atm_block");
+		org.bukkit.NamespacedKey KEY = new org.bukkit.NamespacedKey(JavaPlugin.getProvidingPlugin(RetroConomy.class), "retro_atm_block");
 		if (!(b.getState() instanceof TileState)) {
 			return null;
 		}
@@ -231,7 +231,7 @@ public class Shop implements Savable {
 			return false;
 		this.location = b.getLocation().add(0.5, 1, 0.5);
 		TileState state = (TileState) b.getState();
-		state.getPersistentDataContainer().set(new NamespacedKey(JavaPlugin.getProvidingPlugin(RetroConomy.class), "retro_atm_block"), PersistentDataType.STRING, getOwner().getUniqueId().toString());
+		state.getPersistentDataContainer().set(new org.bukkit.NamespacedKey(JavaPlugin.getProvidingPlugin(RetroConomy.class), "retro_atm_block"), PersistentDataType.STRING, getOwner().getUniqueId().toString());
 		int amount = despawn();
 		if (getOwner().isOnline()) {
 			Message.form(getOwner().getPlayer()).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix")).send("&8(&7" + amount + "&8) &aold marks were found and removed.");

@@ -29,8 +29,12 @@ import com.github.sanctum.retro.util.FormattedMessage;
 import com.github.sanctum.retro.util.ItemModificationEvent;
 import com.github.sanctum.retro.util.NotifiableEntity;
 import com.github.sanctum.retro.util.TransactionType;
+import com.github.sanctum.skulls.CustomHeadLoader;
+import com.github.sanctum.skulls.SkullType;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -530,7 +534,7 @@ public interface ItemDemand extends Modifiable, SellableItem {
 								});
 					})
 					.extraElements()
-					.invoke(() -> new Item.Edit(SkullItem.Head.provide(SkullItem.ARROW_CYAN_LEFT)).setTitle("&cGo back.").build(), 8, click -> browse().open(click.getPlayer()))
+					.invoke(() -> new Item.Edit(SkullType.ARROW_BLACK_LEFT.get()).setTitle("&cGo back.").build(), 8, click -> browse().open(click.getPlayer()))
 					.add()
 					.build();
 		}
@@ -675,8 +679,8 @@ public interface ItemDemand extends Modifiable, SellableItem {
 					.setAlreadyLast(StringUtils.use("&cYou are already on the last page.").translate())
 					.setCloseAction(PaginatedCloseAction::clear)
 					.setNavigationBack(() -> Items.getItem(Material.BARRIER, "&aClick to refresh."), 49, click -> bid(click.getPlayer(), category).open(click.getPlayer()))
-					.setNavigationLeft(() -> new Item.Edit(SkullItem.Head.provide(SkullItem.ARROW_BLACK_LEFT)).setTitle(StringUtils.use("&3← Go back a page").translate()).build(), 45, click -> click.sync(1, 5))
-					.setNavigationRight(() -> new Item.Edit(SkullItem.Head.provide(SkullItem.ARROW_BLACK_RIGHT)).setTitle(StringUtils.use("&3Go to the next page →").translate()).build(), 53, click -> click.sync(1, 5))
+					.setNavigationLeft(() -> new Item.Edit(SkullType.ARROW_BLACK_LEFT.get()).setTitle(StringUtils.use("&3← Go back a page").translate()).build(), 45, click -> click.sync(1, 5))
+					.setNavigationRight(() -> new Item.Edit(SkullType.ARROW_BLACK_RIGHT.get()).setTitle(StringUtils.use("&3Go to the next page →").translate()).build(), 53, click -> click.sync(1, 5))
 					.setupProcess(e -> {
 						e.setItem(() -> {
 							MarketItem demand = (MarketItem) e.getContext();
@@ -693,12 +697,32 @@ public interface ItemDemand extends Modifiable, SellableItem {
 								}
 								i.setAmount(1);
 								ItemMeta meta = i.getItemMeta();
+
+								List<String> lore = new ArrayList<>();
+
+								if (meta.getLore() != null) {
+
+									lore.addAll(i.getItemMeta().getLore());
+
+								}
+
 								Map<Enchantment, Integer> enchantments = demand.getItem().getEnchantments();
 								if (demand.getOwner().equals(viewer.getUniqueId())) {
-									meta.setLore(Arrays.asList(StringUtils.use(" ").translate(),
+
+									List<String> set = new ArrayList<>(Arrays.asList(StringUtils.use(" ").translate(),
 											StringUtils.use("&7Seller &3► &b&n" + Bukkit.getOfflinePlayer(demand.getOwner()).getName()).translate(),
 											StringUtils.use("&7Amount &3► &f(&a" + demand.getAmount() + "&f)").translate(),
 											StringUtils.use("&7Enchants &3► &f(&3" + enchantments.size() + "&f) " + enchantments.entrySet().stream().map(en -> en.getKey().getKey().getKey() + " Lvl." + en.getValue()).collect(Collectors.joining())).translate(),
+											StringUtils.use(" ").translate(),
+											StringUtils.use("&7Lore &3►").translate()));
+
+									if (lore.isEmpty()) {
+										set.add(StringUtils.use("&r Empty").translate());
+									} else {
+										set.addAll(lore);
+									}
+
+									set.addAll(Arrays.asList(
 											StringUtils.use(" ").translate(),
 											StringUtils.use("&7Right-click to &3buy&7.").translate(),
 											StringUtils.use(" ").translate(),
@@ -711,11 +735,23 @@ public interface ItemDemand extends Modifiable, SellableItem {
 											StringUtils.use(" ").translate(),
 											StringUtils.use("&eRecent bought &7(&21m&f, &25m&f, &215m&7): &f" + demand.getBought(TimeUnit.MINUTES, 1) + ", " + demand.getBought(TimeUnit.MINUTES, 5) + ", " + demand.getBought(TimeUnit.MINUTES, 15)).translate(),
 											StringUtils.use(" ").translate()));
+
+									meta.setLore(set);
 								} else {
-									meta.setLore(Arrays.asList(StringUtils.use(" ").translate(),
+									List<String> set = new ArrayList<>(Arrays.asList(StringUtils.use(" ").translate(),
 											StringUtils.use("&7Seller &3► &b&n" + Bukkit.getOfflinePlayer(demand.getOwner()).getName()).translate(),
 											StringUtils.use("&7Amount &3► &f(&a" + demand.getAmount() + "&f)").translate(),
 											StringUtils.use("&7Enchants &3► &f(&3" + enchantments.size() + "&f) " + enchantments.entrySet().stream().map(en -> en.getKey().getKey().getKey() + " Lvl." + en.getValue()).collect(Collectors.joining())).translate(),
+											StringUtils.use(" ").translate(),
+											StringUtils.use("&7Lore &3►").translate()));
+
+									if (lore.isEmpty()) {
+										set.add(StringUtils.use("&r Empty").translate());
+									} else {
+										set.addAll(lore);
+									}
+
+									set.addAll(Arrays.asList(
 											StringUtils.use(" ").translate(),
 											StringUtils.use("&7Right-click to &3buy&7.").translate(),
 											StringUtils.use(" ").translate(),
@@ -725,6 +761,8 @@ public interface ItemDemand extends Modifiable, SellableItem {
 											StringUtils.use(" ").translate(),
 											StringUtils.use("&eRecent bought &7(&21m&f, &25m&f, &215m&7): &f" + demand.getBought(TimeUnit.MINUTES, 1) + ", " + demand.getBought(TimeUnit.MINUTES, 5) + ", " + demand.getBought(TimeUnit.MINUTES, 15)).translate(),
 											StringUtils.use(" ").translate()));
+
+									meta.setLore(set);
 								}
 								meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 								i.setItemMeta(meta);
@@ -773,7 +811,7 @@ public interface ItemDemand extends Modifiable, SellableItem {
 						});
 					})
 					.extraElements()
-					.invoke(new Item.Edit(SkullItem.Head.provide(SkullItem.ARROW_CYAN_UP)).setTitle(StringUtils.use("&cCategories.").translate()).build(), 52, click -> {
+					.invoke(new Item.Edit(SkullType.ARROW_BLUE_UP.get()).setTitle(StringUtils.use("&cCategories.").translate()).build(), 52, click -> {
 						playerSelect(target).open(click.getPlayer());
 					})
 					.add()
@@ -794,8 +832,8 @@ public interface ItemDemand extends Modifiable, SellableItem {
 					.setAlreadyLast(StringUtils.use("&cYou are already on the last page.").translate())
 					.setCloseAction(PaginatedCloseAction::clear)
 					.setNavigationBack(() -> Items.getItem(Material.BARRIER, "&aClick to refresh."), 49, click -> bid(click.getPlayer(), category).open(click.getPlayer()))
-					.setNavigationLeft(() -> new Item.Edit(SkullItem.Head.provide(SkullItem.ARROW_BLACK_LEFT)).setTitle(StringUtils.use("&3← Go back a page").translate()).build(), 45, click -> click.sync(1, 5))
-					.setNavigationRight(() -> new Item.Edit(SkullItem.Head.provide(SkullItem.ARROW_BLACK_RIGHT)).setTitle(StringUtils.use("&3Go to the next page →").translate()).build(), 53, click -> click.sync(1, 5))
+					.setNavigationLeft(() -> new Item.Edit(SkullType.ARROW_BLACK_LEFT.get()).setTitle(StringUtils.use("&3← Go back a page").translate()).build(), 45, click -> click.sync(1, 5))
+					.setNavigationRight(() -> new Item.Edit(SkullType.ARROW_BLACK_RIGHT.get()).setTitle(StringUtils.use("&3Go to the next page →").translate()).build(), 53, click -> click.sync(1, 5))
 					.setupProcess(e -> {
 						e.setItem(() -> {
 							MarketItem demand = (MarketItem) e.getContext();
@@ -812,12 +850,32 @@ public interface ItemDemand extends Modifiable, SellableItem {
 								}
 								i.setAmount(1);
 								ItemMeta meta = i.getItemMeta();
+
+								List<String> lore = new ArrayList<>();
+
+								if (meta.getLore() != null) {
+
+									lore.addAll(i.getItemMeta().getLore());
+
+								}
+
 								Map<Enchantment, Integer> enchantments = demand.getItem().getEnchantments();
 								if (demand.getOwner().equals(viewer.getUniqueId())) {
-									meta.setLore(Arrays.asList(StringUtils.use(" ").translate(),
+
+									List<String> set = new ArrayList<>(Arrays.asList(StringUtils.use(" ").translate(),
 											StringUtils.use("&7Seller &3► &b&n" + Bukkit.getOfflinePlayer(demand.getOwner()).getName()).translate(),
 											StringUtils.use("&7Amount &3► &f(&a" + demand.getAmount() + "&f)").translate(),
 											StringUtils.use("&7Enchants &3► &f(&3" + enchantments.size() + "&f) " + enchantments.entrySet().stream().map(en -> en.getKey().getKey().getKey() + " Lvl." + en.getValue()).collect(Collectors.joining())).translate(),
+											StringUtils.use(" ").translate(),
+											StringUtils.use("&7Lore &3►").translate()));
+
+									if (lore.isEmpty()) {
+										set.add(StringUtils.use("&r Empty").translate());
+									} else {
+										set.addAll(lore);
+									}
+
+									set.addAll(Arrays.asList(
 											StringUtils.use(" ").translate(),
 											StringUtils.use("&7Right-click to &3buy&7.").translate(),
 											StringUtils.use(" ").translate(),
@@ -830,11 +888,23 @@ public interface ItemDemand extends Modifiable, SellableItem {
 											StringUtils.use(" ").translate(),
 											StringUtils.use("&eRecent bought &7(&21m&f, &25m&f, &215m&7): &f" + demand.getBought(TimeUnit.MINUTES, 1) + ", " + demand.getBought(TimeUnit.MINUTES, 5) + ", " + demand.getBought(TimeUnit.MINUTES, 15)).translate(),
 											StringUtils.use(" ").translate()));
+
+									meta.setLore(set);
 								} else {
-									meta.setLore(Arrays.asList(StringUtils.use(" ").translate(),
+									List<String> set = new ArrayList<>(Arrays.asList(StringUtils.use(" ").translate(),
 											StringUtils.use("&7Seller &3► &b&n" + Bukkit.getOfflinePlayer(demand.getOwner()).getName()).translate(),
 											StringUtils.use("&7Amount &3► &f(&a" + demand.getAmount() + "&f)").translate(),
 											StringUtils.use("&7Enchants &3► &f(&3" + enchantments.size() + "&f) " + enchantments.entrySet().stream().map(en -> en.getKey().getKey().getKey() + " Lvl." + en.getValue()).collect(Collectors.joining())).translate(),
+											StringUtils.use(" ").translate(),
+											StringUtils.use("&7Lore &3►").translate()));
+
+									if (lore.isEmpty()) {
+										set.add(StringUtils.use("&r Empty").translate());
+									} else {
+										set.addAll(lore);
+									}
+
+									set.addAll(Arrays.asList(
 											StringUtils.use(" ").translate(),
 											StringUtils.use("&7Right-click to &3buy&7.").translate(),
 											StringUtils.use(" ").translate(),
@@ -844,6 +914,8 @@ public interface ItemDemand extends Modifiable, SellableItem {
 											StringUtils.use(" ").translate(),
 											StringUtils.use("&eRecent bought &7(&21m&f, &25m&f, &215m&7): &f" + demand.getBought(TimeUnit.MINUTES, 1) + ", " + demand.getBought(TimeUnit.MINUTES, 5) + ", " + demand.getBought(TimeUnit.MINUTES, 15)).translate(),
 											StringUtils.use(" ").translate()));
+
+									meta.setLore(set);
 								}
 								meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 								i.setItemMeta(meta);
@@ -895,7 +967,7 @@ public interface ItemDemand extends Modifiable, SellableItem {
 					.invoke(new Item.Edit(Material.HEART_OF_THE_SEA).setTitle(StringUtils.use("&3[&eServer Market&3]").translate()).build(), 46, click -> {
 						browse().open(click.getPlayer());
 					})
-					.invoke(new Item.Edit(SkullItem.Head.provide(SkullItem.ARROW_CYAN_UP)).setTitle(StringUtils.use("&cCategories.").translate()).build(), 52, click -> {
+					.invoke(new Item.Edit(SkullType.ARROW_BLUE_UP.get()).setTitle(StringUtils.use("&cCategories.").translate()).build(), 52, click -> {
 						categorySelect().open(click.getPlayer());
 					})
 					.add()
@@ -916,8 +988,8 @@ public interface ItemDemand extends Modifiable, SellableItem {
 					.setAlreadyLast(StringUtils.use("&cYou are already on the last page.").translate())
 					.setCloseAction(PaginatedCloseAction::clear)
 					.setNavigationBack(() -> Items.getItem(Material.BARRIER, "&aClick to refresh."), 49, click -> browse().open(click.getPlayer()))
-					.setNavigationLeft(() -> new Item.Edit(SkullItem.Head.provide(SkullItem.ARROW_BLACK_LEFT)).setTitle(StringUtils.use("&3← Go back a page").translate()).build(), 45, click -> click.sync(click.getPage(), 1, 5))
-					.setNavigationRight(() -> new Item.Edit(SkullItem.Head.provide(SkullItem.ARROW_BLACK_RIGHT)).setTitle(StringUtils.use("&3Go to the next page →").translate()).build(), 53, click -> click.sync(click.getPage(), 1, 5))
+					.setNavigationLeft(() -> new Item.Edit(SkullType.ARROW_BLACK_LEFT.get()).setTitle(StringUtils.use("&3← Go back a page").translate()).build(), 45, click -> click.sync(1, 5))
+					.setNavigationRight(() -> new Item.Edit(SkullType.ARROW_BLACK_RIGHT.get()).setTitle(StringUtils.use("&3Go to the next page →").translate()).build(), 53, click -> click.sync(1, 5))
 					.setupProcess(e -> {
 						e.setItem(() -> {
 							ItemDemand demand = e.getContext();
@@ -960,7 +1032,7 @@ public interface ItemDemand extends Modifiable, SellableItem {
 					.invoke(new Item.Edit(Material.HEART_OF_THE_SEA).setTitle(StringUtils.use("&3[&7Player Market&3]").translate()).build(), 46, click -> {
 						categorySelect().open(click.getPlayer());
 					})
-					.invoke(new Item.Edit(SkullItem.Head.provide("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjgwNWQ1NWYyMWI0OWEwNzRjZDVlM2RjMjQ0YTVhMDcwZTU1NDRiNTRmYTkyNTRkMmRjMmUxOGYxZTY4MDJmOSJ9fX0=")).setTitle(StringUtils.use("&3[&cMute Notifications&3]").translate()).build(), 52, click -> {
+					.invoke(new Item.Edit(CustomHeadLoader.provide("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjgwNWQ1NWYyMWI0OWEwNzRjZDVlM2RjMjQ0YTVhMDcwZTU1NDRiNTRmYTkyNTRkMmRjMmUxOGYxZTY4MDJmOSJ9fX0=")).setTitle(StringUtils.use("&3[&cMute Notifications&3]").translate()).build(), 52, click -> {
 						NotifiableEntity entity = NotifiableEntity.pick(click.getPlayer());
 						edit(entity).open(click.getPlayer());
 					})
