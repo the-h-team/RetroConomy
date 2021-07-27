@@ -19,7 +19,6 @@ import com.github.sanctum.labyrinth.library.Item;
 import com.github.sanctum.labyrinth.library.Items;
 import com.github.sanctum.labyrinth.library.MathUtils;
 import com.github.sanctum.labyrinth.library.Message;
-import com.github.sanctum.labyrinth.library.SkullItem;
 import com.github.sanctum.labyrinth.library.StringUtils;
 import com.github.sanctum.labyrinth.library.TimeWatch;
 import com.github.sanctum.retro.RetroConomy;
@@ -482,7 +481,7 @@ public interface ItemDemand extends Modifiable, SellableItem {
 						bid(click.getPlayer(), target, MarketItem.Category.Armor).open(click.getPlayer());
 					})
 					.assignToSlots(15)
-					.addElement(new Item.Edit(SkullItem.Head.provide(SkullItem.COMMAND_BLOCK)).setTitle(StringUtils.use("&dHead &7(&b" + (int) RetroConomy.getInstance().getManager().getMarket().filter(i -> i instanceof MarketItem && MarketItem.getCategory(i.getItem().getType()) == MarketItem.Category.Head && ((MarketItem) i).getOwner().equals(target)).count() + "&7)").translate()).build())
+					.addElement(new Item.Edit(SkullType.COMMAND_BLOCK.get()).setTitle(StringUtils.use("&dHead &7(&b" + (int) RetroConomy.getInstance().getManager().getMarket().filter(i -> i instanceof MarketItem && MarketItem.getCategory(i.getItem().getType()) == MarketItem.Category.Head && ((MarketItem) i).getOwner().equals(target)).count() + "&7)").translate()).build())
 					.setAction(click -> {
 						bid(click.getPlayer(), target, MarketItem.Category.Head).open(click.getPlayer());
 					})
@@ -576,7 +575,7 @@ public interface ItemDemand extends Modifiable, SellableItem {
 						bid(click.getPlayer(), MarketItem.Category.Armor).open(click.getPlayer());
 					})
 					.assignToSlots(15)
-					.addElement(new Item.Edit(SkullItem.Head.provide(SkullItem.COMMAND_BLOCK)).setTitle(StringUtils.use("&dHead &7(&b" + (int) RetroConomy.getInstance().getManager().getMarket().filter(i -> i instanceof MarketItem && MarketItem.getCategory(i.getItem().getType()) == MarketItem.Category.Head).count() + "&7)").translate()).build())
+					.addElement(new Item.Edit(SkullType.COMMAND_BLOCK.get()).setTitle(StringUtils.use("&dHead &7(&b" + (int) RetroConomy.getInstance().getManager().getMarket().filter(i -> i instanceof MarketItem && MarketItem.getCategory(i.getItem().getType()) == MarketItem.Category.Head).count() + "&7)").translate()).build())
 					.setAction(click -> {
 						bid(click.getPlayer(), MarketItem.Category.Head).open(click.getPlayer());
 					})

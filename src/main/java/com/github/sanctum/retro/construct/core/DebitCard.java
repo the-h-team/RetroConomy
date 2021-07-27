@@ -1,9 +1,9 @@
 package com.github.sanctum.retro.construct.core;
 
 import com.github.sanctum.labyrinth.library.HUID;
-import com.github.sanctum.labyrinth.library.SkullItem;
 import com.github.sanctum.labyrinth.library.StringUtils;
 import com.github.sanctum.retro.RetroConomy;
+import com.github.sanctum.skulls.CustomHead;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -27,7 +27,7 @@ public class DebitCard implements Savable {
 
 	@Override
 	public ItemStack toItem() {
-		ItemStack copy = SkullItem.Head.search(account.getOwner());
+		ItemStack copy = CustomHead.Manager.get(account.getOwner());
 		if (copy == null) {
 			copy = new ItemStack(Material.PLAYER_HEAD);
 		}

@@ -254,7 +254,7 @@ public class RetroConomy extends JavaPlugin implements RetroAPI, Listener {
 		getManager().loadCurrencies();
 
 		for (String id : manager.getConfig().getConfigurationSection("accounts").getKeys(false)) {
-			this.manager.ACCOUNTS.add(new BankAccount(UUID.fromString(manager.getConfig().getString("accounts." + id + ".owner")), manager.getConfig().getString("accounts." + id + ".joint") != null ? UUID.fromString(manager.getConfig().getString("accounts." + id + ".joint")) : null, HUID.fromString(id), manager.getConfig().getStringList("accounts." + id + ".members")));
+			this.manager.ACCOUNTS.add(new BankAccount(UUID.fromString(manager.getConfig().getString("accounts." + id + ".owner")), manager.getConfig().isString("accounts." + id + ".joint") ? UUID.fromString(manager.getConfig().getString("accounts." + id + ".joint")) : null, HUID.fromString(id), manager.getConfig().getStringList("accounts." + id + ".members")));
 		}
 		for (String id : manager.getConfig().getConfigurationSection("wallets").getKeys(false)) {
 			OfflinePlayer owner = Bukkit.getOfflinePlayer(UUID.fromString(id));
