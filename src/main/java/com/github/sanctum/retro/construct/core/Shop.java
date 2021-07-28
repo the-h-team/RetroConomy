@@ -8,7 +8,7 @@
  */
 package com.github.sanctum.retro.construct.core;
 
-import com.github.sanctum.labyrinth.Labyrinth;
+import com.github.sanctum.labyrinth.LabyrinthProvider;
 import com.github.sanctum.labyrinth.data.container.PersistentContainer;
 import com.github.sanctum.labyrinth.gui.InventoryRows;
 import com.github.sanctum.labyrinth.gui.menuman.Menu;
@@ -27,6 +27,7 @@ import com.github.sanctum.labyrinth.library.StringUtils;
 import com.github.sanctum.labyrinth.task.Schedule;
 import com.github.sanctum.retro.RetroConomy;
 import com.github.sanctum.retro.util.TransactionType;
+import com.github.sanctum.skulls.SkullType;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -189,7 +190,7 @@ public class Shop implements Savable {
 
 	public void remove() {
 		despawn();
-		PersistentContainer container = Labyrinth.getContainer(new NamespacedKey(JavaPlugin.getProvidingPlugin(RetroConomy.class), "Shops"));
+		PersistentContainer container = LabyrinthProvider.getInstance().getContainer(new NamespacedKey(JavaPlugin.getProvidingPlugin(RetroConomy.class), "Shops"));
 		container.delete(getOwner().getUniqueId().toString());
 		RetroConomy.getInstance().getManager().SHOPS.remove(this);
 	}
@@ -222,7 +223,7 @@ public class Shop implements Savable {
 	}
 
 	public synchronized void save() {
-		PersistentContainer container = Labyrinth.getContainer(new NamespacedKey(JavaPlugin.getProvidingPlugin(RetroConomy.class), "Shops"));
+		PersistentContainer container = LabyrinthProvider.getInstance().getContainer(new NamespacedKey(JavaPlugin.getProvidingPlugin(RetroConomy.class), "Shops"));
 		container.attach(getOwner().getUniqueId().toString(), this);
 	}
 
@@ -259,21 +260,21 @@ public class Shop implements Savable {
 	public static class GUI {
 
 		private static final Supplier<ItemStack> left = () -> {
-			ItemStack s = new ItemStack(Material.DARK_OAK_BUTTON);
+			ItemStack s = new ItemStack(SkullType.ARROW_BLACK_LEFT.get());
 			ItemMeta m = s.getItemMeta();
 			m.setDisplayName(StringUtils.use("&aPrevious page").translate());
 			s.setItemMeta(m);
 			return s;
 		};
 		private static final Supplier<ItemStack> right = () -> {
-			ItemStack s = new ItemStack(Material.DARK_OAK_BUTTON);
+			ItemStack s = new ItemStack(SkullType.ARROW_BLACK_RIGHT.get());
 			ItemMeta m = s.getItemMeta();
 			m.setDisplayName(StringUtils.use("&aNext page").translate());
 			s.setItemMeta(m);
 			return s;
 		};
 		private static final Supplier<ItemStack> back = () -> {
-			ItemStack s = new ItemStack(Material.GREEN_DYE);
+			ItemStack s = new ItemStack(SkullType.ARROW_BLACK_DOWN.get());
 			ItemMeta m = s.getItemMeta();
 			m.setDisplayName(StringUtils.use("&6Collect the money.").translate());
 			s.setItemMeta(m);

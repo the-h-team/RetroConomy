@@ -8,7 +8,7 @@
  */
 package com.github.sanctum.retro;
 
-import com.github.sanctum.labyrinth.Labyrinth;
+import com.github.sanctum.labyrinth.LabyrinthProvider;
 import com.github.sanctum.labyrinth.data.FileList;
 import com.github.sanctum.labyrinth.data.FileManager;
 import com.github.sanctum.labyrinth.data.container.PersistentContainer;
@@ -244,7 +244,7 @@ public class RetroConomy extends JavaPlugin implements RetroAPI, Listener {
 				}
 				manager.saveConfig();
 			}
-			PersistentContainer container = Labyrinth.getContainer(new NamespacedKey(this, "Shops"));
+			PersistentContainer container = LabyrinthProvider.getInstance().getContainer(new NamespacedKey(this, "Shops"));
 			Shop shop = container.get(Shop.class, p.getUniqueId().toString());
 			if (shop != null) {
 				getManager().SHOPS.add(shop);
