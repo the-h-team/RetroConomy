@@ -6,12 +6,12 @@
  *  This software is currently in development and its licensing has not
  *  yet been chosen.
  */
-package com.github.sanctum.retro.construct.internal;
+package com.github.sanctum.retro.command;
 
 import com.github.sanctum.retro.RetroConomy;
-import com.github.sanctum.retro.command.CommandInformation;
-import com.github.sanctum.retro.command.CommandOrientation;
-import com.github.sanctum.retro.construct.core.RetroAccount;
+import com.github.sanctum.retro.api.CommandInformation;
+import com.github.sanctum.retro.api.CommandOrientation;
+import com.github.sanctum.retro.api.RetroAccount;
 import com.github.sanctum.retro.util.ConfiguredMessage;
 import com.github.sanctum.retro.util.FormattedMessage;
 import java.util.Arrays;
@@ -46,7 +46,7 @@ public class BalanceCommand extends CommandOrientation {
 
 					String[] balance;
 					String bal = RetroConomy.getInstance().getManager().format(wallet.getBalance(player.getWorld()));
-					if (RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.format").equals("en")) {
+					if (RetroConomy.getInstance().getManager().getMain().getRoot().getString("Options.format").equals("en")) {
 						balance = bal.split("\\.");
 					} else {
 						balance = bal.split(",");
@@ -65,7 +65,7 @@ public class BalanceCommand extends CommandOrientation {
 
 						String[] balance;
 						String bal = RetroConomy.getInstance().getManager().format(wallet.getBalance(player.getWorld()));
-						if (RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.format").equals("en")) {
+						if (RetroConomy.getInstance().getManager().getMain().getRoot().getString("Options.format").equals("en")) {
 							balance = bal.split("\\.");
 						} else {
 							balance = bal.split(",");

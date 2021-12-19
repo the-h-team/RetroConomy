@@ -11,14 +11,14 @@ package com.github.sanctum.retro.util;
 import com.github.sanctum.labyrinth.data.FileManager;
 import com.github.sanctum.retro.RetroConomy;
 
-public enum FileType {
+public enum FileReader {
 
 	MISC, ACCOUNT;
 
 	public FileManager get() {
 		switch (this) {
 			case ACCOUNT:
-				return RetroConomy.getInstance().getFiles().find("Accounts", "Data");
+				return RetroConomy.getInstance().getFiles().get("Accounts", "Data");
 			default:
 				throw new IllegalStateException("Invalid file type selected! This is not internal!");
 		}
@@ -26,7 +26,7 @@ public enum FileType {
 	}
 
 	public FileManager get(String name) {
-		return RetroConomy.getInstance().getFiles().find(name, "Configuration");
+		return RetroConomy.getInstance().getFiles().get(name, "Configuration");
 	}
 
 }

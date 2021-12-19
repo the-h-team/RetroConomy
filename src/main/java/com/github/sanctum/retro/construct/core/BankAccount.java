@@ -8,10 +8,14 @@
  */
 package com.github.sanctum.retro.construct.core;
 
+import com.github.sanctum.labyrinth.data.Configurable;
 import com.github.sanctum.labyrinth.data.FileManager;
 import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.retro.RetroConomy;
-import com.github.sanctum.retro.util.FileType;
+import com.github.sanctum.retro.api.RetroAccount;
+import com.github.sanctum.retro.api.Savable;
+import com.github.sanctum.retro.api.Shareable;
+import com.github.sanctum.retro.util.FileReader;
 import com.github.sanctum.retro.util.TransactionType;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -21,7 +25,6 @@ import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
-import org.bukkit.configuration.file.FileConfiguration;
 
 public class BankAccount implements RetroAccount, Shareable {
 
@@ -30,20 +33,20 @@ public class BankAccount implements RetroAccount, Shareable {
 	private final HUID id;
 	private final List<String> members;
 	private final FileManager manager;
-	private final boolean multiWorld = RetroConomy.getInstance().getManager().getMain().getConfig().getBoolean("Options.multi-world.enabled");
-	private final String world = RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.multi-world.falsify");
+	private final boolean multiWorld = RetroConomy.getInstance().getManager().getMain().getRoot().getBoolean("Options.multi-world.enabled");
+	private final String world = RetroConomy.getInstance().getManager().getMain().getRoot().getString("Options.multi-world.falsify");
 	private final DebitCard debitCard;
 	private UUID joint;
 
 	public BankAccount(UUID owner, UUID joint, HUID id, List<String> members) {
 		this.uuid = owner;
 		this.joint = joint;
-		this.manager = FileType.ACCOUNT.get();
+		this.manager = FileReader.ACCOUNT.get();
 		this.members = new ArrayList<>(members);
 		this.id = id;
-		FileConfiguration c = manager.getConfig();
+		Configurable c = manager.getRoot();
 		if (!c.isDouble("accounts." + id.toString() + ".balance." + this.world)) {
-			setBalance(RetroConomy.getInstance().getManager().getMain().getConfig().getDouble("Options.accounts.starting-balance"));
+			setBalance(RetroConomy.getInstance().getManager().getMain().getRoot().getDouble("Options.accounts.starting-balance"));
 		}
 		this.debitCard = new DebitCard(this);
 	}
@@ -60,19 +63,19 @@ public class BankAccount implements RetroAccount, Shareable {
 
 	@Override
 	public boolean isPrimary(UUID member) {
-		FileConfiguration c = manager.getConfig();
-		return c.isString("wallets." + uuid.toString() + ".primary") && c.getString("wallets." + uuid.toString() + ".primary").equals(getId().toString());
+		Configurable c = manager.getRoot();
+		return c.isString("wallets." + uuid.toString() + ".primary") && c.getString("wallets." + uuid + ".primary").equals(getId().toString());
 	}
 
 	@Override
 	public void setPrimary(UUID member, boolean primary) {
-		FileConfiguration c = manager.getConfig();
+		Configurable c = manager.getRoot();
 		if (primary) {
 			c.set("wallets." + uuid.toString() + ".primary", getId().toString());
 		} else {
 			c.set("wallets." + uuid.toString() + ".primary", null);
 		}
-		manager.saveConfig();
+		c.save();
 
 	}
 
@@ -93,45 +96,59 @@ public class BankAccount implements RetroAccount, Shareable {
 
 	@Override
 	public BigDecimal getBalance() {
-		return BigDecimal.valueOf(manager.getConfig().getDouble("accounts." + id.toString() + ".balance." + this.world));
+		return BigDecimal.valueOf(manager.getRoot().getDouble("accounts." + id.toString() + ".balance." + this.world));
 	}
 
 	@Override
 	public BigDecimal getBalance(World world) {
 		if (!multiWorld)
 			world = Bukkit.getWorld(this.world);
-		return BigDecimal.valueOf(manager.getConfig().getDouble("accounts." + id.toString() + ".balance." + world.getName()));
+		return BigDecimal.valueOf(manager.getRoot().getDouble("accounts." + id.toString() + ".balance." + world.getName()));
 	}
 
 	@Override
 	public RetroConomy.TransactionResult setOwner(UUID newOwner) {
-		FileConfiguration c = manager.getConfig();
+		Configurable c = manager.getRoot();
 		c.set("accounts." + id.toString() + ".owner", newOwner.toString());
-		manager.saveConfig();
+		c.save();
 		this.joint = newOwner;
 		return RetroConomy.TransactionResult.SUCCESS;
 	}
 
 	@Override
 	public RetroConomy.TransactionResult setJointOwner(UUID newJointOwner) {
-		FileConfiguration c = manager.getConfig();
+		Configurable c = manager.getRoot();
 		c.set("accounts." + id.toString() + ".joint", newJointOwner.toString());
-		manager.saveConfig();
+		c.save();
 		this.joint = newJointOwner;
 		return RetroConomy.TransactionResult.SUCCESS;
 	}
 
 	@Override
 	public RetroConomy.TransactionResult setBalance(BigDecimal balance) {
-		manager.getConfig().set("accounts." + id.toString() + ".balance." + this.world, balance.doubleValue());
-		manager.saveConfig();
+		manager.getRoot().set("accounts." + id.toString() + ".owner", getOwner().toString());
+		if (getJointOwner() != null) {
+			manager.getRoot().set("accounts." + id + ".joint", getJointOwner().toString());
+		}
+		if (!getMembers().isEmpty()) {
+			manager.getRoot().set("accounts." + id + ".members", getMembers().stream().map(UUID::toString).collect(Collectors.toList()));
+		}
+		manager.getRoot().set("accounts." + id + ".balance." + this.world, balance.doubleValue());
+		manager.getRoot().save();
 		return RetroConomy.TransactionResult.SUCCESS;
 	}
 
 	@Override
 	public RetroConomy.TransactionResult setBalance(double balance) {
-		manager.getConfig().set("accounts." + id.toString() + ".balance." + this.world, balance);
-		manager.saveConfig();
+		manager.getRoot().set("accounts." + id.toString() + ".owner", getOwner().toString());
+		if (getJointOwner() != null) {
+			manager.getRoot().set("accounts." + id + ".joint", getJointOwner().toString());
+		}
+		if (!getMembers().isEmpty()) {
+			manager.getRoot().set("accounts." + id + ".members", getMembers().stream().map(UUID::toString).collect(Collectors.toList()));
+		}
+		manager.getRoot().set("accounts." + id + ".balance." + this.world, balance);
+		manager.getRoot().save();
 		return RetroConomy.TransactionResult.SUCCESS;
 	}
 
@@ -139,8 +156,15 @@ public class BankAccount implements RetroAccount, Shareable {
 	public RetroConomy.TransactionResult setBalance(BigDecimal balance, World world) {
 		if (!multiWorld)
 			world = Bukkit.getWorld(this.world);
-		manager.getConfig().set("accounts." + id.toString() + ".balance." + world.getName(), balance.doubleValue());
-		manager.saveConfig();
+		manager.getRoot().set("accounts." + id.toString() + ".owner", getOwner().toString());
+		if (getJointOwner() != null) {
+			manager.getRoot().set("accounts." + id + ".joint", getJointOwner().toString());
+		}
+		if (!getMembers().isEmpty()) {
+			manager.getRoot().set("accounts." + id + ".members", getMembers().stream().map(UUID::toString).collect(Collectors.toList()));
+		}
+		manager.getRoot().set("accounts." + id + ".balance." + world.getName(), balance.doubleValue());
+		manager.getRoot().save();
 		return RetroConomy.TransactionResult.SUCCESS;
 	}
 
@@ -148,8 +172,15 @@ public class BankAccount implements RetroAccount, Shareable {
 	public RetroConomy.TransactionResult setBalance(double balance, World world) {
 		if (!multiWorld)
 			world = Bukkit.getWorld(this.world);
-		manager.getConfig().set("accounts." + id.toString() + ".balance." + world.getName(), balance);
-		manager.saveConfig();
+		manager.getRoot().set("accounts." + id.toString() + ".owner", getOwner().toString());
+		if (getJointOwner() != null) {
+			manager.getRoot().set("accounts." + id + ".joint", getJointOwner().toString());
+		}
+		if (!getMembers().isEmpty()) {
+			manager.getRoot().set("accounts." + id + ".members", getMembers().stream().map(UUID::toString).collect(Collectors.toList()));
+		}
+		manager.getRoot().set("accounts." + id + ".balance." + world.getName(), balance);
+		manager.getRoot().save();
 		return RetroConomy.TransactionResult.SUCCESS;
 	}
 
@@ -202,10 +233,10 @@ public class BankAccount implements RetroAccount, Shareable {
 
 	@Override
 	public RetroConomy.TransactionResult deposit(BigDecimal amount) {
-		FileConfiguration c = manager.getConfig();
+		Configurable c = manager.getRoot();
 		BigDecimal after = getBalance().add(amount);
 		c.set("accounts." + id.toString() + "." + ".balance." + Bukkit.getWorld(this.world).getName(), after.doubleValue());
-		manager.saveConfig();
+		c.save();
 		return RetroConomy.TransactionResult.SUCCESS;
 	}
 
@@ -213,19 +244,19 @@ public class BankAccount implements RetroAccount, Shareable {
 	public RetroConomy.TransactionResult deposit(BigDecimal amount, World world) {
 		if (!multiWorld)
 			world = Bukkit.getWorld(this.world);
-		FileConfiguration c = manager.getConfig();
+		Configurable c = manager.getRoot();
 		BigDecimal after = getBalance(world).add(amount);
 		c.set("accounts." + id.toString() + "." + ".balance." + world.getName(), after.doubleValue());
-		manager.saveConfig();
+		c.save();
 		return RetroConomy.TransactionResult.SUCCESS;
 	}
 
 	@Override
 	public RetroConomy.TransactionResult withdraw(BigDecimal amount) {
-		FileConfiguration c = manager.getConfig();
+		Configurable c = manager.getRoot();
 		BigDecimal after = getBalance().subtract(amount);
 		c.set("accounts." + id.toString() + "." + ".balance." + Bukkit.getWorld(this.world).getName(), after.doubleValue());
-		manager.saveConfig();
+		c.save();
 		return RetroConomy.TransactionResult.SUCCESS;
 	}
 
@@ -233,10 +264,10 @@ public class BankAccount implements RetroAccount, Shareable {
 	public RetroConomy.TransactionResult withdraw(BigDecimal amount, World world) {
 		if (!multiWorld)
 			world = Bukkit.getWorld(this.world);
-		FileConfiguration c = manager.getConfig();
+		Configurable c = manager.getRoot();
 		BigDecimal after = getBalance(world).subtract(amount);
 		c.set("accounts." + id.toString() + "." + ".balance." + world.getName(), after.doubleValue());
-		manager.saveConfig();
+		c.save();
 		return RetroConomy.TransactionResult.SUCCESS;
 	}
 
@@ -244,18 +275,18 @@ public class BankAccount implements RetroAccount, Shareable {
 		TransactionStatement slip;
 		switch (type) {
 			case WITHDRAW:
-					if (!multiWorld)
-						world = Bukkit.getWorld(this.world);
-					if (has(amount.doubleValue(), world)) {
-						WalletAccount wallet = RetroConomy.getInstance().getManager().getWallet(player).orElse(null);
-						if (wallet != null) {
-							wallet.deposit(amount, world);
-						}
-						slip = TransactionStatement.from(player, amount, this, TransactionType.WITHDRAW);
-						withdraw(amount, world);
-						return slip;
+				if (!multiWorld)
+					world = Bukkit.getWorld(this.world);
+				if (has(amount.doubleValue(), world)) {
+					WalletAccount wallet = RetroConomy.getInstance().getManager().getWallet(player).orElse(null);
+					if (wallet != null) {
+						wallet.deposit(amount, world);
 					}
-					return TransactionStatement.from(player, BigDecimal.ZERO, this, TransactionType.WITHDRAW);
+					slip = TransactionStatement.from(player, amount, this, TransactionType.WITHDRAW);
+					withdraw(amount, world);
+					return slip;
+				}
+				return TransactionStatement.from(player, BigDecimal.ZERO, this, TransactionType.WITHDRAW);
 
 			case DEPOSIT:
 				WalletAccount wallet = RetroConomy.getInstance().getManager().getWallet(player).orElse(null);
@@ -312,9 +343,9 @@ public class BankAccount implements RetroAccount, Shareable {
 
 	@Override
 	public RetroConomy.TransactionResult remove() {
-		FileConfiguration c = manager.getConfig();
+		Configurable c = manager.getRoot();
 		c.set("accounts." + id.toString(), null);
-		manager.saveConfig();
+		c.save();
 		return RetroConomy.TransactionResult.SUCCESS;
 	}
 

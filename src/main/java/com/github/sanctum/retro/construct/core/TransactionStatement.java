@@ -11,6 +11,8 @@ package com.github.sanctum.retro.construct.core;
 import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.labyrinth.library.StringUtils;
 import com.github.sanctum.retro.RetroConomy;
+import com.github.sanctum.retro.api.RetroAccount;
+import com.github.sanctum.retro.api.Savable;
 import com.github.sanctum.retro.util.TransactionType;
 import java.math.BigDecimal;
 import java.time.ZoneId;
@@ -88,14 +90,14 @@ public class TransactionStatement implements Savable {
 				meta.setLore(Arrays.asList(StringUtils.use("&bHolder &8&m»&r &7" + holder.getName()).translate(),
 						StringUtils.use("&b# &8&m»&r &7" + id.toString()).translate(),
 						StringUtils.use("&bItem &8&m»&r &7" + item).translate(),
-						StringUtils.use("&bAmount &8&m»&r &c" + RetroConomy.getInstance().getManager().format(amount.doubleValue())).translate(),
+						StringUtils.use("&bTotal &8&m»&r &c" + RetroConomy.getInstance().getManager().format(amount.doubleValue())).translate(),
 						StringUtils.use("&bTax &8&m»&r &c" + RetroConomy.getInstance().getManager().format(tax.doubleValue())).translate(),
 						StringUtils.use("&bDate &8&m»&r &7" + new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString()).translate(),
 						StringUtils.use("&c&oTransaction failed.").translate()));
 			} else {
 				meta.setLore(Arrays.asList(StringUtils.use("&bHolder &8&m»&r &7" + holder.getName()).translate(),
 						StringUtils.use("&b# &8&m»&r &7" + id.toString()).translate(),
-						StringUtils.use("&bAmount &8&m»&r &c" + RetroConomy.getInstance().getManager().format(amount.doubleValue())).translate(),
+						StringUtils.use("&bTotal &8&m»&r &c" + RetroConomy.getInstance().getManager().format(amount.doubleValue())).translate(),
 						StringUtils.use("&bTax &8&m»&r &c" + RetroConomy.getInstance().getManager().format(tax.doubleValue())).translate(),
 						StringUtils.use("&bDate &8&m»&r &7" + new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString()).translate(),
 						StringUtils.use("&c&oTransaction failed.").translate()));

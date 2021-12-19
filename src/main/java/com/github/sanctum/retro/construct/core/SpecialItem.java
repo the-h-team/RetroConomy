@@ -1,10 +1,11 @@
 package com.github.sanctum.retro.construct.core;
 
+import com.github.sanctum.retro.api.ItemDemandOwnable;
 import java.util.Map;
 import java.util.UUID;
 import org.bukkit.inventory.ItemStack;
 
-public class SpecialItem extends SystemItem implements Ownable{
+public class SpecialItem extends SystemItem implements ItemDemandOwnable {
 
 	private final String id;
 	private int amount;

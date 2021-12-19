@@ -6,16 +6,16 @@
  *  This software is currently in development and its licensing has not
  *  yet been chosen.
  */
-package com.github.sanctum.retro.construct.internal;
+package com.github.sanctum.retro.command;
 
-import com.github.sanctum.labyrinth.formatting.TabCompletion;
-import com.github.sanctum.labyrinth.formatting.TabCompletionBuilder;
+import com.github.sanctum.labyrinth.formatting.completion.SimpleTabCompletion;
+import com.github.sanctum.labyrinth.formatting.completion.TabCompletionIndex;
 import com.github.sanctum.labyrinth.library.StringUtils;
 import com.github.sanctum.retro.RetroConomy;
-import com.github.sanctum.retro.command.CommandInformation;
-import com.github.sanctum.retro.command.CommandOrientation;
+import com.github.sanctum.retro.api.CommandInformation;
+import com.github.sanctum.retro.api.CommandOrientation;
+import com.github.sanctum.retro.api.RetroAccount;
 import com.github.sanctum.retro.construct.core.Currency;
-import com.github.sanctum.retro.construct.core.RetroAccount;
 import com.github.sanctum.retro.util.ConfiguredMessage;
 import com.github.sanctum.retro.util.CurrencyType;
 import com.github.sanctum.retro.util.FormattedMessage;
@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class WithdrawCommand extends CommandOrientation {
 
-	TabCompletionBuilder completion = TabCompletion.build(getLabel());
+	SimpleTabCompletion completion = SimpleTabCompletion.empty();
 
 	public WithdrawCommand(@NotNull CommandInformation information) {
 		super(information);
@@ -39,17 +39,15 @@ public class WithdrawCommand extends CommandOrientation {
 
 	@Override
 	public @Nullable List<String> complete(Player p, String[] args) {
-		return completion.forArgs(args)
-				.level(2)
-				.completeAt(getLabel())
-				.filter(() -> {
+		return completion.fillArgs(args)
+				.then(TabCompletionIndex.TWO, () -> {
 					List<String> list = new ArrayList<>();
 					for (String s : RetroConomy.getInstance().getManager().getCurrencyNames()) {
 						list.add(ChatColor.stripColor(color(s)));
 					}
 					return list;
 				})
-				.collect().get(2);
+				.get();
 	}
 
 	@Override
@@ -65,7 +63,7 @@ public class WithdrawCommand extends CommandOrientation {
 				if (args.length == 1) {
 					try {
 						int amount = Integer.parseInt(args[0]);
-						Optional<Currency> firstDollar = RetroConomy.getInstance().getManager().getAcceptableCurrencies().filter(c -> c.getType() == CurrencyType.DOLLAR).findFirst();
+						Optional<Currency> firstDollar = RetroConomy.getInstance().getManager().getAcceptableCurrencies().stream().filter(c -> c.getType() == CurrencyType.DOLLAR).findFirst();
 
 						if (firstDollar.isPresent()) {
 							Currency c = firstDollar.get();
@@ -104,7 +102,7 @@ public class WithdrawCommand extends CommandOrientation {
 					int amount = Integer.parseInt(args[0]);
 
 					if (isMajor) {
-						Optional<Currency> firstDollar = RetroConomy.getInstance().getManager().getAcceptableCurrencies().filter(c -> c.getType() == CurrencyType.DOLLAR).findFirst();
+						Optional<Currency> firstDollar = RetroConomy.getInstance().getManager().getAcceptableCurrencies().stream().filter(c -> c.getType() == CurrencyType.DOLLAR).findFirst();
 						if (firstDollar.isPresent()) {
 							Currency dollar = firstDollar.get();
 							double cost = dollar.getWorth() * amount;
@@ -122,7 +120,7 @@ public class WithdrawCommand extends CommandOrientation {
 							sendMessage(player, "&cThere is no dollar item present. Configure one then reload.");
 						}
 					} else {
-						Optional<Currency> firstChange = RetroConomy.getInstance().getManager().getAcceptableCurrencies().filter(c -> c.getType() == CurrencyType.CHANGE).findFirst();
+						Optional<Currency> firstChange = RetroConomy.getInstance().getManager().getAcceptableCurrencies().stream().filter(c -> c.getType() == CurrencyType.CHANGE).findFirst();
 						if (firstChange.isPresent()) {
 							Currency change = firstChange.get();
 							double cost = change.getWorth() * amount;

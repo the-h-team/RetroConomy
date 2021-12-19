@@ -8,32 +8,28 @@
  */
 package com.github.sanctum.retro;
 
+import com.github.sanctum.labyrinth.data.FileList;
 import com.github.sanctum.labyrinth.data.FileManager;
-import com.github.sanctum.labyrinth.formatting.UniformedComponents;
 import com.github.sanctum.labyrinth.library.HFEncoded;
 import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.labyrinth.library.Items;
 import com.github.sanctum.labyrinth.library.MathUtils;
 import com.github.sanctum.labyrinth.library.StringUtils;
+import com.github.sanctum.retro.api.ItemDemand;
 import com.github.sanctum.retro.construct.core.BankAccount;
 import com.github.sanctum.retro.construct.core.Currency;
-import com.github.sanctum.retro.construct.core.ItemDemand;
 import com.github.sanctum.retro.construct.core.MarketItem;
 import com.github.sanctum.retro.construct.core.Shop;
 import com.github.sanctum.retro.construct.core.SpecialItem;
 import com.github.sanctum.retro.construct.core.SystemItem;
 import com.github.sanctum.retro.construct.core.WalletAccount;
-import com.github.sanctum.retro.util.ATMList;
-import com.github.sanctum.retro.util.AcceptableCurrencies;
-import com.github.sanctum.retro.util.AccountList;
 import com.github.sanctum.retro.util.CurrencyType;
-import com.github.sanctum.retro.util.FileType;
-import com.github.sanctum.retro.util.Marketplace;
-import com.github.sanctum.retro.util.WalletList;
+import com.github.sanctum.retro.util.FileReader;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -54,46 +50,46 @@ import org.jetbrains.annotations.NotNull;
 
 public class RetroManager {
 
-	public final LinkedList<BankAccount> ACCOUNTS = new LinkedList<>();
+	protected final List<BankAccount> ACCOUNTS = Collections.synchronizedList(new LinkedList<>());
 
-	public final LinkedList<WalletAccount> WALLETS = new LinkedList<>();
+	protected final List<WalletAccount> WALLETS = Collections.synchronizedList(new LinkedList<>());
 
-	public final LinkedList<Currency> CURRENCIES = new LinkedList<>();
+	protected final List<Currency> CURRENCIES = Collections.synchronizedList(new LinkedList<>());
 
-	public final LinkedList<Shop> SHOPS = new LinkedList<>();
+	protected final List<Shop> SHOPS = Collections.synchronizedList(new LinkedList<>());
 
-	public final LinkedList<ItemDemand> SHOP = new LinkedList<>();
+	protected final List<ItemDemand> SHOP = Collections.synchronizedList(new LinkedList<>());
 
 	public @NotNull FileManager getMain() {
 
-		FileManager config = FileType.MISC.get("Config");
-		if (!config.exists()) {
-			FileManager.copy(Objects.requireNonNull(JavaPlugin.getProvidingPlugin(getClass()).getResource("Config.yml")), config);
-			config.reload();
+		FileManager config = FileReader.MISC.get("Config");
+		if (!config.getRoot().exists()) {
+			FileList.copy(Objects.requireNonNull(JavaPlugin.getProvidingPlugin(getClass()).getResource("Config.yml")), config.getRoot().getParent());
+			config.getRoot().reload();
 		}
 		return config;
 	}
 
 	public String getMajorSingular() {
-		return getMain().getConfig().getString("Currency.major.singular");
+		return getMain().getRoot().getString("Currency.major.singular");
 	}
 
 	public String getMajorPlural() {
-		return getMain().getConfig().getString("Currency.major.plural");
+		return getMain().getRoot().getString("Currency.major.plural");
 	}
 
 	public String getMinorSingular() {
-		return getMain().getConfig().getString("Currency.minor.singular");
+		return getMain().getRoot().getString("Currency.minor.singular");
 	}
 
 	public String getMinorPlural() {
-		return getMain().getConfig().getString("Currency.minor.plural");
+		return getMain().getRoot().getString("Currency.minor.plural");
 	}
 
 	public Locale getLocale() {
 		Locale loc = Locale.US;
 
-		switch (getMain().getConfig().getString("Options.format")) {
+		switch (getMain().getRoot().getString("Options.format")) {
 			case "fr":
 				loc = Locale.FRANCE;
 				break;
@@ -114,15 +110,15 @@ public class RetroManager {
 	}
 
 	public String format(double amount) {
-		return MathUtils.use(amount).format(getLocale());
+		return MathUtils.use(amount).formatCurrency(getLocale());
 	}
 
 	public String format(BigDecimal amount) {
-		return MathUtils.use(amount).format(getLocale());
+		return MathUtils.use(amount).formatCurrency(getLocale());
 	}
 
 	public String format(BigDecimal amount, Locale locale) {
-		return MathUtils.use(amount).format(locale);
+		return MathUtils.use(amount).formatCurrency(locale);
 	}
 
 	public void deleteAccount(BankAccount account) {
@@ -133,18 +129,18 @@ public class RetroManager {
 	}
 
 	public void deleteItem(ItemDemand demand) {
-		FileManager items = FileType.MISC.get("Items");
+		FileManager items = FileReader.MISC.get("Items");
 		if (demand instanceof SystemItem) {
 			if (demand instanceof SpecialItem) {
-				items.getConfig().set("Special." + demand.toString(), null);
+				items.getRoot().set("Special." + demand, null);
 			} else {
-				items.getConfig().set("Items." + demand.toString(), null);
+				items.getRoot().set("Items." + demand, null);
 			}
 
 		}
 
 		if (demand instanceof MarketItem) {
-			items.getConfig().set("Market." + demand.toString(), null);
+			items.getRoot().set("Market." + demand, null);
 		}
 
 		SHOP.remove(demand);
@@ -157,15 +153,15 @@ public class RetroManager {
 
 	public void loadShop() {
 		SHOP.clear();
-		FileManager items = FileType.MISC.get("Items");
+		FileManager items = FileReader.MISC.get("Items");
 		Plugin plugin = JavaPlugin.getProvidingPlugin(getClass());
-		if (!items.exists()) {
-			FileManager.copy(plugin.getResource("Items.yml"), items);
+		if (!items.getRoot().exists()) {
+			FileList.copy(plugin.getResource("Items.yml"), items.getRoot().getParent());
 		}
-		items.reload();
+		items.getRoot().reload();
 
-		for (String item : items.getConfig().getConfigurationSection("Items").getKeys(false)) {
-			Material mat = Items.getMaterial(item);
+		for (String item : items.getRoot().getNode("Items").getKeys(false)) {
+			Material mat = Items.findMaterial(item);
 			if (mat != null) {
 				Map<String, Long> buyMap = new HashMap<>();
 				Map<String, Long> sellMap = new HashMap<>();
@@ -173,32 +169,32 @@ public class RetroManager {
 				Map<String, Long> sellMapDate = new HashMap<>();
 				Map<Long, Long> sellAmountMap = new HashMap<>();
 				Map<Long, Long> buyAmountMap = new HashMap<>();
-				for (String user : items.getConfig().getConfigurationSection("Items." + item + ".usage-purchase").getKeys(false)) {
-					buyMap.put(user, items.getConfig().getLong("Items." + item + ".usage-purchase" + "." + user + ".amount"));
-					buyMapDate.put(user, items.getConfig().getLong("Items." + item + ".usage-purchase" + "." + user + ".date"));
-					if (items.getConfig().isConfigurationSection("Items." + item + ".usage-purchase" + "." + user + ".history")) {
-						buyAmountMap.put(items.getConfig().getLong("Items." + item + ".usage-purchase" + "." + user + ".history.date"), items.getConfig().getLong("Items." + item + ".usage-purchase" + "." + user + ".history.amount"));
+				for (String user : items.getRoot().getNode("Items." + item + ".usage-purchase").getKeys(false)) {
+					buyMap.put(user, items.getRoot().getLong("Items." + item + ".usage-purchase" + "." + user + ".amount"));
+					buyMapDate.put(user, items.getRoot().getLong("Items." + item + ".usage-purchase" + "." + user + ".date"));
+					if (items.getRoot().isNode("Items." + item + ".usage-purchase" + "." + user + ".history")) {
+						buyAmountMap.put(items.getRoot().getLong("Items." + item + ".usage-purchase" + "." + user + ".history.date"), items.getRoot().getLong("Items." + item + ".usage-purchase" + "." + user + ".history.amount"));
 					}
 				}
-				for (String user : items.getConfig().getConfigurationSection("Items." + item + ".usage-sold").getKeys(false)) {
-					sellMap.put(user, items.getConfig().getLong("Items." + item + ".usage-sold" + "." + user + ".amount"));
-					sellMapDate.put(user, items.getConfig().getLong("Items." + item + ".usage-sold" + "." + user + ".date"));
-					if (items.getConfig().isConfigurationSection("Items." + item + ".usage-purchase" + "." + user + ".history")) {
-						sellAmountMap.put(items.getConfig().getLong("Items." + item + ".usage-purchase" + "." + user + ".history.date"), items.getConfig().getLong("Items." + item + ".usage-sold" + "." + user + ".history.amount"));
+				for (String user : items.getRoot().getNode("Items." + item + ".usage-sold").getKeys(false)) {
+					sellMap.put(user, items.getRoot().getLong("Items." + item + ".usage-sold" + "." + user + ".amount"));
+					sellMapDate.put(user, items.getRoot().getLong("Items." + item + ".usage-sold" + "." + user + ".date"));
+					if (items.getRoot().isNode("Items." + item + ".usage-purchase" + "." + user + ".history")) {
+						sellAmountMap.put(items.getRoot().getLong("Items." + item + ".usage-purchase" + "." + user + ".history.date"), items.getRoot().getLong("Items." + item + ".usage-sold" + "." + user + ".history.amount"));
 					}
 				}
 
-				new SystemItem(item, new ItemStack(mat), items.getConfig().getDouble("Items." + item + ".price"), items.getConfig().getDouble("Items." + item + ".multiplier"), items.getConfig().getDouble("Items." + item + ".ceiling"), items.getConfig().getDouble("Items." + item + ".floor"), buyMap, sellMap, buyMapDate, sellMapDate, buyAmountMap, sellAmountMap);
+				new SystemItem(item, new ItemStack(mat), items.getRoot().getDouble("Items." + item + ".price"), items.getRoot().getDouble("Items." + item + ".multiplier"), items.getRoot().getDouble("Items." + item + ".ceiling"), items.getRoot().getDouble("Items." + item + ".floor"), buyMap, sellMap, buyMapDate, sellMapDate, buyAmountMap, sellAmountMap);
 			} else {
 				plugin.getLogger().severe("- An invalid item description was found within the items configuration, section '" + item + "'");
 				plugin.getServer().getPluginManager().disablePlugin(plugin);
 			}
 		}
-		if (items.getConfig().isConfigurationSection("Special")) {
-			for (String item : items.getConfig().getConfigurationSection("Special").getKeys(false)) {
-				ItemStack mat = items.getConfig().getItemStack(item);
-				String id = items.getConfig().getString("Special." + item + ".owner");
-				int amount = items.getConfig().getInt("Special." + item + ".amount");
+		if (items.getRoot().isNode("Special")) {
+			for (String item : items.getRoot().getNode("Special").getKeys(false)) {
+				ItemStack mat = items.getRoot().getItemStack(item);
+				String id = items.getRoot().getString("Special." + item + ".owner");
+				int amount = items.getRoot().getInt("Special." + item + ".amount");
 				if (mat != null) {
 					Map<String, Long> buyMap = new HashMap<>();
 					Map<String, Long> sellMap = new HashMap<>();
@@ -206,38 +202,38 @@ public class RetroManager {
 					Map<String, Long> sellMapDate = new HashMap<>();
 					Map<Long, Long> sellAmountMap = new HashMap<>();
 					Map<Long, Long> buyAmountMap = new HashMap<>();
-					for (String user : items.getConfig().getConfigurationSection("Special." + item + ".usage-purchase").getKeys(false)) {
-						buyMap.put(user, items.getConfig().getLong("Special." + item + ".usage-purchase" + "." + user + ".amount"));
-						buyMapDate.put(user, items.getConfig().getLong("Special." + item + ".usage-purchase" + "." + user + ".date"));
-						if (items.getConfig().isConfigurationSection("Special." + item + ".usage-purchase" + "." + user + ".history")) {
-							buyAmountMap.put(items.getConfig().getLong("Special." + item + ".usage-purchase" + "." + user + ".history.date"), items.getConfig().getLong("Special." + item + ".usage-purchase" + "." + user + ".history.amount"));
+					for (String user : items.getRoot().getNode("Special." + item + ".usage-purchase").getKeys(false)) {
+						buyMap.put(user, items.getRoot().getLong("Special." + item + ".usage-purchase" + "." + user + ".amount"));
+						buyMapDate.put(user, items.getRoot().getLong("Special." + item + ".usage-purchase" + "." + user + ".date"));
+						if (items.getRoot().isNode("Special." + item + ".usage-purchase" + "." + user + ".history")) {
+							buyAmountMap.put(items.getRoot().getLong("Special." + item + ".usage-purchase" + "." + user + ".history.date"), items.getRoot().getLong("Special." + item + ".usage-purchase" + "." + user + ".history.amount"));
 						}
 					}
-					for (String user : items.getConfig().getConfigurationSection("Special." + item + ".usage-sold").getKeys(false)) {
-						sellMap.put(user, items.getConfig().getLong("Special." + item + ".usage-sold" + "." + user + ".amount"));
-						sellMapDate.put(user, items.getConfig().getLong("Special." + item + ".usage-sold" + "." + user + ".date"));
-						if (items.getConfig().isConfigurationSection("Special." + item + ".usage-purchase" + "." + user + ".history")) {
-							sellAmountMap.put(items.getConfig().getLong("Special." + item + ".usage-purchase" + "." + user + ".history.date"), items.getConfig().getLong("Special." + item + ".usage-sold" + "." + user + ".history.amount"));
+					for (String user : items.getRoot().getNode("Special." + item + ".usage-sold").getKeys(false)) {
+						sellMap.put(user, items.getRoot().getLong("Special." + item + ".usage-sold" + "." + user + ".amount"));
+						sellMapDate.put(user, items.getRoot().getLong("Special." + item + ".usage-sold" + "." + user + ".date"));
+						if (items.getRoot().isNode("Special." + item + ".usage-purchase" + "." + user + ".history")) {
+							sellAmountMap.put(items.getRoot().getLong("Special." + item + ".usage-purchase" + "." + user + ".history.date"), items.getRoot().getLong("Special." + item + ".usage-sold" + "." + user + ".history.amount"));
 						}
 					}
 
-					new SpecialItem(item, id, amount, mat, items.getConfig().getDouble("Special." + item + ".price"), items.getConfig().getDouble("Special." + item + ".multiplier"), items.getConfig().getDouble("Special." + item + ".ceiling"), items.getConfig().getDouble("Special." + item + ".floor"), buyMap, sellMap, buyMapDate, sellMapDate, buyAmountMap, sellAmountMap);
+					new SpecialItem(item, id, amount, mat, items.getRoot().getDouble("Special." + item + ".price"), items.getRoot().getDouble("Special." + item + ".multiplier"), items.getRoot().getDouble("Special." + item + ".ceiling"), items.getRoot().getDouble("Special." + item + ".floor"), buyMap, sellMap, buyMapDate, sellMapDate, buyAmountMap, sellAmountMap);
 				} else {
 					plugin.getLogger().severe("- An invalid item description was found within the items configuration, section '" + item + "'");
 					plugin.getServer().getPluginManager().disablePlugin(plugin);
 				}
 			}
 		}
-		if (items.getConfig().isConfigurationSection("Market")) {
-			for (String item : items.getConfig().getConfigurationSection("Market").getKeys(false)) {
+		if (items.getRoot().isNode("Market")) {
+			for (String item : items.getRoot().getNode("Market").getKeys(false)) {
 				ItemStack mat = null;
 				try {
 					mat = (ItemStack) new HFEncoded(item).deserialized();
 				} catch (IOException | ClassNotFoundException e) {
 					e.printStackTrace();
 				}
-				String id = items.getConfig().getString("Market." + item + ".owner");
-				int amount = items.getConfig().getInt("Market." + item + ".amount");
+				String id = items.getRoot().getString("Market." + item + ".owner");
+				int amount = items.getRoot().getInt("Market." + item + ".amount");
 				if (mat != null) {
 					Map<String, Long> buyMap = new HashMap<>();
 					Map<String, Long> sellMap = new HashMap<>();
@@ -245,22 +241,22 @@ public class RetroManager {
 					Map<String, Long> sellMapDate = new HashMap<>();
 					Map<Long, Long> sellAmountMap = new HashMap<>();
 					Map<Long, Long> buyAmountMap = new HashMap<>();
-					for (String user : items.getConfig().getConfigurationSection("Market." + item + ".usage-purchase").getKeys(false)) {
-						buyMap.put(user, items.getConfig().getLong("Market." + item + ".usage-purchase" + "." + user + ".amount"));
-						buyMapDate.put(user, items.getConfig().getLong("Market." + item + ".usage-purchase" + "." + user + ".date"));
-						if (items.getConfig().isConfigurationSection("Market." + item + ".usage-purchase" + "." + user + ".history")) {
-							buyAmountMap.put(items.getConfig().getLong("Market." + item + ".usage-purchase" + "." + user + ".history.date"), items.getConfig().getLong("Market." + item + ".usage-purchase" + "." + user + ".history.amount"));
+					for (String user : items.getRoot().getNode("Market." + item + ".usage-purchase").getKeys(false)) {
+						buyMap.put(user, items.getRoot().getLong("Market." + item + ".usage-purchase" + "." + user + ".amount"));
+						buyMapDate.put(user, items.getRoot().getLong("Market." + item + ".usage-purchase" + "." + user + ".date"));
+						if (items.getRoot().isNode("Market." + item + ".usage-purchase" + "." + user + ".history")) {
+							buyAmountMap.put(items.getRoot().getLong("Market." + item + ".usage-purchase" + "." + user + ".history.date"), items.getRoot().getLong("Market." + item + ".usage-purchase" + "." + user + ".history.amount"));
 						}
 					}
-					for (String user : items.getConfig().getConfigurationSection("Market." + item + ".usage-sold").getKeys(false)) {
-						sellMap.put(user, items.getConfig().getLong("Market." + item + ".usage-sold" + "." + user + ".amount"));
-						sellMapDate.put(user, items.getConfig().getLong("Market." + item + ".usage-sold" + "." + user + ".date"));
-						if (items.getConfig().isConfigurationSection("Market." + item + ".usage-purchase" + "." + user + ".history")) {
-							sellAmountMap.put(items.getConfig().getLong("Market." + item + ".usage-purchase" + "." + user + ".history.date"), items.getConfig().getLong("Market." + item + ".usage-sold" + "." + user + ".history.amount"));
+					for (String user : items.getRoot().getNode("Market." + item + ".usage-sold").getKeys(false)) {
+						sellMap.put(user, items.getRoot().getLong("Market." + item + ".usage-sold" + "." + user + ".amount"));
+						sellMapDate.put(user, items.getRoot().getLong("Market." + item + ".usage-sold" + "." + user + ".date"));
+						if (items.getRoot().isNode("Market." + item + ".usage-purchase" + "." + user + ".history")) {
+							sellAmountMap.put(items.getRoot().getLong("Market." + item + ".usage-purchase" + "." + user + ".history.date"), items.getRoot().getLong("Market." + item + ".usage-sold" + "." + user + ".history.amount"));
 						}
 					}
 
-					new MarketItem(item, id, amount, mat, items.getConfig().getDouble("Market." + item + ".price"), items.getConfig().getDouble("Market." + item + ".multiplier"), items.getConfig().getDouble("Market." + item + ".ceiling"), items.getConfig().getDouble("Market." + item + ".floor"), buyMap, sellMap, buyMapDate, sellMapDate, buyAmountMap, sellAmountMap);
+					new MarketItem(item, id, amount, mat, items.getRoot().getDouble("Market." + item + ".price"), items.getRoot().getDouble("Market." + item + ".multiplier"), items.getRoot().getDouble("Market." + item + ".ceiling"), items.getRoot().getDouble("Market." + item + ".floor"), buyMap, sellMap, buyMapDate, sellMapDate, buyAmountMap, sellAmountMap);
 				} else {
 					plugin.getLogger().severe("- An invalid item description was found within the items configuration, section '" + item + "'");
 					plugin.getServer().getPluginManager().disablePlugin(plugin);
@@ -273,83 +269,83 @@ public class RetroManager {
 		CURRENCIES.clear();
 		FileManager main = getMain();
 		Plugin plugin = JavaPlugin.getProvidingPlugin(getClass());
-		for (String item : main.getConfig().getConfigurationSection("Currency.items.dollar").getKeys(false)) {
-			if (Items.getMaterial(item) == null) {
+		for (String item : main.getRoot().getNode("Currency.items.dollar").getKeys(false)) {
+			if (Items.findMaterial(item) == null) {
 				plugin.getLogger().severe("- An invalid item description was found in the dollar item config section. Re-format then restart.");
 				plugin.getServer().getPluginManager().disablePlugin(plugin);
 			} else {
 
-				ItemStack i = new ItemStack(Items.getMaterial(item));
+				ItemStack i = new ItemStack(Items.findMaterial(item));
 
-				if (main.getConfig().getBoolean("Currency.custom")) {
+				if (main.getRoot().getBoolean("Currency.custom")) {
 
 					ItemMeta meta = i.getItemMeta();
 
-					meta.setDisplayName(StringUtils.use(main.getConfig().getString("Currency.major.singular")).translate());
+					meta.setDisplayName(StringUtils.use(main.getRoot().getString("Currency.major.singular")).translate());
 					i.setItemMeta(meta);
 				}
 
-				Currency c = new Currency(i, CurrencyType.DOLLAR, main.getConfig().getDouble("Currency.items.dollar." + item));
+				Currency c = new Currency(i, CurrencyType.DOLLAR, main.getRoot().getDouble("Currency.items.dollar." + item));
 				CURRENCIES.add(c);
 			}
 		}
-		for (String item : main.getConfig().getConfigurationSection("Currency.items.change").getKeys(false)) {
-			if (Items.getMaterial(item) == null) {
+		for (String item : main.getRoot().getNode("Currency.items.change").getKeys(false)) {
+			if (Items.findMaterial(item) == null) {
 				plugin.getLogger().severe("- An invalid item description was found in the change item config section. Re-format then restart.");
 				plugin.getServer().getPluginManager().disablePlugin(plugin);
 			} else {
 
-				ItemStack i = new ItemStack(Items.getMaterial(item));
-				if (main.getConfig().getBoolean("Currency.custom")) {
+				ItemStack i = new ItemStack(Items.findMaterial(item));
+				if (main.getRoot().getBoolean("Currency.custom")) {
 					ItemMeta meta = i.getItemMeta();
 
-					meta.setDisplayName(StringUtils.use(main.getConfig().getString("Currency.minor.singular")).translate());
+					meta.setDisplayName(StringUtils.use(main.getRoot().getString("Currency.minor.singular")).translate());
 					i.setItemMeta(meta);
 				}
 
-				Currency c = new Currency(i, CurrencyType.CHANGE, main.getConfig().getDouble("Currency.items.change." + item));
+				Currency c = new Currency(i, CurrencyType.CHANGE, main.getRoot().getDouble("Currency.items.change." + item));
 				CURRENCIES.add(c);
 			}
 		}
-		for (String item : main.getConfig().getConfigurationSection("Currency.items.alt").getKeys(false)) {
-			if (Items.getMaterial(item) == null) {
+		for (String item : main.getRoot().getNode("Currency.items.alt").getKeys(false)) {
+			if (Items.findMaterial(item) == null) {
 				plugin.getLogger().severe("- An invalid item description was found in the alt item config section. Re-format then restart.");
 				plugin.getServer().getPluginManager().disablePlugin(plugin);
 			} else {
 
-				ItemStack i = new ItemStack(Items.getMaterial(item));
+				ItemStack i = new ItemStack(Items.findMaterial(item));
 
-				if (main.getConfig().getBoolean("Currency.custom")) {
+				if (main.getRoot().getBoolean("Currency.custom")) {
 					ItemMeta meta = i.getItemMeta();
 
-					meta.setDisplayName(StringUtils.use(main.getConfig().getString("Currency.major.singular")).translate());
+					meta.setDisplayName(StringUtils.use(main.getRoot().getString("Currency.major.singular")).translate());
 					i.setItemMeta(meta);
 				}
 
-				Currency c = new Currency(i, CurrencyType.ALT, main.getConfig().getDouble("Currency.items.alt." + item));
+				Currency c = new Currency(i, CurrencyType.ALT, main.getRoot().getDouble("Currency.items.alt." + item));
 				CURRENCIES.add(c);
 			}
 		}
 	}
 
-	public UniformedComponents<WalletAccount> getWallets() {
-		return new WalletList();
+	public List<WalletAccount> getWallets() {
+		return WALLETS;
 	}
 
-	public UniformedComponents<Currency> getAcceptableCurrencies() {
-		return new AcceptableCurrencies();
+	public List<Currency> getAcceptableCurrencies() {
+		return CURRENCIES;
 	}
 
-	public UniformedComponents<BankAccount> getAccounts() {
-		return new AccountList();
+	public List<BankAccount> getAccounts() {
+		return ACCOUNTS;
 	}
 
-	public UniformedComponents<ItemDemand> getMarket() {
-		return new Marketplace();
+	public List<ItemDemand> getInventory() {
+		return SHOP;
 	}
 
-	public UniformedComponents<Shop> getATMs() {
-		return new ATMList();
+	public List<Shop> getShops() {
+		return SHOPS;
 	}
 
 	public String[] getCurrencyNames() {
@@ -361,20 +357,28 @@ public class RetroManager {
 		return list.toArray(new String[0]);
 	}
 
+	private boolean isSimilar(ItemStack s, ItemStack stack) {
+		return stack.getType() == s.getType();
+	}
+
 	public Optional<ItemDemand> getDemand(ItemStack item) {
-		return getMarket().filter(i -> i.getItem().isSimilar(item)).findFirst();
+		return SHOP.stream().filter(i -> isSimilar(i.getItem(), item)).findFirst();
+	}
+
+	public Optional<MarketItem> getMarketItem(ItemStack item) {
+		return SHOP.stream().filter(i -> i.getItem().isSimilar(item) && i instanceof MarketItem).map(it -> (MarketItem)it).findFirst();
 	}
 
 	public Optional<ItemDemand> getDemand(Material mat) {
-		return getMarket().filter(i -> i.getItem().getType() == mat).findFirst();
+		return SHOP.stream().filter(i -> i.getItem().getType() == mat).findFirst();
 	}
 
 	public Optional<BankAccount> getAccount(HUID accountId) {
-		return getAccounts().filter(a -> a.getId().equals(accountId)).findFirst();
+		return ACCOUNTS.stream().filter(a -> a.getId().equals(accountId)).findFirst();
 	}
 
 	public List<BankAccount> getAccounts(String name) {
-		return getAccounts().filter(a -> {
+		return getAccounts().stream().filter(a -> {
 			if (Bukkit.getOfflinePlayer(a.getOwner()).getName().equals(name)) {
 				return true;
 			} else
@@ -386,7 +390,7 @@ public class RetroManager {
 	}
 
 	public List<BankAccount> getAccounts(UUID id) {
-		return getAccounts().filter(a -> {
+		return getAccounts().stream().filter(a -> {
 			if (Bukkit.getOfflinePlayer(a.getOwner()).getUniqueId().equals(id)) {
 				return true;
 			} else
@@ -410,15 +414,15 @@ public class RetroManager {
 	}
 
 	public Optional<WalletAccount> getWallet(String name) {
-		return getWallets().filter(a -> a.getOwner().getName().equals(name)).findFirst();
+		return getWallets().stream().filter(a -> a.getOwner().getName().equals(name)).findFirst();
 	}
 
 	public Optional<WalletAccount> getWallet(UUID id) {
-		return getWallets().filter(a -> a.getOwner().getUniqueId().equals(id)).findFirst();
+		return getWallets().stream().filter(a -> a.getOwner().getUniqueId().equals(id)).findFirst();
 	}
 
 	public Optional<WalletAccount> getWallet(OfflinePlayer player) {
-		return getWallets().filter(a -> a.getOwner().getUniqueId().equals(player.getUniqueId())).findFirst();
+		return getWallets().stream().filter(a -> a.getOwner().getUniqueId().equals(player.getUniqueId())).findFirst();
 	}
 
 

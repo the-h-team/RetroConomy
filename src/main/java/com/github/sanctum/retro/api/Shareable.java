@@ -6,16 +6,18 @@
  *  This software is currently in development and its licensing has not
  *  yet been chosen.
  */
-package com.github.sanctum.retro.construct.core;
+package com.github.sanctum.retro.api;
 
 import com.github.sanctum.retro.RetroConomy;
+import com.github.sanctum.retro.construct.core.Shop;
+import com.github.sanctum.retro.construct.core.TransactionStatement;
 import com.github.sanctum.retro.util.TransactionType;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 import org.bukkit.OfflinePlayer;
 
-public interface Shareable extends RetroAccount{
+public interface Shareable extends RetroAccount {
 
 	UUID getOwner();
 

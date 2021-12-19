@@ -6,13 +6,13 @@
  *  This software is currently in development and its licensing has not
  *  yet been chosen.
  */
-package com.github.sanctum.retro.construct.internal;
+package com.github.sanctum.retro.command;
 
 import com.github.sanctum.retro.RetroConomy;
-import com.github.sanctum.retro.command.CommandInformation;
-import com.github.sanctum.retro.command.CommandOrientation;
+import com.github.sanctum.retro.api.CommandInformation;
+import com.github.sanctum.retro.api.CommandOrientation;
+import com.github.sanctum.retro.api.RetroAccount;
 import com.github.sanctum.retro.construct.core.Currency;
-import com.github.sanctum.retro.construct.core.RetroAccount;
 import com.github.sanctum.retro.construct.core.WalletAccount;
 import com.github.sanctum.retro.util.ConfiguredMessage;
 import com.github.sanctum.retro.util.CurrencyType;
@@ -61,7 +61,7 @@ public class DepositCommand extends CommandOrientation {
 					if (dep.doubleValue() > 0) {
 						wallet.deposit(dep, player.getWorld());
 						String[] balance;
-						if (RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.format").equals("en")) {
+						if (RetroConomy.getInstance().getManager().getMain().getRoot().getString("Options.format").equals("en")) {
 							balance = String.valueOf(dep.doubleValue()).split("\\.");
 						} else {
 							balance = String.valueOf(dep.doubleValue()).split(",");
@@ -84,7 +84,7 @@ public class DepositCommand extends CommandOrientation {
 								if (RetroConomy.getInstance().currencyRemoval(player, c, amount).isTransactionSuccess()) {
 									wallet.deposit(BigDecimal.valueOf(money), player.getWorld());
 									String[] balance;
-									if (RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.format").equals("en")) {
+									if (RetroConomy.getInstance().getManager().getMain().getRoot().getString("Options.format").equals("en")) {
 										balance = String.valueOf(money).split("\\.");
 									} else {
 										balance = String.valueOf(money).split(",");

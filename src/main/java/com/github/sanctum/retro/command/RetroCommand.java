@@ -6,9 +6,9 @@
  *  This software is currently in development and its licensing has not
  *  yet been chosen.
  */
-package com.github.sanctum.retro.construct.internal;
+package com.github.sanctum.retro.command;
 
-import com.github.sanctum.retro.command.CommandInformation;
+import com.github.sanctum.retro.api.CommandInformation;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;

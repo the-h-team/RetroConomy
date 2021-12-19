@@ -12,6 +12,7 @@ import com.github.sanctum.labyrinth.library.HFEncoded;
 import com.github.sanctum.labyrinth.library.StringUtils;
 import com.github.sanctum.labyrinth.library.TimeWatch;
 import com.github.sanctum.retro.RetroConomy;
+import com.github.sanctum.retro.api.ItemDemandOwnable;
 import com.github.sanctum.retro.util.ItemModificationEvent;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -26,7 +27,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-public class MarketItem implements Ownable {
+public class MarketItem implements ItemDemandOwnable {
 
 	private final ItemStack item;
 	private final Map<String, Long> buyerMap;
@@ -65,7 +66,7 @@ public class MarketItem implements Ownable {
 		this.sellerAmountMap = new HashMap<>(sellerAmountMap);
 		this.bought = 0;
 		this.sold = 0;
-		RetroConomy.getInstance().getManager().getMarket().list().add(this);
+		RetroConomy.getInstance().getManager().getInventory().add(this);
 	}
 
 	public MarketItem(ItemStack item, UUID owner, double price) {
@@ -88,7 +89,7 @@ public class MarketItem implements Ownable {
 		this.sellerAmountMap = new HashMap<>();
 		this.bought = 0;
 		this.sold = 0;
-		RetroConomy.getInstance().getManager().getMarket().list().add(this);
+		RetroConomy.getInstance().getManager().getInventory().add(this);
 	}
 
 	public static Category getCategory(Material mat) {
@@ -224,7 +225,7 @@ public class MarketItem implements Ownable {
 
 	@Override
 	public boolean isBlacklisted() {
-		return RetroConomy.getInstance().getManager().getMain().getConfig().getStringList("Options.item-blacklist").contains(getItem().getType().name());
+		return RetroConomy.getInstance().getManager().getMain().getRoot().getStringList("Options.item-blacklist").contains(getItem().getType().name());
 	}
 
 	@Override

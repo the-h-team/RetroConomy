@@ -248,7 +248,7 @@ public class VaultEconomy implements Economy {
 
 	@Override
 	public List<String> getBanks() {
-		return RetroConomy.getInstance().getManager().getAccounts().map(BankAccount::getId).map(HUID::toString).collect(Collectors.toList());
+		return RetroConomy.getInstance().getManager().getAccounts().stream().map(BankAccount::getId).map(HUID::toString).collect(Collectors.toList());
 	}
 
 	@Override

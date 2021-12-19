@@ -17,7 +17,7 @@ public enum CurrencyType {
 	DOLLAR, CHANGE, ALT;
 
 	public static Optional<Currency> match(ItemStack item) {
-		return RetroConomy.getInstance().getManager().getAcceptableCurrencies().filter(c -> c.toItem().isSimilar(item)).findFirst();
+		return RetroConomy.getInstance().getManager().getAcceptableCurrencies().stream().filter(c -> c.toItem().isSimilar(item)).findFirst();
 	}
 
 }

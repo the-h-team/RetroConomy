@@ -3,6 +3,7 @@ package com.github.sanctum.retro.construct.core;
 import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.labyrinth.library.StringUtils;
 import com.github.sanctum.retro.RetroConomy;
+import com.github.sanctum.retro.api.Savable;
 import com.github.sanctum.skulls.CustomHead;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -22,6 +23,7 @@ public class DebitCard implements Savable {
 	}
 
 	public static boolean matches(ItemStack itemStack) {
+		if (itemStack == null) return false;
 		return itemStack.hasItemMeta() && !itemStack.getItemMeta().getPersistentDataContainer().isEmpty() && itemStack.getItemMeta().getPersistentDataContainer().has(KEY, PersistentDataType.STRING);
 	}
 

@@ -9,10 +9,11 @@
 package com.github.sanctum.retro.construct.core;
 
 import com.github.sanctum.labyrinth.library.HUID;
+import com.github.sanctum.retro.api.Savable;
 import com.github.sanctum.retro.util.CurrencyType;
 import org.bukkit.inventory.ItemStack;
 
-public class Currency implements Savable{
+public class Currency implements Savable {
 
 	private static final long serialVersionUID = -6267223132241350636L;
 	private final ItemStack item;

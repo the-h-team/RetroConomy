@@ -9,6 +9,7 @@
 package com.github.sanctum.retro;
 
 import com.github.sanctum.labyrinth.LabyrinthProvider;
+import com.github.sanctum.labyrinth.api.Service;
 import com.github.sanctum.labyrinth.data.FileList;
 import com.github.sanctum.labyrinth.data.FileManager;
 import com.github.sanctum.labyrinth.data.container.PersistentContainer;
@@ -16,30 +17,30 @@ import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.labyrinth.library.Message;
 import com.github.sanctum.labyrinth.library.NamespacedKey;
 import com.github.sanctum.labyrinth.task.Schedule;
+import com.github.sanctum.retro.api.ItemDemand;
 import com.github.sanctum.retro.api.RetroAPI;
+import com.github.sanctum.retro.command.BalanceCommand;
+import com.github.sanctum.retro.command.BankCommand;
+import com.github.sanctum.retro.command.BuyCommand;
+import com.github.sanctum.retro.command.DefaultCommand;
+import com.github.sanctum.retro.command.DepositCommand;
+import com.github.sanctum.retro.command.PayCommand;
+import com.github.sanctum.retro.command.RetroCommand;
+import com.github.sanctum.retro.command.SellCommand;
+import com.github.sanctum.retro.command.ShopCommand;
+import com.github.sanctum.retro.command.TopCommand;
+import com.github.sanctum.retro.command.WithdrawCommand;
 import com.github.sanctum.retro.construct.core.BankAccount;
 import com.github.sanctum.retro.construct.core.Currency;
-import com.github.sanctum.retro.construct.core.ItemDemand;
 import com.github.sanctum.retro.construct.core.MarketItem;
 import com.github.sanctum.retro.construct.core.Shop;
 import com.github.sanctum.retro.construct.core.SpecialItem;
 import com.github.sanctum.retro.construct.core.SystemItem;
 import com.github.sanctum.retro.construct.core.WalletAccount;
-import com.github.sanctum.retro.construct.internal.BalanceCommand;
-import com.github.sanctum.retro.construct.internal.BankCommand;
-import com.github.sanctum.retro.construct.internal.BuyCommand;
-import com.github.sanctum.retro.construct.internal.DefaultCommand;
-import com.github.sanctum.retro.construct.internal.DepositCommand;
-import com.github.sanctum.retro.construct.internal.PayCommand;
-import com.github.sanctum.retro.construct.internal.RetroCommand;
-import com.github.sanctum.retro.construct.internal.SellCommand;
-import com.github.sanctum.retro.construct.internal.ShopCommand;
-import com.github.sanctum.retro.construct.internal.TopCommand;
-import com.github.sanctum.retro.construct.internal.WithdrawCommand;
 import com.github.sanctum.retro.enterprise.EnterpriseEconomy;
 import com.github.sanctum.retro.util.ConfiguredMessage;
 import com.github.sanctum.retro.util.CurrencyType;
-import com.github.sanctum.retro.util.FileType;
+import com.github.sanctum.retro.util.FileReader;
 import com.github.sanctum.retro.util.FormattedMessage;
 import com.github.sanctum.retro.vault.VaultEconomy;
 import java.io.IOException;
@@ -81,134 +82,140 @@ public class RetroConomy extends JavaPlugin implements RetroAPI, Listener {
 	@Override
 	public void onDisable() {
 
-		FileManager manager = FileType.ACCOUNT.get();
-		FileManager items = FileType.MISC.get("Items");
-		for (ItemDemand item : getManager().getMarket().sort()) {
+		for (PersistentContainer component : LabyrinthProvider.getService(Service.DATA).getContainers(this)) {
+			for (String key : component.keySet()) {
+				try {
+					component.save(key);
+				} catch (IOException e) {
+					getLogger().severe("- Unable to save meta '" + key + "' from namespace " + component.getKey().getNamespace() + ":" + component.getKey().getKey());
+					e.printStackTrace();
+				}
+			}
+		}
+
+		FileManager manager = FileReader.ACCOUNT.get();
+		FileManager items = FileReader.MISC.get("Items");
+		for (ItemDemand item : getManager().getInventory()) {
 			if (item instanceof SystemItem) {
 				if (item.getBuyerMap().isEmpty()) {
-					items.getConfig().set("Items." + item.toString() + ".usage-purchase", null);
-					items.getConfig().createSection("Items." + item.toString() + ".usage-purchase");
+					items.getRoot().set("Items." + item + ".usage-purchase", null);
+					items.getRoot().getNode("Items." + item + ".usage-purchase").create();
 				} else {
 					for (Map.Entry<String, Long> entry : item.getBuyerMap().entrySet()) {
-						items.getConfig().set("Items." + item.toString() + ".usage-purchase." + entry.getKey() + ".amount", entry.getValue());
+						items.getRoot().set("Items." + item + ".usage-purchase." + entry.getKey() + ".amount", entry.getValue());
 					}
 				}
 				if (item.getSellerMap().isEmpty()) {
-					items.getConfig().set("Items." + item.toString() + ".usage-sold", null);
-					items.getConfig().createSection("Items." + item.toString() + ".usage-sold");
+					items.getRoot().getNode("Items." + item + ".usage-sold").create();
 				} else {
 					for (Map.Entry<String, Long> entry : item.getSellerMap().entrySet()) {
-						items.getConfig().set("Items." + item.toString() + ".usage-sold." + entry.getKey() + ".amount", entry.getValue());
+						items.getRoot().set("Items." + item + ".usage-sold." + entry.getKey() + ".amount", entry.getValue());
 					}
 				}
 				for (Map.Entry<String, Long> entry : item.getBuyerTimeMap().entrySet()) {
-					items.getConfig().set("Items." + item.toString() + ".usage-purchase." + entry.getKey() + ".time", entry.getValue());
+					items.getRoot().set("Items." + item + ".usage-purchase." + entry.getKey() + ".time", entry.getValue());
 				}
 				for (Map.Entry<String, Long> entry : item.getSellerTimeMap().entrySet()) {
-					items.getConfig().set("Items." + item.toString() + ".usage-sold." + entry.getKey() + ".time", entry.getValue());
+					items.getRoot().set("Items." + item + ".usage-sold." + entry.getKey() + ".time", entry.getValue());
 				}
 
 				for (Map.Entry<Long, Long> entry : item.getBuyerAmountMap().entrySet()) {
-					items.getConfig().set("Items." + item.toString() + ".usage-purchase." + entry.getKey() + ".history.amount", entry.getValue());
-					items.getConfig().set("Items." + item.toString() + ".usage-purchase." + entry.getKey() + ".history.date", entry.getKey());
+					items.getRoot().set("Items." + item + ".usage-purchase." + entry.getKey() + ".history.amount", entry.getValue());
+					items.getRoot().set("Items." + item + ".usage-purchase." + entry.getKey() + ".history.date", entry.getKey());
 				}
 				for (Map.Entry<Long, Long> entry : item.getSellerAmountMap().entrySet()) {
-					items.getConfig().set("Items." + item.toString() + ".usage-sold." + entry.getKey() + ".history.amount", entry.getValue());
-					items.getConfig().set("Items." + item.toString() + ".usage-sold." + entry.getKey() + ".history.date", entry.getKey());
+					items.getRoot().set("Items." + item + ".usage-sold." + entry.getKey() + ".history.amount", entry.getValue());
+					items.getRoot().set("Items." + item + ".usage-sold." + entry.getKey() + ".history.date", entry.getKey());
 				}
-				items.getConfig().set("Items." + item.toString() + ".multiplier", item.getMultiplier());
-				items.saveConfig();
+				items.getRoot().set("Items." + item + ".multiplier", item.getMultiplier());
+				items.getRoot().save();
 			}
 			if (item instanceof SpecialItem) {
 				SpecialItem i = (SpecialItem) item;
-				items.getConfig().set("Special." + item.toString() + ".owner", i.getOwner().toString());
-				items.getConfig().set("Special." + item.toString() + ".amount", i.getAmount());
+				items.getRoot().set("Special." + item + ".owner", i.getOwner().toString());
+				items.getRoot().set("Special." + item + ".amount", i.getAmount());
 				if (i.getBuyerMap().isEmpty()) {
-					items.getConfig().set("Special." + item.toString() + ".usage-purchase", null);
-					items.getConfig().createSection("Special." + item.toString() + ".usage-purchase");
+					items.getRoot().getNode("Special." + item + ".usage-purchase").create();
 				} else {
 					for (Map.Entry<String, Long> entry : item.getBuyerMap().entrySet()) {
-						items.getConfig().set("Special." + item.toString() + ".usage-purchase." + entry.getKey() + ".amount", entry.getValue());
+						items.getRoot().set("Special." + item + ".usage-purchase." + entry.getKey() + ".amount", entry.getValue());
 					}
 				}
 				if (item.getSellerMap().isEmpty()) {
-					items.getConfig().set("Special." + item.toString() + ".usage-sold", null);
-					items.getConfig().createSection("Special." + item.toString() + ".usage-sold");
+					items.getRoot().getNode("Special." + item + ".usage-sold").create();
 				} else {
 					for (Map.Entry<String, Long> entry : item.getSellerMap().entrySet()) {
-						items.getConfig().set("Special." + item.toString() + ".usage-sold." + entry.getKey() + ".amount", entry.getValue());
+						items.getRoot().set("Special." + item + ".usage-sold." + entry.getKey() + ".amount", entry.getValue());
 					}
 				}
 				for (Map.Entry<String, Long> entry : item.getBuyerTimeMap().entrySet()) {
-					items.getConfig().set("Special." + item.toString() + ".usage-purchase." + entry.getKey() + ".time", entry.getValue());
+					items.getRoot().set("Special." + item + ".usage-purchase." + entry.getKey() + ".time", entry.getValue());
 				}
 				for (Map.Entry<String, Long> entry : item.getSellerTimeMap().entrySet()) {
-					items.getConfig().set("Special." + item.toString() + ".usage-sold." + entry.getKey() + ".time", entry.getValue());
+					items.getRoot().set("Special." + item + ".usage-sold." + entry.getKey() + ".time", entry.getValue());
 				}
 
 				for (Map.Entry<Long, Long> entry : item.getBuyerAmountMap().entrySet()) {
-					items.getConfig().set("Special." + item.toString() + ".usage-purchase." + entry.getKey() + ".history.amount", entry.getValue());
-					items.getConfig().set("Special." + item.toString() + ".usage-purchase." + entry.getKey() + ".history.date", entry.getKey());
+					items.getRoot().set("Special." + item + ".usage-purchase." + entry.getKey() + ".history.amount", entry.getValue());
+					items.getRoot().set("Special." + item + ".usage-purchase." + entry.getKey() + ".history.date", entry.getKey());
 				}
 				for (Map.Entry<Long, Long> entry : item.getSellerAmountMap().entrySet()) {
-					items.getConfig().set("Special." + item.toString() + ".usage-sold." + entry.getKey() + ".history.amount", entry.getValue());
-					items.getConfig().set("Special." + item.toString() + ".usage-sold." + entry.getKey() + ".history.date", entry.getKey());
+					items.getRoot().set("Special." + item + ".usage-sold." + entry.getKey() + ".history.amount", entry.getValue());
+					items.getRoot().set("Special." + item + ".usage-sold." + entry.getKey() + ".history.date", entry.getKey());
 				}
-				items.getConfig().set("Special." + item.toString() + ".price", item.getBasePrice());
-				items.getConfig().set("Special." + item.toString() + ".floor", item.getFloor());
-				items.getConfig().set("Special." + item.toString() + ".ceiling", item.getCeiling());
-				items.getConfig().set("Special." + item.toString() + ".multiplier", item.getMultiplier());
-				items.saveConfig();
+				items.getRoot().set("Special." + item + ".price", item.getBasePrice());
+				items.getRoot().set("Special." + item + ".floor", item.getFloor());
+				items.getRoot().set("Special." + item + ".ceiling", item.getCeiling());
+				items.getRoot().set("Special." + item + ".multiplier", item.getMultiplier());
+				items.getRoot().save();
 			}
 			if (item instanceof MarketItem) {
 				MarketItem i = (MarketItem) item;
-				items.getConfig().set("Market." + item.toString() + ".owner", i.getOwner().toString());
-				items.getConfig().set("Market." + item.toString() + ".amount", i.getAmount());
+				items.getRoot().set("Market." + item + ".owner", i.getOwner().toString());
+				items.getRoot().set("Market." + item + ".amount", i.getAmount());
 				if (i.getBuyerMap().isEmpty()) {
-					items.getConfig().set("Market." + item.toString() + ".usage-purchase", null);
-					items.getConfig().createSection("Market." + item.toString() + ".usage-purchase");
+					items.getRoot().getNode("Market." + item + ".usage-purchase").create();
 				} else {
 					for (Map.Entry<String, Long> entry : item.getBuyerMap().entrySet()) {
-						items.getConfig().set("Market." + item.toString() + ".usage-purchase." + entry.getKey() + ".amount", entry.getValue());
+						items.getRoot().set("Market." + item + ".usage-purchase." + entry.getKey() + ".amount", entry.getValue());
 					}
 				}
 				if (item.getSellerMap().isEmpty()) {
-					items.getConfig().set("Market." + item.toString() + ".usage-sold", null);
-					items.getConfig().createSection("Market." + item.toString() + ".usage-sold");
+					items.getRoot().getNode("Market." + item + ".usage-sold").create();
 				} else {
 					for (Map.Entry<String, Long> entry : item.getSellerMap().entrySet()) {
-						items.getConfig().set("Market." + item.toString() + ".usage-sold." + entry.getKey() + ".amount", entry.getValue());
+						items.getRoot().set("Market." + item + ".usage-sold." + entry.getKey() + ".amount", entry.getValue());
 					}
 				}
 				for (Map.Entry<String, Long> entry : item.getBuyerTimeMap().entrySet()) {
-					items.getConfig().set("Market." + item.toString() + ".usage-purchase." + entry.getKey() + ".time", entry.getValue());
+					items.getRoot().set("Market." + item + ".usage-purchase." + entry.getKey() + ".time", entry.getValue());
 				}
 				for (Map.Entry<String, Long> entry : item.getSellerTimeMap().entrySet()) {
-					items.getConfig().set("Market." + item.toString() + ".usage-sold." + entry.getKey() + ".time", entry.getValue());
+					items.getRoot().set("Market." + item + ".usage-sold." + entry.getKey() + ".time", entry.getValue());
 				}
 
 				for (Map.Entry<Long, Long> entry : item.getBuyerAmountMap().entrySet()) {
-					items.getConfig().set("Market." + item.toString() + ".usage-purchase." + entry.getKey() + ".history.amount", entry.getValue());
-					items.getConfig().set("Market." + item.toString() + ".usage-purchase." + entry.getKey() + ".history.date", entry.getKey());
+					items.getRoot().set("Market." + item + ".usage-purchase." + entry.getKey() + ".history.amount", entry.getValue());
+					items.getRoot().set("Market." + item + ".usage-purchase." + entry.getKey() + ".history.date", entry.getKey());
 				}
 				for (Map.Entry<Long, Long> entry : item.getSellerAmountMap().entrySet()) {
-					items.getConfig().set("Market." + item.toString() + ".usage-sold." + entry.getKey() + ".history.amount", entry.getValue());
-					items.getConfig().set("Market." + item.toString() + ".usage-sold." + entry.getKey() + ".history.date", entry.getKey());
+					items.getRoot().set("Market." + item + ".usage-sold." + entry.getKey() + ".history.amount", entry.getValue());
+					items.getRoot().set("Market." + item + ".usage-sold." + entry.getKey() + ".history.date", entry.getKey());
 				}
-				items.getConfig().set("Market." + item.toString() + ".price", item.getBasePrice());
-				items.getConfig().set("Market." + item.toString() + ".floor", item.getFloor());
-				items.getConfig().set("Market." + item.toString() + ".ceiling", item.getCeiling());
-				items.getConfig().set("Market." + item.toString() + ".multiplier", item.getMultiplier());
-				items.saveConfig();
+				items.getRoot().set("Market." + item + ".price", item.getBasePrice());
+				items.getRoot().set("Market." + item + ".floor", item.getFloor());
+				items.getRoot().set("Market." + item + ".ceiling", item.getCeiling());
+				items.getRoot().set("Market." + item + ".multiplier", item.getMultiplier());
+				items.getRoot().save();
 			}
 		}
 		for (BankAccount account : getManager().ACCOUNTS) {
-			manager.getConfig().set("accounts." + account.getId().toString() + ".owner", account.getOwner().toString());
+			manager.getRoot().set("accounts." + account.getId().toString() + ".owner", account.getOwner().toString());
 			if (account.getJointOwner() != null) {
-				manager.getConfig().set("accounts." + account.getId().toString() + ".joint", account.getJointOwner().toString());
+				manager.getRoot().set("accounts." + account.getId().toString() + ".joint", account.getJointOwner().toString());
 			}
-			manager.getConfig().set("accounts." + account.getId().toString() + ".members", account.getMembers().stream().map(UUID::toString).collect(Collectors.toList()));
-			manager.saveConfig();
+			manager.getRoot().set("accounts." + account.getId().toString() + ".members", account.getMembers().stream().map(UUID::toString).collect(Collectors.toList()));
+			manager.getRoot().save();
 		}
 		for (Shop atm : getManager().SHOPS) {
 			atm.save();
@@ -218,13 +225,13 @@ public class RetroConomy extends JavaPlugin implements RetroAPI, Listener {
 	@Override
 	public void onEnable() {
 		this.manager = new RetroManager();
-		FileManager manager = FileType.ACCOUNT.get();
+		FileManager manager = FileReader.ACCOUNT.get();
 
 		Bukkit.getPluginManager().registerEvents(this, this);
 
-		if (!manager.exists()) {
+		if (!manager.getRoot().exists()) {
 			try {
-				manager.create();
+				manager.getRoot().create();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -232,17 +239,16 @@ public class RetroConomy extends JavaPlugin implements RetroAPI, Listener {
 
 		getManager().loadShop();
 
-		if (!manager.getConfig().isConfigurationSection("accounts")) {
-			manager.getConfig().createSection("accounts");
-			manager.getConfig().createSection("wallets");
-			manager.saveConfig();
+		if (!manager.getRoot().isNode("accounts")) {
+			manager.getRoot().getNode("accounts").create();
+			manager.getRoot().getNode("wallets").create();
 		}
 		for (OfflinePlayer p : Bukkit.getOfflinePlayers()) {
-			if (!manager.getConfig().isConfigurationSection("wallets." + p.getUniqueId().toString())) {
+			if (!manager.getRoot().isNode("wallets." + p.getUniqueId())) {
 				for (World w : Bukkit.getWorlds()) {
-					manager.getConfig().set("wallets." + p.getUniqueId().toString() + ".balance." + w.getName(), getManager().getMain().getConfig().getDouble("Options.wallets.starting-balance"));
+					manager.getRoot().set("wallets." + p.getUniqueId() + ".balance." + w.getName(), getManager().getMain().getRoot().getDouble("Options.wallets.starting-balance"));
 				}
-				manager.saveConfig();
+				manager.getRoot().save();
 			}
 			PersistentContainer container = LabyrinthProvider.getInstance().getContainer(new NamespacedKey(this, "Shops"));
 			Shop shop = container.get(Shop.class, p.getUniqueId().toString());
@@ -253,10 +259,10 @@ public class RetroConomy extends JavaPlugin implements RetroAPI, Listener {
 
 		getManager().loadCurrencies();
 
-		for (String id : manager.getConfig().getConfigurationSection("accounts").getKeys(false)) {
-			this.manager.ACCOUNTS.add(new BankAccount(UUID.fromString(manager.getConfig().getString("accounts." + id + ".owner")), manager.getConfig().isString("accounts." + id + ".joint") ? UUID.fromString(manager.getConfig().getString("accounts." + id + ".joint")) : null, HUID.fromString(id), manager.getConfig().getStringList("accounts." + id + ".members")));
+		for (String id : manager.getRoot().getNode("accounts").getKeys(false)) {
+			this.manager.ACCOUNTS.add(new BankAccount(UUID.fromString(manager.getRoot().getString("accounts." + id + ".owner")), manager.getRoot().isString("accounts." + id + ".joint") ? UUID.fromString(manager.getRoot().getString("accounts." + id + ".joint")) : null, HUID.fromString(id), manager.getRoot().getStringList("accounts." + id + ".members")));
 		}
-		for (String id : manager.getConfig().getConfigurationSection("wallets").getKeys(false)) {
+		for (String id : manager.getRoot().getNode("wallets").getKeys(false)) {
 			OfflinePlayer owner = Bukkit.getOfflinePlayer(UUID.fromString(id));
 			this.manager.WALLETS.add(new WalletAccount(owner.getUniqueId(), HUID.randomID()));
 		}
@@ -283,15 +289,13 @@ public class RetroConomy extends JavaPlugin implements RetroAPI, Listener {
 			@EventHandler(ignoreCancelled = true)
 			public void onJoin(PlayerJoinEvent e) {
 				Player p = e.getPlayer();
-				if (!p.hasPlayedBefore()) {
-					if (!manager.getConfig().isConfigurationSection("wallets." + p.getUniqueId().toString())) {
-						for (World w : Bukkit.getWorlds()) {
-							manager.getConfig().set("wallets." + p.getUniqueId().toString() + ".balance." + w.getName(), getManager().getMain().getConfig().getDouble("Options.wallets.starting-balance"));
-						}
-						manager.saveConfig();
-						manager.reload();
-						getManager().WALLETS.add(new WalletAccount(p.getUniqueId(), HUID.randomID()));
+				manager.getRoot().save();
+				if (!manager.getRoot().isNode("wallets." + p.getUniqueId())) {
+					for (World w : Bukkit.getWorlds()) {
+						manager.getRoot().set("wallets." + p.getUniqueId() + ".balance." + w.getName(), getManager().getMain().getRoot().getDouble("Options.wallets.starting-balance"));
 					}
+					manager.getRoot().save();
+					getManager().WALLETS.add(new WalletAccount(p.getUniqueId(), HUID.randomID()));
 				}
 			}
 
@@ -302,9 +306,9 @@ public class RetroConomy extends JavaPlugin implements RetroAPI, Listener {
 				if (cu.getType() == CurrencyType.ALT)
 					return;
 
-				if (FileType.MISC.get("Config").getConfig().getBoolean("Options.mob-reward.enabled")) {
-					List<String> mobtypes = new ArrayList<>(FileType.MISC.get("Config").getConfig().getStringList("Options.mob-reward.ignored-mobs"));
-					List<String> monstertypes = new ArrayList<>(FileType.MISC.get("Config").getConfig().getStringList("Options.mob-reward.ignored-monsters"));
+				if (FileReader.MISC.get("Config").getRoot().getBoolean("Options.mob-reward.enabled")) {
+					List<String> mobtypes = new ArrayList<>(FileReader.MISC.get("Config").getRoot().getStringList("Options.mob-reward.ignored-mobs"));
+					List<String> monstertypes = new ArrayList<>(FileReader.MISC.get("Config").getRoot().getStringList("Options.mob-reward.ignored-monsters"));
 					final int i = Integer.parseInt(String.valueOf(Math.round(1.2)));
 					if (e.getEntity() instanceof Monster && e.getEntity().getKiller() != null) {
 						Player p = e.getEntity().getKiller();
@@ -413,7 +417,7 @@ public class RetroConomy extends JavaPlugin implements RetroAPI, Listener {
 	@Override
 	public PlayerTransactionResult itemRemoval(Player p, ItemStack item, int amount) {
 		if (itemStackTotal(p, item) < amount) {
-			Message.form(p).setPrefix(getManager().getMain().getConfig().getString("Options.prefix")).send("&cYou don't have enough " + item.getType().name().toLowerCase());
+			Message.form(p).setPrefix(getManager().getMain().getRoot().getString("Options.prefix")).send("&cYou don't have enough " + item.getType().name().toLowerCase());
 			return PlayerTransactionResult.FAILED;
 		}
 		int size = 36;
@@ -455,13 +459,13 @@ public class RetroConomy extends JavaPlugin implements RetroAPI, Listener {
 
 	@EventHandler
 	public void onJoin(PlayerJoinEvent e) {
-		FileManager manager = FileType.ACCOUNT.get();
+		FileManager manager = FileReader.ACCOUNT.get();
 		Player p = e.getPlayer();
-		if (!manager.getConfig().isConfigurationSection("wallets." + p.getUniqueId().toString())) {
+		if (!manager.getRoot().isNode("wallets." + p.getUniqueId())) {
 			for (World w : Bukkit.getWorlds()) {
-				manager.getConfig().set("wallets." + p.getUniqueId().toString() + ".balance." + w.getName(), getManager().getMain().getConfig().getDouble("Options.wallets.starting-balance"));
+				manager.getRoot().set("wallets." + p.getUniqueId() + ".balance." + w.getName(), getManager().getMain().getRoot().getDouble("Options.wallets.starting-balance"));
 			}
-			manager.saveConfig();
+			manager.getRoot().save();
 		}
 	}
 

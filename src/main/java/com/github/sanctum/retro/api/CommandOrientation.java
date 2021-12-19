@@ -6,7 +6,7 @@
  *  This software is currently in development and its licensing has not
  *  yet been chosen.
  */
-package com.github.sanctum.retro.command;
+package com.github.sanctum.retro.api;
 
 import com.github.sanctum.labyrinth.command.CommandRegistration;
 import com.github.sanctum.labyrinth.library.Message;
@@ -50,15 +50,15 @@ public abstract class CommandOrientation extends Command {
 	}
 
 	protected final void sendMessage(Player player, String msg) {
-		Message.form(player).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix")).send(msg);
+		Message.form(player).setPrefix(RetroConomy.getInstance().getManager().getMain().getRoot().getString("Options.prefix")).send(msg);
 	}
 
 	protected final void sendComponent(Player player, BaseComponent msg) {
-		Message.form(player).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix")).build(msg);
+		Message.form(player).setPrefix(RetroConomy.getInstance().getManager().getMain().getRoot().getString("Options.prefix")).build(msg);
 	}
 
 	protected final void sendComponent(Player player, BaseComponent... msg) {
-		Message.form(player).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix")).build(msg);
+		Message.form(player).setPrefix(RetroConomy.getInstance().getManager().getMain().getRoot().getString("Options.prefix")).build(msg);
 	}
 
 	protected final void sendUsage(Player player) {

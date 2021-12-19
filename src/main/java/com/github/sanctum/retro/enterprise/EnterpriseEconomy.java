@@ -57,7 +57,7 @@ public class EnterpriseEconomy implements AdvancedEconomy {
 				.setMajorSingular(RetroConomy.getInstance().getManager().getMajorSingular())
 				.setMinorPlural(RetroConomy.getInstance().getManager().getMinorPlural())
 				.setMinorSingular(RetroConomy.getInstance().getManager().getMinorSingular())
-				.setWorld(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.multi-world.falsify"))
+				.setWorld(RetroConomy.getInstance().getManager().getMain().getRoot().getString("Options.multi-world.falsify"))
 				.toCurrency();
 	}
 
@@ -83,7 +83,7 @@ public class EnterpriseEconomy implements AdvancedEconomy {
 
 	@Override
 	public BigDecimal getMaxWalletSize() {
-		return BigDecimal.valueOf(RetroConomy.getInstance().getManager().getMain().getConfig().getDouble("Options.wallets.max-balance"));
+		return BigDecimal.valueOf(RetroConomy.getInstance().getManager().getMain().getRoot().getDouble("Options.wallets.max-balance"));
 	}
 
 	@Override
@@ -369,6 +369,6 @@ public class EnterpriseEconomy implements AdvancedEconomy {
 
 	@Override
 	public List<String> getAccountList() {
-		return RetroConomy.getInstance().getManager().getAccounts().map(BankAccount::getId).map(HUID::toString).collect(Collectors.toList());
+		return RetroConomy.getInstance().getManager().getAccounts().stream().map(BankAccount::getId).map(HUID::toString).collect(Collectors.toList());
 	}
 }

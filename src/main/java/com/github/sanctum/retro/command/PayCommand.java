@@ -6,14 +6,14 @@
  *  This software is currently in development and its licensing has not
  *  yet been chosen.
  */
-package com.github.sanctum.retro.construct.internal;
+package com.github.sanctum.retro.command;
 
-import com.github.sanctum.labyrinth.formatting.TabCompletion;
-import com.github.sanctum.labyrinth.formatting.TabCompletionBuilder;
+import com.github.sanctum.labyrinth.formatting.completion.SimpleTabCompletion;
+import com.github.sanctum.labyrinth.formatting.completion.TabCompletionIndex;
 import com.github.sanctum.retro.RetroConomy;
-import com.github.sanctum.retro.command.CommandInformation;
-import com.github.sanctum.retro.command.CommandOrientation;
-import com.github.sanctum.retro.construct.core.RetroAccount;
+import com.github.sanctum.retro.api.CommandInformation;
+import com.github.sanctum.retro.api.CommandOrientation;
+import com.github.sanctum.retro.api.RetroAccount;
 import com.github.sanctum.retro.util.ConfiguredMessage;
 import com.github.sanctum.retro.util.FormattedMessage;
 import java.math.BigDecimal;
@@ -33,16 +33,13 @@ public class PayCommand extends CommandOrientation {
 		super(information);
 	}
 
-	private final TabCompletionBuilder builder = TabCompletion.build(getLabel());
+	private final SimpleTabCompletion builder = SimpleTabCompletion.empty();
 
 	@Override
 	public @Nullable List<String> complete(Player p, String[] args) {
-		return builder.forArgs(args)
-				.level(1)
-				.completeAt(getLabel())
-				.filter(() -> Arrays.stream(Bukkit.getOfflinePlayers()).map(OfflinePlayer::getName).collect(Collectors.toList()))
-				.collect()
-				.get(args.length);
+		return builder.fillArgs(args)
+				.then(TabCompletionIndex.ONE, Arrays.stream(Bukkit.getOfflinePlayers()).map(OfflinePlayer::getName).collect(Collectors.toList()))
+				.get();
 	}
 
 	@Override
@@ -58,7 +55,7 @@ public class PayCommand extends CommandOrientation {
 
 						String[] balance;
 						String bal = RetroConomy.getInstance().getManager().format(amount);
-						if (RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.format").equals("en")) {
+						if (RetroConomy.getInstance().getManager().getMain().getRoot().getString("Options.format").equals("en")) {
 							balance = bal.split("\\.");
 						} else {
 							balance = bal.split(",");

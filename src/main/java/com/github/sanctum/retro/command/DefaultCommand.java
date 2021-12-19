@@ -6,17 +6,17 @@
  *  This software is currently in development and its licensing has not
  *  yet been chosen.
  */
-package com.github.sanctum.retro.construct.internal;
+package com.github.sanctum.retro.command;
 
-import com.github.sanctum.labyrinth.formatting.TabCompletion;
-import com.github.sanctum.labyrinth.formatting.TabCompletionBuilder;
+import com.github.sanctum.labyrinth.formatting.completion.SimpleTabCompletion;
+import com.github.sanctum.labyrinth.formatting.completion.TabCompletionIndex;
 import com.github.sanctum.retro.RetroConomy;
-import com.github.sanctum.retro.command.CommandInformation;
-import com.github.sanctum.retro.command.CommandOrientation;
+import com.github.sanctum.retro.api.CommandInformation;
+import com.github.sanctum.retro.api.CommandOrientation;
 import com.github.sanctum.retro.construct.core.BankAccount;
 import com.github.sanctum.retro.construct.core.WalletAccount;
 import com.github.sanctum.retro.util.ConfiguredMessage;
-import com.github.sanctum.retro.util.FileType;
+import com.github.sanctum.retro.util.FileReader;
 import com.github.sanctum.retro.util.FormattedMessage;
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -38,18 +38,13 @@ public class DefaultCommand extends CommandOrientation {
 		super(information);
 	}
 
-	TabCompletionBuilder builder = TabCompletion.build(getLabel());
+	SimpleTabCompletion builder = SimpleTabCompletion.empty();
 
 	@Override
 	public @Nullable List<String> complete(Player p, String[] args) {
-		return builder.forArgs(args)
-				.level(1)
-				.completeAt(getLabel())
-				.filter(() -> Arrays.asList("set", "give", "take"))
-				.collect()
-				.level(2)
-				.completeAt(getLabel())
-				.filter(() -> {
+		return builder.fillArgs(args)
+				.then(TabCompletionIndex.ONE, "set", "give", "take")
+				.then(TabCompletionIndex.TWO, () -> {
 					if (p.hasPermission(getInformation().getPermission() + ".admin")) {
 						if (args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("give") || args[0].equalsIgnoreCase("take")) {
 							return Arrays.stream(Bukkit.getOfflinePlayers()).map(OfflinePlayer::getName).collect(Collectors.toList());
@@ -57,16 +52,8 @@ public class DefaultCommand extends CommandOrientation {
 					}
 					return Collections.emptyList();
 				})
-				.collect()
-				.level(3)
-				.completeAt(getLabel())
-				.filter(Collections::emptyList)
-				.collect()
-				.level(4)
-				.completeAt(getLabel())
-				.filter(() -> Bukkit.getWorlds().stream().map(World::getName).collect(Collectors.toList()))
-				.collect()
-				.get(args.length);
+				.then(TabCompletionIndex.FOUR, Bukkit.getWorlds().stream().map(World::getName).collect(Collectors.toList()))
+				.get();
 	}
 
 	@Override
@@ -78,23 +65,23 @@ public class DefaultCommand extends CommandOrientation {
 		if (player.hasPermission(getInformation().getPermission() + ".admin")) {
 			if (args.length == 1) {
 				if (args[0].equalsIgnoreCase("reload")) {
-					RetroConomy.getInstance().getManager().getMain().reload();
-					FileType.ACCOUNT.get().reload();
+					RetroConomy.getInstance().getManager().getMain().getRoot().reload();
+					FileReader.ACCOUNT.get().getRoot().reload();
 					RetroConomy.getInstance().getManager().loadCurrencies();
 					RetroConomy.getInstance().getManager().loadShop();
 					sendMessage(player, "&aAll configuration reloaded.");
 					return;
 				}
 				if (args[0].equalsIgnoreCase("reset")) {
-					for (WalletAccount ac : RetroConomy.getInstance().getManager().getWallets().list()) {
+					for (WalletAccount ac : RetroConomy.getInstance().getManager().getWallets()) {
 						for (World w : Bukkit.getWorlds()) {
-							ac.setBalance(RetroConomy.getInstance().getManager().getMain().getConfig().getDouble("Options.wallets.starting-balance"), w);
+							ac.setBalance(RetroConomy.getInstance().getManager().getMain().getRoot().getDouble("Options.wallets.starting-balance"), w);
 						}
 						sendMessage(player, "&e" + ac.getOwner().getName() + " &7wallet balance just got reset to &f&l$" + RetroConomy.getInstance().getManager().format(ac.getBalance()));
 					}
-					for (BankAccount ac : RetroConomy.getInstance().getManager().getAccounts().list()) {
+					for (BankAccount ac : RetroConomy.getInstance().getManager().getAccounts()) {
 						for (World w : Bukkit.getWorlds()) {
-							ac.setBalance(RetroConomy.getInstance().getManager().getMain().getConfig().getDouble("Options.accounts.starting-balance"), w);
+							ac.setBalance(RetroConomy.getInstance().getManager().getMain().getRoot().getDouble("Options.accounts.starting-balance"), w);
 						}
 						sendMessage(player, "&e" + Bukkit.getOfflinePlayer(ac.getOwner()).getName() + " &7bank account balance just got reset to &f&l$" + RetroConomy.getInstance().getManager().format(ac.getBalance()));
 					}
@@ -118,17 +105,17 @@ public class DefaultCommand extends CommandOrientation {
 			if (args.length == 2) {
 				if (args[0].equalsIgnoreCase("reset")) {
 					if (args[1].equalsIgnoreCase("wallets")) {
-						for (WalletAccount ac : RetroConomy.getInstance().getManager().getWallets().list()) {
+						for (WalletAccount ac : RetroConomy.getInstance().getManager().getWallets()) {
 							for (World w : Bukkit.getWorlds()) {
-								ac.setBalance(RetroConomy.getInstance().getManager().getMain().getConfig().getDouble("Options.wallets.starting-balance"), w);
+								ac.setBalance(RetroConomy.getInstance().getManager().getMain().getRoot().getDouble("Options.wallets.starting-balance"), w);
 							}
 							sendMessage(player, "&e" + ac.getOwner().getName() + " &7wallet balance just got reset to &f&l$" + RetroConomy.getInstance().getManager().format(ac.getBalance()));
 						}
 					}
 					if (args[1].equalsIgnoreCase("banks")) {
-						for (BankAccount ac : RetroConomy.getInstance().getManager().getAccounts().list()) {
+						for (BankAccount ac : RetroConomy.getInstance().getManager().getAccounts()) {
 							for (World w : Bukkit.getWorlds()) {
-								ac.setBalance(RetroConomy.getInstance().getManager().getMain().getConfig().getDouble("Options.accounts.starting-balance"), w);
+								ac.setBalance(RetroConomy.getInstance().getManager().getMain().getRoot().getDouble("Options.accounts.starting-balance"), w);
 							}
 							sendMessage(player, "&e" + Bukkit.getOfflinePlayer(ac.getOwner()).getName() + " &7bank account balance just got reset to &f&l$" + RetroConomy.getInstance().getManager().format(ac.getBalance()));
 						}

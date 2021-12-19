@@ -6,17 +6,17 @@
  *  This software is currently in development and its licensing has not
  *  yet been chosen.
  */
-package com.github.sanctum.retro.construct.internal;
+package com.github.sanctum.retro.command;
 
-import com.github.sanctum.labyrinth.formatting.TabCompletion;
-import com.github.sanctum.labyrinth.formatting.TabCompletionBuilder;
+import com.github.sanctum.labyrinth.formatting.completion.SimpleTabCompletion;
+import com.github.sanctum.labyrinth.formatting.completion.TabCompletionIndex;
 import com.github.sanctum.labyrinth.library.Items;
 import com.github.sanctum.retro.RetroConomy;
-import com.github.sanctum.retro.command.CommandInformation;
-import com.github.sanctum.retro.command.CommandOrientation;
-import com.github.sanctum.retro.construct.core.ItemDemand;
-import com.github.sanctum.retro.construct.core.Modifiable;
-import com.github.sanctum.retro.construct.core.SellableItem;
+import com.github.sanctum.retro.api.CommandInformation;
+import com.github.sanctum.retro.api.CommandOrientation;
+import com.github.sanctum.retro.api.ItemDemand;
+import com.github.sanctum.retro.api.Modifiable;
+import com.github.sanctum.retro.api.Sellable;
 import com.github.sanctum.retro.construct.core.SystemItem;
 import com.github.sanctum.retro.util.ConfiguredMessage;
 import com.github.sanctum.retro.util.FormattedMessage;
@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class BuyCommand extends CommandOrientation {
 
-	TabCompletionBuilder complete = TabCompletion.build(getLabel());
+	final SimpleTabCompletion complete = SimpleTabCompletion.empty();
 
 	public BuyCommand(@NotNull CommandInformation information) {
 		super(information);
@@ -39,16 +39,10 @@ public class BuyCommand extends CommandOrientation {
 
 	@Override
 	public @Nullable List<String> complete(Player p, String[] args) {
-		return complete.forArgs(args)
-				.level(1)
-				.completeAt(getLabel())
-				.filter(() -> RetroConomy.getInstance().getManager().getMarket().map(SellableItem::getItem).map(ItemStack::getType).map(mat -> mat.name().toLowerCase().replace("_", "")).collect(Collectors.toList()))
-				.collect()
-				.level(2)
-				.completeAt(getLabel())
-				.filter(() -> RetroConomy.getInstance().getManager().getMarket().map(SellableItem::getItem).map(ItemStack::getType).map(mat -> mat.name().toLowerCase().replace("_", "")).collect(Collectors.toList()))
-				.collect()
-				.get(args.length);
+		return complete.fillArgs(args)
+				.then(TabCompletionIndex.ONE, RetroConomy.getInstance().getManager().getInventory().stream().map(Sellable::getItem).map(ItemStack::getType).map(mat -> mat.name().toLowerCase().replace("_", "")).collect(Collectors.toList()))
+				.then(TabCompletionIndex.TWO, RetroConomy.getInstance().getManager().getInventory().stream().map(Sellable::getItem).map(ItemStack::getType).map(mat -> mat.name().toLowerCase().replace("_", "")).collect(Collectors.toList()))
+				.get();
 
 	}
 
@@ -62,7 +56,7 @@ public class BuyCommand extends CommandOrientation {
 				}
 
 				if (args.length == 1) {
-					Material request = Items.getMaterial(args[0]);
+					Material request = Items.findMaterial(args[0]);
 					if (request != null) {
 						ItemDemand item = RetroConomy.getInstance().getManager().getDemand(request).filter(i -> i instanceof SystemItem).orElse(null);
 						if (item != null) {
@@ -86,7 +80,7 @@ public class BuyCommand extends CommandOrientation {
 				if (args.length == 2) {
 					try {
 						int amount = Integer.parseInt(args[0]);
-						Material request = Items.getMaterial(args[1]);
+						Material request = Items.findMaterial(args[1]);
 						if (request != null) {
 							ItemDemand item = RetroConomy.getInstance().getManager().getDemand(request).filter(i -> i instanceof SystemItem).orElse(null);
 							if (item != null) {

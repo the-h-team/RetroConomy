@@ -1,7 +1,7 @@
 package com.github.sanctum.retro.util;
 
-import com.github.sanctum.retro.construct.core.ItemDemand;
-import com.github.sanctum.retro.construct.core.Modifiable;
+import com.github.sanctum.retro.api.ItemDemand;
+import com.github.sanctum.retro.api.Modifiable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;

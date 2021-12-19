@@ -10,6 +10,7 @@ package com.github.sanctum.retro.construct.core;
 
 import com.github.sanctum.labyrinth.library.TimeWatch;
 import com.github.sanctum.retro.RetroConomy;
+import com.github.sanctum.retro.api.ItemDemand;
 import com.github.sanctum.retro.util.ItemModificationEvent;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -57,7 +58,7 @@ public class SystemItem implements ItemDemand {
 		this.sellerAmountMap = new HashMap<>(sellerAmountMap);
 		this.bought = 0;
 		this.sold = 0;
-		RetroConomy.getInstance().getManager().getMarket().list().add(this);
+		RetroConomy.getInstance().getManager().getInventory().add(this);
 	}
 
 	@Override
@@ -116,7 +117,7 @@ public class SystemItem implements ItemDemand {
 
 	@Override
 	public boolean isBlacklisted() {
-		return RetroConomy.getInstance().getManager().getMain().getConfig().getStringList("Options.item-blacklist").contains(getItem().getType().name());
+		return RetroConomy.getInstance().getManager().getMain().getRoot().getStringList("Options.item-blacklist").contains(getItem().getType().name());
 	}
 
 	@Override

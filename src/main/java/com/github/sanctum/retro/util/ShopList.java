@@ -18,14 +18,14 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public class ATMList extends UniformedComponents<Shop> {
+public class ShopList extends UniformedComponents<Shop> {
 
 
 	private static final long serialVersionUID = -7003313369701219244L;
 
 	@Override
 	public List<Shop> list() {
-		return RetroConomy.getInstance().getManager().SHOPS;
+		return RetroConomy.getInstance().getManager().getShops();
 	}
 
 	@Override

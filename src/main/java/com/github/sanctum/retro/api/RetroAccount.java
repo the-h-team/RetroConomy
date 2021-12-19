@@ -6,7 +6,7 @@
  *  This software is currently in development and its licensing has not
  *  yet been chosen.
  */
-package com.github.sanctum.retro.construct.core;
+package com.github.sanctum.retro.api;
 
 import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.retro.RetroConomy;

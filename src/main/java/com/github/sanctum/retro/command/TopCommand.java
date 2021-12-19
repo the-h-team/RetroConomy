@@ -6,14 +6,14 @@
  *  This software is currently in development and its licensing has not
  *  yet been chosen.
  */
-package com.github.sanctum.retro.construct.internal;
+package com.github.sanctum.retro.command;
 
 import com.github.sanctum.labyrinth.formatting.PaginatedList;
 import com.github.sanctum.labyrinth.library.Message;
 import com.github.sanctum.labyrinth.library.TextLib;
 import com.github.sanctum.retro.RetroConomy;
-import com.github.sanctum.retro.command.CommandInformation;
-import com.github.sanctum.retro.command.CommandOrientation;
+import com.github.sanctum.retro.api.CommandInformation;
+import com.github.sanctum.retro.api.CommandOrientation;
 import com.github.sanctum.retro.construct.core.WalletAccount;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,7 +36,7 @@ public class TopCommand extends CommandOrientation {
 
 	@Override
 	public void player(Player player, String[] args) {
-		List<WalletAccount> list = new LinkedList<>(RetroConomy.getInstance().getManager().WALLETS);
+		List<WalletAccount> list = new LinkedList<>(RetroConomy.getInstance().getManager().getWallets());
 		PaginatedList<WalletAccount> t = new PaginatedList<>(list)
 				.limit(10)
 				.compare((o1, o2) -> Double.compare(o2.getBalance().doubleValue(), o1.getBalance().doubleValue()))

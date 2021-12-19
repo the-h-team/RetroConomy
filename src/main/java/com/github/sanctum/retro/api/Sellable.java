@@ -6,11 +6,11 @@
  *  This software is currently in development and its licensing has not
  *  yet been chosen.
  */
-package com.github.sanctum.retro.construct.core;
+package com.github.sanctum.retro.api;
 
 import org.bukkit.inventory.ItemStack;
 
-public interface SellableItem{
+public interface Sellable {
 
 	ItemStack getItem();
 

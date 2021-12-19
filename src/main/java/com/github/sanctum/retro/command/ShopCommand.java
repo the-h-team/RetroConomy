@@ -6,13 +6,13 @@
  *  This software is currently in development and its licensing has not
  *  yet been chosen.
  */
-package com.github.sanctum.retro.construct.internal;
+package com.github.sanctum.retro.command;
 
 import com.github.sanctum.retro.RetroConomy;
-import com.github.sanctum.retro.command.CommandInformation;
-import com.github.sanctum.retro.command.CommandOrientation;
-import com.github.sanctum.retro.construct.core.ItemDemand;
-import com.github.sanctum.retro.construct.core.RetroAccount;
+import com.github.sanctum.retro.api.CommandInformation;
+import com.github.sanctum.retro.api.CommandOrientation;
+import com.github.sanctum.retro.api.ItemDemand;
+import com.github.sanctum.retro.api.RetroAccount;
 import com.github.sanctum.retro.construct.core.Shop;
 import java.math.BigDecimal;
 import java.util.List;
@@ -42,7 +42,7 @@ public class ShopCommand extends CommandOrientation {
 
 				sendMessage(player, "&cUsages: &r/shop buy,locate");
 
-				ItemDemand.GUI.browse().open(player);
+				ItemDemand.GUI.viewGlobalShop().open(player);
 
 			}
 

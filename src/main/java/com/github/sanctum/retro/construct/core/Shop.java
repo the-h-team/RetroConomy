@@ -10,15 +10,14 @@ package com.github.sanctum.retro.construct.core;
 
 import com.github.sanctum.labyrinth.LabyrinthProvider;
 import com.github.sanctum.labyrinth.data.container.PersistentContainer;
-import com.github.sanctum.labyrinth.gui.InventoryRows;
-import com.github.sanctum.labyrinth.gui.menuman.Menu;
-import com.github.sanctum.labyrinth.gui.menuman.MenuBuilder;
-import com.github.sanctum.labyrinth.gui.menuman.MenuClick;
-import com.github.sanctum.labyrinth.gui.menuman.PaginatedBuilder;
-import com.github.sanctum.labyrinth.gui.menuman.PaginatedClickAction;
-import com.github.sanctum.labyrinth.gui.menuman.PaginatedCloseAction;
-import com.github.sanctum.labyrinth.gui.printer.AnvilBuilder;
-import com.github.sanctum.labyrinth.gui.printer.AnvilMenu;
+import com.github.sanctum.labyrinth.gui.unity.construct.Menu;
+import com.github.sanctum.labyrinth.gui.unity.construct.PaginatedMenu;
+import com.github.sanctum.labyrinth.gui.unity.construct.SingularMenu;
+import com.github.sanctum.labyrinth.gui.unity.impl.BorderElement;
+import com.github.sanctum.labyrinth.gui.unity.impl.FillerElement;
+import com.github.sanctum.labyrinth.gui.unity.impl.ItemElement;
+import com.github.sanctum.labyrinth.gui.unity.impl.ListElement;
+import com.github.sanctum.labyrinth.gui.unity.impl.MenuType;
 import com.github.sanctum.labyrinth.library.HUID;
 import com.github.sanctum.labyrinth.library.Item;
 import com.github.sanctum.labyrinth.library.Message;
@@ -26,11 +25,13 @@ import com.github.sanctum.labyrinth.library.NamespacedKey;
 import com.github.sanctum.labyrinth.library.StringUtils;
 import com.github.sanctum.labyrinth.task.Schedule;
 import com.github.sanctum.retro.RetroConomy;
+import com.github.sanctum.retro.api.ItemDemand;
+import com.github.sanctum.retro.api.RetroAccount;
+import com.github.sanctum.retro.api.Savable;
 import com.github.sanctum.retro.util.TransactionType;
 import com.github.sanctum.skulls.SkullType;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 import org.bukkit.Bukkit;
@@ -49,7 +50,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -59,6 +59,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Nullable;
 
@@ -78,11 +79,11 @@ public class Shop implements Savable {
 	protected Shop(OfflinePlayer owner) {
 		this.owner = owner;
 		this.id = HUID.randomID();
-		RetroConomy.getInstance().getManager().SHOPS.add(this);
+		RetroConomy.getInstance().getManager().getShops().add(this);
 	}
 
 	public static boolean has(OfflinePlayer target) {
-		if (RetroConomy.getInstance().getManager().getATMs().list().stream().noneMatch(a -> a.getOwner().getUniqueId().equals(target.getUniqueId()))) {
+		if (RetroConomy.getInstance().getManager().getShops().stream().noneMatch(a -> a.getOwner().getUniqueId().equals(target.getUniqueId()))) {
 			return false;
 		}
 		Shop atm = pick(target);
@@ -90,7 +91,7 @@ public class Shop implements Savable {
 	}
 
 	public static Shop pick(OfflinePlayer target) {
-		return !RetroConomy.getInstance().getManager().getATMs().filter(atm -> atm.owner.getUniqueId().equals(target.getUniqueId())).findFirst().isPresent() ? new Shop(target) : RetroConomy.getInstance().getManager().getATMs().filter(atm -> atm.getOwner().getUniqueId().equals(target.getUniqueId())).findFirst().orElse(null);
+		return RetroConomy.getInstance().getManager().getShops().stream().noneMatch(atm -> atm.owner.getUniqueId().equals(target.getUniqueId())) ? new Shop(target) : RetroConomy.getInstance().getManager().getShops().stream().filter(atm -> atm.getOwner().getUniqueId().equals(target.getUniqueId())).findFirst().orElse(null);
 	}
 
 	public static Shop pick(Block b) {
@@ -102,7 +103,7 @@ public class Shop implements Savable {
 		if (!state.getPersistentDataContainer().has(KEY, PersistentDataType.STRING)) {
 			return null;
 		}
-		return RetroConomy.getInstance().getManager().getATMs().filter(a -> {
+		return RetroConomy.getInstance().getManager().getShops().stream().filter(a -> {
 			if (state.getPersistentDataContainer().get(KEY, PersistentDataType.STRING).equals(a.getOwner().getUniqueId().toString())) {
 				if (a.getLocation() == null) {
 					a.use(b);
@@ -192,7 +193,7 @@ public class Shop implements Savable {
 		despawn();
 		PersistentContainer container = LabyrinthProvider.getInstance().getContainer(new NamespacedKey(JavaPlugin.getProvidingPlugin(RetroConomy.class), "Shops"));
 		container.delete(getOwner().getUniqueId().toString());
-		RetroConomy.getInstance().getManager().SHOPS.remove(this);
+		RetroConomy.getInstance().getManager().getShops().remove(this);
 	}
 
 	public BigDecimal collect() {
@@ -235,7 +236,7 @@ public class Shop implements Savable {
 		state.getPersistentDataContainer().set(new org.bukkit.NamespacedKey(JavaPlugin.getProvidingPlugin(RetroConomy.class), "retro_atm_block"), PersistentDataType.STRING, getOwner().getUniqueId().toString());
 		int amount = despawn();
 		if (getOwner().isOnline()) {
-			Message.form(getOwner().getPlayer()).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix")).send("&8(&7" + amount + "&8) &aold marks were found and removed.");
+			Message.form(getOwner().getPlayer()).setPrefix(RetroConomy.getInstance().getManager().getMain().getRoot().getString("Options.prefix")).send("&8(&7" + amount + "&8) &aold marks were found and removed.");
 		}
 		if (state.update(true)) {
 			ArmorStand stand = b.getWorld().spawn(location, ArmorStand.class);
@@ -259,6 +260,8 @@ public class Shop implements Savable {
 
 	public static class GUI {
 
+		private static final Plugin plugin = JavaPlugin.getProvidingPlugin(RetroConomy.class);
+
 		private static final Supplier<ItemStack> left = () -> {
 			ItemStack s = new ItemStack(SkullType.ARROW_BLACK_LEFT.get());
 			ItemMeta m = s.getItemMeta();
@@ -281,427 +284,507 @@ public class Shop implements Savable {
 			return s;
 		};
 
-		public static AnvilMenu write(Shop atm, @Nullable HUID accountId, Type type) {
+		public static Menu write(Shop atm, @Nullable HUID accountId, Type type) {
 			switch (type) {
 				case DEPOSIT_ACCOUNT:
-					return AnvilBuilder.from(StringUtils.use("&2Specify a deposit").translate())
-							.setLeftItem(builder -> {
-								ItemStack paper = new ItemStack(Material.PAPER);
-								ItemMeta meta = paper.getItemMeta();
-								meta.setDisplayName(StringUtils.use("&aDeposit Amount &2&m→&r ").translate());
-								meta.setLore(Collections.singletonList(StringUtils.use("&7Format ##.## &2&m→").translate()));
-								paper.setItemMeta(meta);
-								builder.setItem(paper);
-								builder.setClick((player, text, args) -> {
-									Message msg = Message.form(player).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix"));
-									if (args.length == 0) {
+					return MenuType.PRINTABLE.build()
+							.setHost(plugin)
+							.setTitle("&2Specify a deposit")
+							.setSize(Menu.Rows.ONE)
+							.setStock(i -> {
+
+								i.addItem(it -> {
+									it.setElement(ed -> ed.setType(Material.PAPER).setTitle("&aDeposit Amount &2&m→&r ").setLore("&7Format ##.## &2&m→").build());
+									it.setType(ItemElement.ControlType.DISPLAY);
+									it.setSlot(0);
+								});
+
+							})
+							.join().addAction(click -> {
+								if (click.getSlot() == 2) {
+									click.setCancelled(true);
+									String[] args = click.getParent().getName().split(" ");
+									Player player = click.getElement();
+									Message msg = Message.form(player).setPrefix(RetroConomy.getInstance().getManager().getMain().getRoot().getString("Options.prefix"));
+									for (String arg : args) {
 										try {
-											double amount = Double.parseDouble(text.replace(",", "."));
+											double amount = Double.parseDouble(arg.replace(",", "."));
 											RetroConomy.getInstance().getManager().getAccount(accountId).ifPresent(account -> Schedule.sync(() -> atm.getLocation().getWorld().dropItemNaturally(atm.getLocation().getBlock().getRelative(BlockFace.UP, 1).getLocation(), account.record(atm, TransactionType.DEPOSIT, player, BigDecimal.valueOf(amount)).toItem())).wait(1));
 											msg.send("&a&oPrinting your receipt...");
 											player.closeInventory();
-
-										} catch (NumberFormatException e) {
-
-											return;
+										} catch (NumberFormatException ignored) {
 										}
 									}
-									if (args.length > 0) {
-										for (String arg : args) {
-											try {
-												double amount = Double.parseDouble(arg.replace(",", "."));
-												RetroConomy.getInstance().getManager().getAccount(accountId).ifPresent(account -> Schedule.sync(() -> atm.getLocation().getWorld().dropItemNaturally(atm.getLocation().getBlock().getRelative(BlockFace.UP, 1).getLocation(), account.record(atm, TransactionType.DEPOSIT, player, BigDecimal.valueOf(amount)).toItem())).wait(1));
-												msg.send("&a&oPrinting your receipt...");
-												player.closeInventory();
-											} catch (NumberFormatException ignored) {
-											}
-										}
-									}
-								});
-							})
-							.get().applyClosingLogic((player, view, menu) -> HandlerList.unregisterAll(menu.getListener()));
+								}
+							});
 				case WITHDRAW_ACCOUNT:
-					return AnvilBuilder.from(StringUtils.use("&2Specify a withdrawal").translate())
-							.setLeftItem(builder -> {
-								ItemStack paper = new ItemStack(Material.PAPER);
-								ItemMeta meta = paper.getItemMeta();
-								meta.setDisplayName(StringUtils.use("&aWithdraw Amount &2&m→&r ").translate());
-								meta.setLore(Collections.singletonList(StringUtils.use("&7Format ##.## &2&m→").translate()));
-								paper.setItemMeta(meta);
-								builder.setItem(paper);
-								builder.setClick((player, text, args) -> {
-									Message msg = Message.form(player).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix"));
-									if (args.length == 0) {
+					return MenuType.PRINTABLE.build()
+							.setHost(plugin)
+							.setTitle("&2Specify a withdrawal")
+							.setSize(Menu.Rows.ONE)
+							.setStock(i -> {
+
+								i.addItem(it -> {
+									it.setElement(ed -> ed.setType(Material.PAPER).setTitle("&aWithdraw Amount &2&m→&r ").setLore("&7Format ##.## &2&m→").build());
+									it.setType(ItemElement.ControlType.DISPLAY);
+									it.setSlot(0);
+								});
+
+							})
+							.join().addAction(click -> {
+								if (click.getSlot() == 2) {
+									click.setCancelled(true);
+									String[] args = click.getParent().getName().split(" ");
+									Player player = click.getElement();
+									Message msg = Message.form(player).setPrefix(RetroConomy.getInstance().getManager().getMain().getRoot().getString("Options.prefix"));
+									for (String arg : args) {
 										try {
-											double amount = Double.parseDouble(text.replace(",", "."));
+											double amount = Double.parseDouble(arg.replace(",", "."));
 											RetroConomy.getInstance().getManager().getAccount(accountId).ifPresent(account -> Schedule.sync(() -> atm.getLocation().getWorld().dropItemNaturally(atm.getLocation().getBlock().getRelative(BlockFace.UP, 1).getLocation(), account.record(atm, TransactionType.WITHDRAW, player, BigDecimal.valueOf(amount)).toItem())).wait(1));
 											msg.send("&a&oPrinting your receipt...");
 											player.closeInventory();
-										} catch (NumberFormatException e) {
-
-											return;
+										} catch (NumberFormatException ignored) {
 										}
 									}
-									if (args.length > 0) {
-										for (String arg : args) {
-											try {
-												double amount = Double.parseDouble(arg.replace(",", "."));
-												RetroConomy.getInstance().getManager().getAccount(accountId).ifPresent(account -> Schedule.sync(() -> atm.getLocation().getWorld().dropItemNaturally(atm.getLocation().getBlock().getRelative(BlockFace.UP, 1).getLocation(), account.record(atm, TransactionType.WITHDRAW, player, BigDecimal.valueOf(amount)).toItem())).wait(1));
-												msg.send("&a&oPrinting your receipt...");
-												player.closeInventory();
-											} catch (NumberFormatException ignored) {
-											}
-										}
-									}
-								});
-							})
-							.get().applyClosingLogic((player, view, menu) -> HandlerList.unregisterAll(menu.getListener()));
+								}
+							});
 				case DEPOSIT_WALLET:
-					return AnvilBuilder.from(StringUtils.use("&2Specify a deposit").translate())
-							.setLeftItem(builder -> {
-								ItemStack paper = new ItemStack(Material.PAPER);
-								ItemMeta meta = paper.getItemMeta();
-								meta.setDisplayName(StringUtils.use("&aDeposit Amount &2&m→&r ").translate());
-								meta.setLore(Collections.singletonList(StringUtils.use("&7Format # &2&m→").translate()));
-								paper.setItemMeta(meta);
-								builder.setItem(paper);
-								builder.setClick((player, text, args) -> {
-									if (args.length == 0) {
+					return MenuType.PRINTABLE.build()
+							.setHost(plugin)
+							.setTitle("&2Specify a deposit")
+							.setSize(Menu.Rows.ONE)
+							.setStock(i -> {
+
+								i.addItem(it -> {
+									it.setElement(ed -> ed.setType(Material.PAPER).setTitle("&aDeposit Amount &2&m→&r ").setLore("&7Format ##.## &2&m→").build());
+									it.setType(ItemElement.ControlType.DISPLAY);
+									it.setSlot(0);
+								});
+
+							})
+							.join().addAction(click -> {
+								if (click.getSlot() == 2) {
+									click.setCancelled(true);
+									String[] args = click.getParent().getName().split(" ");
+									Player player = click.getElement();
+									for (String arg : args) {
 										try {
-											int amount = (int) Double.parseDouble(text.replace(",", "."));
+											int amount = (int) Double.parseDouble(arg.replace(",", "."));
 											RetroConomy.getInstance().getManager().getWallet(player).ifPresent(wallet -> Bukkit.dispatchCommand(player, "deposit " + amount));
 											player.closeInventory();
-										} catch (NumberFormatException e) {
-
-											return;
+										} catch (NumberFormatException ignored) {
 										}
 									}
-									if (args.length > 0) {
-										for (String arg : args) {
-											try {
-												int amount = (int) Double.parseDouble(arg.replace(",", "."));
-												RetroConomy.getInstance().getManager().getWallet(player).ifPresent(wallet -> Bukkit.dispatchCommand(player, "deposit " + amount));
-												player.closeInventory();
-											} catch (NumberFormatException ignored) {
-											}
-										}
-									}
-								});
-							})
-							.get().applyClosingLogic((player, view, menu) -> HandlerList.unregisterAll(menu.getListener()));
+								}
+							});
 				case WITHDRAW_WALLET:
-					return AnvilBuilder.from(StringUtils.use("&2Specify a withdrawal").translate())
-							.setLeftItem(builder -> {
-								ItemStack paper = new ItemStack(Material.PAPER);
-								ItemMeta meta = paper.getItemMeta();
-								meta.setDisplayName(StringUtils.use("&aWithdraw Amount &2&m→&r ").translate());
-								meta.setLore(Collections.singletonList(StringUtils.use("&7Format # &2&m→").translate()));
-								paper.setItemMeta(meta);
-								builder.setItem(paper);
-								builder.setClick((player, text, args) -> {
-									if (args.length == 0) {
+					return MenuType.PRINTABLE.build()
+							.setHost(plugin)
+							.setTitle("&2Specify a withdrawal")
+							.setSize(Menu.Rows.ONE)
+							.setStock(i -> {
+
+								i.addItem(it -> {
+									it.setElement(ed -> ed.setType(Material.PAPER).setTitle("&aWithdraw Amount &2&m→&r ").setLore("&7Format ##.## &2&m→").build());
+									it.setType(ItemElement.ControlType.DISPLAY);
+									it.setSlot(0);
+								});
+
+							})
+							.join().addAction(click -> {
+								if (click.getSlot() == 2) {
+									click.setCancelled(true);
+									String[] args = click.getParent().getName().split(" ");
+									Player player = click.getElement();
+									for (String arg : args) {
 										try {
-											int amount = (int) Double.parseDouble(text.replace(",", "."));
+											int amount = (int) Double.parseDouble(arg.replace(",", "."));
 											RetroConomy.getInstance().getManager().getWallet(player).ifPresent(wallet -> Bukkit.dispatchCommand(player, "withdraw " + amount + " " + ChatColor.stripColor(StringUtils.use(RetroConomy.getInstance().getManager().getCurrencyNames()[0]).translate())));
 											player.closeInventory();
-										} catch (NumberFormatException e) {
-
-											return;
+										} catch (NumberFormatException ignored) {
 										}
 									}
-									if (args.length > 0) {
-										for (String arg : args) {
-											try {
-												int amount = (int) Double.parseDouble(arg.replace(",", "."));
-												RetroConomy.getInstance().getManager().getWallet(player).ifPresent(wallet -> Bukkit.dispatchCommand(player, "withdraw " + amount + " " + ChatColor.stripColor(StringUtils.use(RetroConomy.getInstance().getManager().getCurrencyNames()[0]).translate())));
-												player.closeInventory();
-											} catch (NumberFormatException ignored) {
-											}
-										}
-									}
-								});
-							})
-							.get().applyClosingLogic((player, view, menu) -> HandlerList.unregisterAll(menu.getListener()));
+								}
+							});
 				case TAX_EDIT:
-					return AnvilBuilder.from(StringUtils.use("&6Type the new tax amount.").translate())
-							.setLeftItem(builder -> {
-								ItemStack paper = new ItemStack(Material.PAPER);
-								ItemMeta meta = paper.getItemMeta();
-								meta.setDisplayName(StringUtils.use("&eTax ##.## &6&m→&r ").translate());
-								meta.setLore(Collections.singletonList(StringUtils.use("&7Format ##.## &6&m→").translate()));
-								paper.setItemMeta(meta);
-								builder.setItem(paper);
-								builder.setClick((player, text, args) -> {
-									if (args.length == 0) {
-										try {
-											double amount = Double.parseDouble(text.replace(",", "."));
-											atm.setTax(BigDecimal.valueOf(amount));
-											Message.form(player).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix")).send("&aTax adjusted to &r" + amount);
-											player.closeInventory();
-										} catch (NumberFormatException e) {
-
-											return;
-										}
-									}
-									if (args.length > 0) {
-										for (String arg : args) {
-											try {
-												double amount = Double.parseDouble(arg.replace(",", "."));
-												atm.setTax(BigDecimal.valueOf(amount));
-												Message.form(player).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix")).send("&aTax adjusted to &r" + amount);
-												player.closeInventory();
-											} catch (NumberFormatException ignored) {
-											}
-										}
-									}
+					return MenuType.PRINTABLE.build()
+							.setHost(plugin)
+							.setTitle("&6Type the new tax amount.")
+							.setSize(Menu.Rows.ONE)
+							.setStock(i -> {
+								i.addItem(it -> {
+									it.setElement(ed -> ed.setType(Material.PAPER).setTitle("&eTax ##.## &6&m→&r ").setLore("&7Format ##.## &2&m→").build());
+									it.setType(ItemElement.ControlType.DISPLAY);
+									it.setSlot(0);
 								});
+
 							})
-							.get().applyClosingLogic((player, view, menu) -> HandlerList.unregisterAll(menu.getListener()));
+							.join().addAction(click -> {
+								if (click.getSlot() == 2) {
+									click.setCancelled(true);
+									String[] args = click.getParent().getName().split(" ");
+									Player player = click.getElement();
+									for (String arg : args) {
+										try {
+											double amount = Double.parseDouble(arg.replace(",", "."));
+											atm.setTax(BigDecimal.valueOf(amount));
+											Message.form(player).setPrefix(RetroConomy.getInstance().getManager().getMain().getRoot().getString("Options.prefix")).send("&aTax adjusted to &r" + amount);
+											player.closeInventory();
+										} catch (NumberFormatException ignored) {
+										}
+									}
+								}
+							});
 				case FORGOT_CARD:
-					return AnvilBuilder.from(StringUtils.use("&2Type your account id.").translate())
-							.setLeftItem(builder -> {
-								ItemStack paper = new ItemStack(Material.PAPER);
-								ItemMeta meta = paper.getItemMeta();
-								meta.setDisplayName(StringUtils.use("&aAccount ID &2&m→&r ").translate());
-								meta.setLore(Collections.singletonList(StringUtils.use("&7Format ####-####-#### &2&m→").translate()));
-								paper.setItemMeta(meta);
-								builder.setItem(paper);
-								builder.setClick((player, text, args) -> {
-									try {
-										HUID id = HUID.fromString(text);
+					return MenuType.PRINTABLE.build()
+							.setHost(plugin)
+							.setTitle("&2Type your account id.")
+							.setSize(Menu.Rows.ONE)
+							.setStock(i -> {
+								i.addItem(it -> {
+									it.setElement(ed -> ed.setType(Material.PAPER).setTitle("&aAccount ID &2&m→&r ").setLore("&7Format ####-####-#### &2&m→").build());
+									it.setType(ItemElement.ControlType.DISPLAY);
+									it.setSlot(0);
+								});
+
+							})
+							.join().addAction(click -> {
+								if (click.getSlot() == 2) {
+									click.setCancelled(true);
+									Player player = click.getElement();
+									HUID id = HUID.fromString(click.getParent().getName());
+									if (id != null) {
 										if (RetroConomy.getInstance().getManager().getAccount(id).isPresent()) {
 											select(atm, id, Type.ACCOUNT).open(player);
 										}
-									} catch (Exception ignore) {
 									}
-								});
-							})
-							.get().applyClosingLogic((player, view, menu) -> HandlerList.unregisterAll(menu.getListener()));
+								}
+							});
 				default:
 					throw new IllegalStateException("Illegal menu type present.");
 			}
 		}
 
-		public static Menu.Paginated<TransactionStatement> browse(Shop atm) {
-			return new PaginatedBuilder<>(atm.record)
-					.forPlugin(JavaPlugin.getProvidingPlugin(RetroConomy.class))
-					.setTitle(StringUtils.use("").translate())
-					.setSize(InventoryRows.SIX)
-					.setCloseAction(PaginatedCloseAction::clear)
-					.setAlreadyFirst(StringUtils.use("").translate())
-					.setAlreadyLast(StringUtils.use("").translate())
-					.setNavigationBack(back.get(), 49, click -> {
-						RetroAccount wallet = RetroConomy.getInstance().getManager().getWallet(click.getPlayer()).orElse(null);
-						if (wallet != null) {
-							final BigDecimal amount = atm.collect();
-							if (wallet.deposit(amount, click.getPlayer().getWorld()).success()) {
-								Message.form(click.getPlayer()).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix")).send("&aYou received " + RetroConomy.getInstance().getManager().format(amount) + " of tax.");
+		public static Menu viewShop(Shop atm) {
+			return MenuType.PAGINATED.build()
+					.setHost(plugin)
+					.setSize(Menu.Rows.SIX)
+					.setKey("shop-" + atm.id().toString())
+					.setProperty(Menu.Property.CACHEABLE)
+					.setTitle("Transaction log.")
+					.setStock(i -> {
+						ListElement<TransactionStatement> list = new ListElement<>(atm.record);
+						list.setLimit(28);
+						list.setPopulate((statement, item) -> {
+
+							item.setElement(ed -> ed.setItem(statement.toItem()).build());
+							item.setClick(click -> {
+								RetroAccount wallet = RetroConomy.getInstance().getManager().getWallet(click.getElement()).orElse(null);
+								if (wallet != null) {
+									final BigDecimal amount = statement.getTax();
+									if (wallet.deposit(amount, click.getElement().getWorld()).success()) {
+										Message.form(click.getElement()).setPrefix(RetroConomy.getInstance().getManager().getMain().getRoot().getString("Options.prefix")).send("&aYou received " + RetroConomy.getInstance().getManager().format(amount) + " of tax.");
+									}
+									atm.record.remove(statement);
+									Shop.GUI.viewShop(atm).open(click.getElement());
+								}
+							});
+
+						});
+						BorderElement<?> border = new BorderElement<>(i);
+						FillerElement<?> filler = new FillerElement<>(i);
+
+						for (Menu.Panel p : Menu.Panel.values()) {
+							if (p != Menu.Panel.MIDDLE) {
+								border.add(p, ed -> {
+									ed.setElement(it -> it.setType(Material.IRON_BARS).setTitle(" ").build());
+								});
 							}
 						}
-						Shop.GUI.browse(atm).open(click.getPlayer());
-					})
-					.setNavigationLeft(left.get(), 48, PaginatedClickAction::sync)
-					.setNavigationRight(right.get(), 50, PaginatedClickAction::sync)
-					.setupProcess(process -> {
-						process.setItem(() -> process.getContext().toItem()).setClick(click -> {
-							TransactionStatement slip = process.getContext();
-							RetroAccount wallet = RetroConomy.getInstance().getManager().getWallet(click.getPlayer()).orElse(null);
-							if (wallet != null) {
-								final BigDecimal amount = slip.getTax();
-								if (wallet.deposit(amount, click.getPlayer().getWorld()).success()) {
-									Message.form(click.getPlayer()).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix")).send("&aYou received " + RetroConomy.getInstance().getManager().format(amount) + " of tax.");
-								}
-								atm.record.remove(slip);
-								Shop.GUI.browse(atm).open(click.getPlayer());
-							}
+						filler.add(ed -> {
+							ed.setElement(it -> it.setType(Material.GRAY_STAINED_GLASS_PANE).setTitle(" ").build());
 						});
+						i.addItem(filler);
+						i.addItem(border);
+						i.addItem(it -> {
+							it.setElement(back.get());
+							it.setSlot(49);
+							it.setClick(click -> {
+								click.setCancelled(true);
+								RetroAccount wallet = RetroConomy.getInstance().getManager().getWallet(click.getElement()).orElse(null);
+								if (wallet != null) {
+									final BigDecimal amount = atm.collect();
+									if (wallet.deposit(amount, click.getElement().getWorld()).success()) {
+										Message.form(click.getElement()).setPrefix(RetroConomy.getInstance().getManager().getMain().getRoot().getString("Options.prefix")).send("&aYou received " + RetroConomy.getInstance().getManager().format(amount) + " of tax.");
+									}
+								}
+								Shop.GUI.viewShop(atm).open(click.getElement());
+							});
+						});
+						i.addItem(it -> {
+							it.setElement(right.get());
+							it.setSlot(50);
+							it.setType(ItemElement.ControlType.BUTTON_NEXT);
+						});
+						i.addItem(it -> {
+							it.setElement(left.get());
+							it.setSlot(48);
+							it.setType(ItemElement.ControlType.BUTTON_BACK);
+						});
+						i.addItem(it -> {
+							it.setElement(ed -> ed.setType(Material.TOTEM_OF_UNDYING).setTitle("&8(&fMain Menu&8)").build());
+							it.setSlot(45);
+							it.setClick(click -> {
+								click.setCancelled(true);
+								select(atm, null, Type.ADMIN_PANEL).open(click.getElement());
+							});
+						});
+
 					})
-					.setupBorder()
-					.setFillType(Material.GREEN_STAINED_GLASS_PANE)
-					.setBorderType(Material.GRAY_STAINED_GLASS_PANE)
-					.build()
-					.extraElements()
-					.invoke(() -> {
-						ItemStack i = new ItemStack(Material.TOTEM_OF_UNDYING);
-						ItemMeta meta = i.getItemMeta();
-						meta.setDisplayName(StringUtils.use("&8(&fMain Menu&8)").translate());
-						i.setItemMeta(meta);
-						return i;
-					}, 45, click -> select(atm, null, Type.ADMIN_PANEL).open(click.getPlayer()))
-					.add()
-					.limit(28)
-					.build();
+					.orGet(m -> m instanceof PaginatedMenu && m.getKey().map(("shop-" + atm.id().toString())::equals).orElse(false));
 		}
 
 		public static Menu select(Shop atm, HUID account, Type type) {
 			switch (type) {
 				case ADMIN_PANEL:
-					return new MenuBuilder(InventoryRows.THREE, "")
-							.addElement(new ItemStack(Material.PAPER))
-							.setText(StringUtils.use("&eLog").translate())
-							.setLore(StringUtils.use("&7View the list of transactions to collect.").translate())
-							.setAction(click -> browse(atm).open(click.getPlayer()))
-							.assignToSlots(10)
-							.addElement(new ItemStack(Material.GOLDEN_HELMET))
-							.setText(StringUtils.use("&6Wallet").translate())
-							.setLore(StringUtils.use("&7Click to deposit/withdraw from your wallet.").translate())
-							.setAction(click -> select(atm, null, Type.WALLET).open(click.getPlayer()))
-							.assignToSlots(12)
-							.addElement(new ItemStack(Material.ENCHANTED_BOOK))
-							.setText(StringUtils.use("&2&m←&r &aChoose a funding source &2&m→").translate())
-							.setLore(StringUtils.use("").translate())
-							.setAction(click -> {
-
-							})
-							.assignToSlots(13)
-							.addElement(new ItemStack(Material.IRON_HELMET))
-							.setText(StringUtils.use("&eAccount").translate())
-							.setLore(StringUtils.use("&7Click to deposit/withdraw bank money.").translate())
-							.setAction(click -> select(atm, null, Type.ACCOUNT_LOGIN).open(click.getPlayer()))
-							.assignToSlots(14)
-							.addElement(new ItemStack(Material.NAME_TAG))
-							.setText(StringUtils.use("&6Tax").translate())
-							.setLore(StringUtils.use("&7Adjust the transaction tax for account usage.").translate())
-							.setAction(click -> write(atm, null, Type.TAX_EDIT).setViewer(click.getPlayer()).open())
-							.assignToSlots(16)
-							.addElement(new Item.Edit(Material.BOOKSHELF).setTitle("&3[&bShop&3]").setLore("&7Click to browse.").build())
-							.setAction(click -> ItemDemand.GUI.playerSelect(atm.getOwner().getUniqueId()).open(click.getPlayer()))
-							.assignToSlots(22)
-							.setFiller(new ItemStack(Material.GRAY_STAINED_GLASS_PANE))
-							.setText(" ")
-							.set()
-							.create(JavaPlugin.getProvidingPlugin(RetroConomy.class));
-				case MAIN:
-					return new MenuBuilder(InventoryRows.THREE, "")
-							.addElement(new ItemStack(Material.GOLDEN_HELMET))
-							.setText(StringUtils.use("&6Wallet").translate())
-							.setLore(StringUtils.use("&7Click to deposit/withdraw from your wallet.").translate())
-							.setAction(click -> select(atm, null, Type.WALLET).open(click.getPlayer()))
-							.assignToSlots(12)
-							.addElement(new ItemStack(Material.ENCHANTED_BOOK))
-							.setText(StringUtils.use("&2&m←&r &aChoose a funding source &2&m→").translate())
-							.setLore(StringUtils.use("").translate())
-							.setAction(click -> {
-
-							})
-							.assignToSlots(13)
-							.addElement(new ItemStack(Material.IRON_HELMET))
-							.setText(StringUtils.use("&eAccount").translate())
-							.setLore(StringUtils.use("&7Click to deposit/withdraw bank money.").translate())
-							.setAction(click -> select(atm, null, Type.ACCOUNT_LOGIN).open(click.getPlayer()))
-							.assignToSlots(14)
-							.addElement(new Item.Edit(Material.BOOKSHELF).setTitle("&3[&bShop&3]").setLore("&7Click to browse.").build())
-							.setAction(click -> ItemDemand.GUI.playerSelect(atm.getOwner().getUniqueId()).open(click.getPlayer()))
-							.assignToSlots(22)
-							.setFiller(new ItemStack(Material.GRAY_STAINED_GLASS_PANE))
-							.setText(" ")
-							.set()
-							.create(JavaPlugin.getProvidingPlugin(RetroConomy.class));
-				case ACCOUNT_LOGIN:
-					return new MenuBuilder(InventoryRows.SIX, "Login (Place your card)")
-							.addElement(new ItemStack(Material.AIR))
-							.setAction(click -> {
-								click.allowClick();
-								Message msg = Message.form(click.getPlayer()).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix"));
-								if (!click.getItemOnMouseCursor().isPresent())
-									return;
-								if (DebitCard.matches(click.getItemOnMouseCursor().get())) {
-									String id = click.getItemOnMouseCursor().get().getItemMeta().getPersistentDataContainer().get(DebitCard.KEY, PersistentDataType.STRING);
-
-									RetroConomy.getInstance().getManager().getAccount(HUID.fromString(id)).ifPresent(a -> {
-										if (a.getOwner().equals(click.getPlayer().getUniqueId()) || a.getJointOwner() != null && a.getJointOwner().equals(click.getPlayer().getUniqueId()) || a.getMembers().contains(click.getPlayer().getUniqueId())) {
-											// access granted
-											final ItemStack copy = click.getItemOnMouseCursor().get().clone();
-											click.getItemOnMouseCursor().get().setAmount(0);
-											click.getPlayer().getWorld().dropItem(click.getPlayer().getLocation(), copy);
-											select(atm, a.getId(), Type.ACCOUNT).open(click.getPlayer());
-										} else {
-											click.getPlayer().closeInventory();
-											// access denied
-											Schedule.sync(() -> click.getPlayer().getWorld().playSound(atm.getLocation(), Sound.ENTITY_VILLAGER_NO, 10, 10)).cancelAfter(18).repeat(0, 20);
-											msg.send("&cYou don't have access to this bank account.");
-										}
+					return MenuType.SINGULAR.build()
+							.setTitle("Admin access")
+							.setKey("admin-panel-" + atm.id().toString())
+							.setHost(plugin)
+							.setSize(Menu.Rows.THREE)
+							.setProperty(Menu.Property.CACHEABLE)
+							.setStock(i -> {
+								i.addItem(ed -> {
+									ed.setElement(it -> it.setType(Material.PAPER).setTitle("&eLog").setLore("&7View the list of transactions to collect.").build());
+									ed.setSlot(10);
+									ed.setClick(click -> {
+										click.setCancelled(true);
+										viewShop(atm).open(click.getElement());
 									});
-								} else {
+								});
+								i.addItem(ed -> {
+									ed.setElement(it -> it.setType(Material.GOLDEN_HELMET).setTitle("&6Wallet").setLore("&7Click to deposit/withdraw from your wallet.").build());
+									ed.setSlot(12);
+									ed.setClick(click -> {
+										click.setCancelled(true);
+										select(atm, null, Type.WALLET).open(click.getElement());
+									});
+								});
+								i.addItem(ed -> {
+									ed.setElement(it -> it.setType(Material.ENCHANTED_BOOK).setTitle(" ").setLore("&2&m←&r &aChoose a funding source &2&m→").build());
+									ed.setSlot(13);
+									ed.setType(ItemElement.ControlType.DISPLAY);
+								});
+								i.addItem(ed -> {
+									ed.setElement(it -> it.setType(Material.IRON_HELMET).setTitle("&eAccount").setLore("&7Click to deposit/withdraw bank money.").build());
+									ed.setSlot(14);
+									ed.setClick(click -> {
+										click.setCancelled(true);
+										select(atm, null, Type.ACCOUNT_LOGIN).open(click.getElement());
+									});
+								});
+								i.addItem(ed -> {
+									ed.setElement(it -> it.setType(Material.NAME_TAG).setTitle("&6Tax").setLore("&7Adjust the transaction tax for account usage.").build());
+									ed.setSlot(16);
+									ed.setClick(click -> {
+										click.setCancelled(true);
+										write(atm, null, Type.TAX_EDIT).open(click.getElement());
+									});
+								});
+								i.addItem(ed -> {
+									ed.setElement(it -> it.setType(Material.BOOKSHELF).setTitle("&3[&bShop&3]").setLore("&7Click to browse.").build());
+									ed.setSlot(22);
+									ed.setClick(click -> {
+										click.setCancelled(true);
+										ItemDemand.GUI.selectShopCategory(atm.getOwner().getUniqueId()).open(click.getElement());
+									});
+								});
+								FillerElement<?> filler = new FillerElement<>(i);
+								filler.add(ed -> {
+									ed.setElement(it -> it.setType(Material.GRAY_STAINED_GLASS_PANE).setTitle(" ").build());
+								});
+							})
+							.orGet(m -> m instanceof SingularMenu && m.getKey().map(("admin-panel-" + atm.id().toString())::equals).orElse(false));
+				case MAIN:
+					return MenuType.SINGULAR.build()
+							.setTitle(" ")
+							.setKey("main-panel-" + atm.id.toString())
+							.setHost(plugin)
+							.setSize(Menu.Rows.THREE)
+							.setProperty(Menu.Property.CACHEABLE)
+							.setStock(i -> {
+								i.addItem(ed -> {
+									ed.setElement(it -> it.setType(Material.GOLDEN_HELMET).setTitle("&6Wallet").setLore("&7Click to deposit/withdraw from your wallet.").build());
+									ed.setSlot(12);
+									ed.setClick(click -> {
+										click.setCancelled(true);
+										select(atm, null, Type.WALLET).open(click.getElement());
+									});
+								});
+								i.addItem(ed -> {
+									ed.setElement(it -> it.setType(Material.ENCHANTED_BOOK).setTitle(" ").setLore("&2&m←&r &aChoose a funding source &2&m→").build());
+									ed.setSlot(13);
+									ed.setType(ItemElement.ControlType.DISPLAY);
+								});
+								i.addItem(ed -> {
+									ed.setElement(it -> it.setType(Material.IRON_HELMET).setTitle("&eAccount").setLore("&7Click to deposit/withdraw bank money.").build());
+									ed.setSlot(14);
+									ed.setClick(click -> {
+										click.setCancelled(true);
+										select(atm, null, Type.ACCOUNT_LOGIN).open(click.getElement());
+									});
+								});
+								i.addItem(ed -> {
+									ed.setElement(it -> it.setType(Material.BOOKSHELF).setTitle("&3[&bShop&3]").setLore("&7Click to browse.").build());
+									ed.setSlot(22);
+									ed.setClick(click -> {
+										click.setCancelled(true);
+										ItemDemand.GUI.selectShopCategory(atm.getOwner().getUniqueId()).open(click.getElement());
+									});
+								});
+								FillerElement<?> filler = new FillerElement<>(i);
+								filler.add(ed -> {
+									ed.setElement(it -> it.setType(Material.GRAY_STAINED_GLASS_PANE).setTitle(" ").build());
+								});
+								i.addItem(filler);
+							})
+							.orGet(m -> m instanceof SingularMenu && m.getKey().map(("main-panel-" + atm.id)::equals).orElse(false));
+				case ACCOUNT_LOGIN:
+					return MenuType.SINGULAR.build()
+							.setTitle("Login (Place your card)")
+							.setHost(plugin)
+							.setSize(Menu.Rows.SIX)
+							.setStock(i -> {
+								i.addItem(ed -> {
+									ed.setElement(it -> it.setType(Material.GLASS_PANE).setTitle(" ").build());
+									ed.setSlot(22);
+									ed.setClick(click -> {
+										click.setCancelled(true);
 
-									msg.send("&cThis debit card is invalid.");
-									click.getPlayer().getWorld().playSound(click.getPlayer().getLocation(), Sound.ENTITY_VILLAGER_NO, 10, 1);
-									click.getPlayer().closeInventory();
-								}
+										ItemStack item = click.getCursor();
+										Message msg = Message.form(click.getElement()).setPrefix(RetroConomy.getInstance().getManager().getMain().getRoot().getString("Options.prefix"));
+										if (DebitCard.matches(item)) {
+											String id = item.getItemMeta().getPersistentDataContainer().get(DebitCard.KEY, PersistentDataType.STRING);
+
+											RetroConomy.getInstance().getManager().getAccount(HUID.fromString(id)).ifPresent(a -> {
+												if (a.getOwner().equals(click.getElement().getUniqueId()) || a.getJointOwner() != null && a.getJointOwner().equals(click.getElement().getUniqueId()) || a.getMembers().contains(click.getElement().getUniqueId())) {
+													// access granted
+													final ItemStack copy = item.clone();
+													item.setAmount(0);
+													click.getElement().getWorld().dropItem(click.getElement().getLocation(), copy);
+													select(atm, a.getId(), Type.ACCOUNT).open(click.getElement());
+												} else {
+													click.getElement().closeInventory();
+													// access denied
+													Schedule.sync(() -> click.getElement().getWorld().playSound(atm.getLocation(), Sound.ENTITY_VILLAGER_NO, 10, 10)).cancelAfter(18).repeat(0, 20);
+													msg.send("&cYou don't have access to this bank account.");
+												}
+											});
+										} else {
+											msg.send("&cThis debit card is invalid.");
+											click.getElement().getWorld().playSound(click.getElement().getLocation(), Sound.ENTITY_VILLAGER_NO, 10, 1);
+											click.getElement().closeInventory();
+										}
+
+									});
+								});
+								i.addItem(ed -> {
+									ed.setElement(it -> it.setItem(SkullType.ARROW_BLACK_RIGHT.get()).setTitle("&7Place your debit card in the slot. &a&m→").build());
+									ed.setSlot(20);
+									ed.setType(ItemElement.ControlType.DISPLAY);
+								});
+								i.addItem(ed -> {
+									ed.setElement(it -> it.setType(Material.PLAYER_HEAD).setTitle("&7▼ &3Forgot Card.").setLore("&7Enter your pin manually.").build());
+									ed.setSlot(40);
+									ed.setClick(click -> {
+										click.setCancelled(true);
+										write(atm, null, Type.FORGOT_CARD).open(click.getElement());
+									});
+								});
+								FillerElement<?> filler = new FillerElement<>(i);
+								filler.add(ed -> {
+									ed.setElement(it -> it.setType(Material.BLUE_STAINED_GLASS_PANE).setTitle(" ").build());
+								});
+								i.addItem(filler);
 							})
-							.assignToSlots(24)
-							.addElement(new ItemStack(Material.BLUE_STAINED_GLASS_PANE))
-							.setText(StringUtils.use("&7Place your debit card in the slot. &a&m→").translate())
-							.assignToSlots(20)
-							.addElement(new ItemStack(Material.GOLD_NUGGET))
-							.setText(StringUtils.use("&8(&7Tax&8) &a&m→&6 " + RetroConomy.getInstance().getManager().format(atm.getTax(null))).translate())
-							.assignToSlots(22)
-							.addElement(new ItemStack(Material.PLAYER_HEAD))
-							.setText(StringUtils.use("&7▼ &3Forgot Card.").translate())
-							.setLore()
-							.setAction(click -> {
-								// open manual id type.
-								write(atm, null, Type.FORGOT_CARD).setViewer(click.getPlayer()).open();
-							})
-							.assignToSlots(40)
-							.setFiller(new ItemStack(Material.GRAY_STAINED_GLASS_PANE))
-							.setText(" ")
-							.setAction(MenuClick::disallowClick)
-							.set()
-							.create(JavaPlugin.getProvidingPlugin(RetroConomy.class));
+							.join();
 				case ACCOUNT:
-					return new MenuBuilder(InventoryRows.THREE, "Account Options")
-							.addElement(new ItemStack(Material.GOLDEN_HELMET))
-							.setText(StringUtils.use("&2Withdraw").translate())
-							.setLore(StringUtils.use("&7Click to transfer money to your wallet.").translate())
-							.setAction(click -> write(atm, account, Type.WITHDRAW_ACCOUNT).setViewer(click.getPlayer()).open())
-							.assignToSlots(12)
-							.addElement(new ItemStack(Material.ENCHANTED_BOOK))
-							.setText(StringUtils.use("&2&m←&r &aChoose an option &2&m→").translate())
-							.setLore(StringUtils.use("").translate())
-							.setAction(click -> {
-
+					return MenuType.SINGULAR.build()
+							.setTitle("Account Options")
+							.setKey("account-" + account.toString() + "-action")
+							.setHost(plugin)
+							.setSize(Menu.Rows.THREE)
+							.setProperty(Menu.Property.CACHEABLE)
+							.setStock(i -> {
+								i.addItem(ed -> {
+									ed.setElement(it -> it.setType(Material.GOLDEN_HELMET).setTitle("&6Withdraw").setLore("&7Click to transfer money to your wallet.").build());
+									ed.setSlot(12);
+									ed.setClick(click -> {
+										click.setCancelled(true);
+										write(atm, account, Type.WITHDRAW_ACCOUNT).open(click.getElement());
+									});
+								});
+								i.addItem(ed -> {
+									ed.setElement(it -> it.setType(Material.GOLDEN_HELMET).setTitle("&6Deposit").setLore("&7Click to transfer money to your account.").build());
+									ed.setSlot(14);
+									ed.setClick(click -> {
+										click.setCancelled(true);
+										write(atm, account, Type.DEPOSIT_ACCOUNT).open(click.getElement());
+									});
+								});
+								i.addItem(ed -> {
+									ed.setElement(it -> it.setType(Material.IRON_HELMET).setTitle("&2&m←&r &aChoose an option &2&m→").build());
+									ed.setSlot(13);
+									ed.setType(ItemElement.ControlType.DISPLAY);
+								});
+								FillerElement<?> filler = new FillerElement<>(i);
+								filler.add(ed -> {
+									ed.setElement(it -> it.setType(Material.GREEN_STAINED_GLASS_PANE).setTitle(" ").build());
+								});
+								i.addItem(filler);
 							})
-							.assignToSlots(13)
-							.addElement(new ItemStack(Material.IRON_HELMET))
-							.setText(StringUtils.use("&aDeposit").translate())
-							.setLore(StringUtils.use("&7Click to transfer money to your account.").translate())
-							.setAction(click -> write(atm, account, Type.DEPOSIT_ACCOUNT).setViewer(click.getPlayer()).open())
-							.assignToSlots(14)
-							.setFiller(new ItemStack(Material.GRAY_STAINED_GLASS_PANE))
-							.setText(" ")
-							.set()
-							.create(JavaPlugin.getProvidingPlugin(RetroConomy.class));
+							.orGet(m -> m instanceof SingularMenu && m.getKey().map(("account-" + account + "-action")::equals).orElse(false));
 				case WALLET:
-					return new MenuBuilder(InventoryRows.THREE, "Wallet Options")
-							.addElement(new ItemStack(Material.GOLDEN_HELMET))
-							.setText(StringUtils.use("&2Withdraw").translate())
-							.setLore(StringUtils.use("&7Click to withdraw physical money.").translate())
-							.setAction(click -> write(atm, null, Type.WITHDRAW_WALLET).setViewer(click.getPlayer()).open())
-							.assignToSlots(12)
-							.addElement(new ItemStack(Material.ENCHANTED_BOOK))
-							.setText(StringUtils.use("&2&m←&r &aChoose an option &2&m→").translate())
-							.setLore(StringUtils.use("").translate())
-							.setAction(click -> {
-
+					return MenuType.SINGULAR.build()
+							.setTitle("Account Options")
+							.setHost(plugin)
+							.setSize(Menu.Rows.THREE)
+							.setStock(i -> {
+								i.addItem(ed -> {
+									ed.setElement(it -> it.setType(Material.GOLDEN_HELMET).setTitle("&6Withdraw").setLore("&7Click to withdraw physical money.").build());
+									ed.setSlot(12);
+									ed.setClick(click -> {
+										click.setCancelled(true);
+										write(atm, account, Type.WITHDRAW_WALLET).open(click.getElement());
+									});
+								});
+								i.addItem(ed -> {
+									ed.setElement(it -> it.setType(Material.GOLDEN_HELMET).setTitle("&6Deposit").setLore("&7Click to deposit physical money.").build());
+									ed.setSlot(14);
+									ed.setClick(click -> {
+										click.setCancelled(true);
+										write(atm, account, Type.DEPOSIT_WALLET).open(click.getElement());
+									});
+								});
+								i.addItem(ed -> {
+									ed.setElement(it -> it.setType(Material.IRON_HELMET).setTitle("&2&m←&r &aChoose an option &2&m→").build());
+									ed.setSlot(13);
+									ed.setType(ItemElement.ControlType.DISPLAY);
+								});
+								FillerElement<?> filler = new FillerElement<>(i);
+								filler.add(ed -> {
+									ed.setElement(it -> it.setType(Material.GREEN_STAINED_GLASS_PANE).setTitle(" ").build());
+								});
+								i.addItem(filler);
 							})
-							.assignToSlots(13)
-							.addElement(new ItemStack(Material.IRON_HELMET))
-							.setText(StringUtils.use("&aDeposit").translate())
-							.setLore(StringUtils.use("&7Click to deposit physical money.").translate())
-							.setAction(click -> write(atm, null, Type.DEPOSIT_WALLET).setViewer(click.getPlayer()).open())
-							.assignToSlots(14)
-							.setFiller(new ItemStack(Material.GRAY_STAINED_GLASS_PANE))
-							.setText(" ")
-							.set()
-							.create(JavaPlugin.getProvidingPlugin(RetroConomy.class));
+							.join();
 				default:
 					throw new IllegalStateException("");
 			}
 		}
 
 		public enum Type {
-			MAIN, ADMIN_PANEL, LOG, WALLET, ACCOUNT, ACCOUNT_LOGIN, FORGOT_CARD, TAX_EDIT, DEPOSIT_ACCOUNT, WITHDRAW_ACCOUNT, DEPOSIT_WALLET, WITHDRAW_WALLET
+			MAIN, ADMIN_PANEL, WALLET, ACCOUNT, ACCOUNT_LOGIN, FORGOT_CARD, TAX_EDIT, DEPOSIT_ACCOUNT, WITHDRAW_ACCOUNT, DEPOSIT_WALLET, WITHDRAW_WALLET
 		}
 
 	}
@@ -717,7 +800,7 @@ public class Shop implements Savable {
 
 			Shop atm = pick(b);
 
-			Message msg = Message.form(p).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix"));
+			Message msg = Message.form(p).setPrefix(RetroConomy.getInstance().getManager().getMain().getRoot().getString("Options.prefix"));
 
 			if (atm != null) {
 				if (atm.getOwner().getUniqueId().equals(p.getUniqueId())) {
@@ -768,7 +851,7 @@ public class Shop implements Savable {
 
 			if (i.hasItemMeta() && StringUtils.use(i.getItemMeta().getDisplayName()).containsIgnoreCase("Shop")) {
 
-				Message msg = Message.form(p).setPrefix(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix"));
+				Message msg = Message.form(p).setPrefix(RetroConomy.getInstance().getManager().getMain().getRoot().getString("Options.prefix"));
 				Shop atm = pick(p);
 				if (!has(p)) {
 					if (i.isSimilar(atm.toItem())) {

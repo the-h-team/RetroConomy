@@ -6,16 +6,17 @@
  *  This software is currently in development and its licensing has not
  *  yet been chosen.
  */
-package com.github.sanctum.retro.construct.internal;
+package com.github.sanctum.retro.command;
 
-import com.github.sanctum.labyrinth.formatting.TabCompletion;
-import com.github.sanctum.labyrinth.formatting.TabCompletionBuilder;
-import com.github.sanctum.labyrinth.formatting.string.PaginatedAssortment;
+import com.github.sanctum.labyrinth.formatting.PaginatedList;
+import com.github.sanctum.labyrinth.formatting.completion.SimpleTabCompletion;
+import com.github.sanctum.labyrinth.formatting.completion.TabCompletionIndex;
 import com.github.sanctum.labyrinth.library.HUID;
+import com.github.sanctum.labyrinth.library.Message;
 import com.github.sanctum.labyrinth.library.TextLib;
 import com.github.sanctum.retro.RetroConomy;
-import com.github.sanctum.retro.command.CommandInformation;
-import com.github.sanctum.retro.command.CommandOrientation;
+import com.github.sanctum.retro.api.CommandInformation;
+import com.github.sanctum.retro.api.CommandOrientation;
 import com.github.sanctum.retro.construct.core.BankAccount;
 import com.github.sanctum.retro.util.ConfiguredMessage;
 import com.github.sanctum.retro.util.FormattedMessage;
@@ -38,15 +39,13 @@ public class BankCommand extends CommandOrientation {
 		super(information);
 	}
 
-	private final TabCompletionBuilder builder = TabCompletion.build(getLabel());
+	private final SimpleTabCompletion builder = SimpleTabCompletion.empty();
 
 	@Override
 	public @Nullable List<String> complete(Player p, String[] args) {
-		return builder.forArgs(args)
-				.level(1)
-				.completeAt(getLabel())
-				.filter(() -> Arrays.asList("balance", "list", "open", "close", "card", "deposit", "withdraw", "add", "remove"))
-				.collect().get(args.length);
+		return builder.fillArgs(args)
+				.then(TabCompletionIndex.ONE, "balance", "list", "open", "close", "card", "deposit", "withdraw", "add", "remove")
+				.get();
 	}
 
 	private int maxAccounts(Player p) {
@@ -71,13 +70,13 @@ public class BankCommand extends CommandOrientation {
 
 			if (args.length == 0) {
 				// open either GUI? or paginated assortment
-				PaginatedAssortment menu = new PaginatedAssortment(player, Arrays.asList("/&6bank" + " open &f- Open a new primary account.", "/&6bank" + " close &f- Close your current primary account.", "/&6bank" + " list &f- View all of your open accounts.", "/&6bank" + " switch <accountId#> &f- Switch your primary bank account", "/&6bank" + " card &f- Obtain a copy of your debit card."))
-						.setLinesPerPage(5)
-						.setListTitle(RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.prefix") + " &r- Chat management commands. &r(&7/chat #page&r)")
-						.setListBorder("&r▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬")
-						.setBordersPerPage(2)
-						.setNavigateCommand("bank");
-				menu.export(1);
+				PaginatedList<String> list = new PaginatedList<>(Arrays.asList("/&6bank" + " open &f- Open a new primary account.", "/&6bank" + " close &f- Close your current primary account.", "/&6bank" + " list &f- View all of your open accounts.", "/&6bank" + " switch <accountId#> &f- Switch your primary bank account", "/&6bank" + " card &f- Obtain a copy of your debit card."));
+
+				list.limit(5).finish(builder -> builder.setSuffix("").setPrefix("&r▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬").setPlayer(player));
+				list.start((pagination, page, max) -> {
+					Message.form(player).send(RetroConomy.getInstance().getManager().getMain().getRoot().getString("Options.prefix") + " &r- Retro bank commands. &r(&7/bank #page&r)");
+				}).decorate((pagination, object, page, max, placement) -> Message.form(player).send(object));
+				list.get(1);
 				return;
 			}
 
@@ -93,7 +92,7 @@ public class BankCommand extends CommandOrientation {
 
 					String[] balance;
 					String bal = RetroConomy.getInstance().getManager().format(account.getBalance(player.getWorld()));
-					if (RetroConomy.getInstance().getManager().getMain().getConfig().getString("Options.format").equals("en")) {
+					if (RetroConomy.getInstance().getManager().getMain().getRoot().getString("Options.format").equals("en")) {
 						balance = bal.split("\\.");
 					} else {
 						balance = bal.split(",");
@@ -126,7 +125,7 @@ public class BankCommand extends CommandOrientation {
 						sendMessage(player, ConfiguredMessage.getMessage("account-open"));
 					} else {
 						// already opened
-						if (RetroConomy.getInstance().getManager().getMain().getConfig().getBoolean("Options.accounts.multiple-allowed")) {
+						if (RetroConomy.getInstance().getManager().getMain().getRoot().getBoolean("Options.accounts.multiple-allowed")) {
 							if (RetroConomy.getInstance().getManager().getAccounts(player.getUniqueId()).size() >= maxAccounts(player)) {
 								sendMessage(player, FormattedMessage.convert(ConfiguredMessage.getMessage("account-cap-reached")).next(maxAccounts(player), 0.0));
 							} else {

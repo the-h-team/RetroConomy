@@ -6,7 +6,7 @@
  *  This software is currently in development and its licensing has not
  *  yet been chosen.
  */
-package com.github.sanctum.retro.command;
+package com.github.sanctum.retro.api;
 
 import java.util.Collections;
 import java.util.List;
