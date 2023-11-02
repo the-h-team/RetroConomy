@@ -1,11 +1,11 @@
 name: RetroConomy
-version: 1.0.0
+version: ${project.version}
 main: com.github.sanctum.retro.RetroConomy
 api-version: 1.13
 depend: [ Labyrinth ]
 softdepend: [ Vault, Enterprise ]
 authors: [ Hempfest, ms5984 ]
-description: An advanced spigot vault & enterprise economy provider.
+description: An advanced Enterprise and Vault economy provider for Bukkit.
 loadbefore:
   - EnchantGui
   - EnchantGUI

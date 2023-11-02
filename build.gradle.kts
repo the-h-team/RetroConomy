@@ -30,7 +30,7 @@ dependencies {
     api("com.github.the-h-team:labyrinth-common:1.7.3")
     api("com.github.the-h-team:labyrinth-skulls:1.7.3")
     implementation("com.github.the-h-team:Enterprise:1.7")
-    implementation("org.spigotmc:spigot-api:1.16.1-R0.1-SNAPSHOT")
+    implementation("org.spigotmc:spigot-api:1.20.2-R0.1-SNAPSHOT")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7")
 }
 
